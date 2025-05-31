@@ -1,6 +1,13 @@
 package com.viandasApp.api.User.dto;
 
 import com.viandasApp.api.User.model.UserRole;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,12 +16,20 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class UserDTO {
+    @Id
     private Long id;
 
+    @NotBlank(message = "El nombre es obligatorio.")
+    @Size(min = 1, max = 255, message = "El nombre debe tener [min, max] caracteres.")
     private String fullName;
 
+    @Email
+    @NotBlank(message = "El email es obligatorio.")
+    @Size(min = 1, max = 64, message = "El email debe tener [min, max] caracteres.")
     private String email;
 
+    @Enumerated(EnumType.STRING)
+    @NotNull(message = "El rol es obligatorio.")
     private UserRole role;
 
     public UserDTO(Long id, String fullName, String email, UserRole role) {

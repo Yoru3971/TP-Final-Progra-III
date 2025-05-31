@@ -1,7 +1,9 @@
 package com.viandasApp.api.User.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,11 +23,13 @@ public class User {
     private String fullName;
 
     @Column(nullable = false, unique = true)
+    @Email
     @NotBlank
     private String email;
 
     @Column(nullable = false)
-    @NotBlank
+    @Enumerated(EnumType.STRING)
+    @NotNull
     private UserRole role;
 
     // Lombok no anda en las máquinas de la facultad, por lo que esto es necesario

@@ -39,6 +39,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Optional<UserDTO> findByEmail(String email) {
+        return repository.findAll().stream()
+                .filter((user) -> user.getEmail().equals(email))
+                .map(this::EntityToDTO)
+                .findFirst();
+    }
+
+    @Override
     public Optional<UserDTO> update(Long id, UserUpdateDTO userDto) {
         return repository.findById(id).map(
                 existingUser -> {

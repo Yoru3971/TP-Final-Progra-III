@@ -45,6 +45,14 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{email}")
+    public ResponseEntity<UserDTO> findByEmail(@PathVariable String email) {
+        final Optional<UserDTO> user = service.findByEmail(email);
+
+        return user.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<UserDTO> update(
             @PathVariable Long id,

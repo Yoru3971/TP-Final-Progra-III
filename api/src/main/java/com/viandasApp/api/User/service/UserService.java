@@ -14,6 +14,8 @@ public interface UserService {
 
     Optional<UserDTO> findById(Long id);
 
+    Optional<UserDTO> findByEmail(String email);
+
     Optional<UserDTO> update(Long id, UserUpdateDTO userDto);
 
     boolean delete(Long id);
