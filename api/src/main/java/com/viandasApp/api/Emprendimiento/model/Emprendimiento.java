@@ -31,8 +31,8 @@ public class Emprendimiento {
     private String direccion;
 
     @Column(nullable = false)
-
-    private Long telefono;
+    @NotBlank
+    private String telefono;
 
     @ManyToOne(optional = false)    //  muchos emprendimientos pueden pertenecer a un mismo dueño
     @JoinColumn(name = "usuario_id", nullable = false)
