@@ -33,7 +33,7 @@ public class EmprendimientoController {
         return ResponseEntity.ok(emprendimientos);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ResponseEntity<EmprendimientoDTO> getEmprendimientoById (@PathVariable Long id){
 
         Optional<EmprendimientoDTO> emprendimiento = emprendimientoService.getEmprendimientoById(id);
@@ -42,7 +42,7 @@ public class EmprendimientoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/{nombre}")
+    @GetMapping("/nombre/{nombre}")
     public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByNombre(String nombreEmp){
 
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByNombre(nombreEmp);
@@ -50,7 +50,7 @@ public class EmprendimientoController {
         return ResponseEntity.ok(emprendimientos);
     }
 
-    @GetMapping("/{ciudad}")
+    @GetMapping("/ciudad/{ciudad}")
     public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByCiudad(String ciudad){
 
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByCiudad(ciudad);
@@ -58,7 +58,7 @@ public class EmprendimientoController {
         return ResponseEntity.ok(emprendimientos);
     }
 
-    @GetMapping("/{usuario}")
+    @GetMapping("/usuario/{usuario}")
     public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByUsuario(User usuario){
 
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByUsuario(usuario);
