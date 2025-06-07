@@ -39,4 +39,12 @@ public class Emprendimiento {
     private User usuario;
 
 
+    public Emprendimiento(String nombreEmprendimiento, String ciudad, String direccion, String telefono, User usuario) {
+        this.nombreEmprendimiento = nombreEmprendimiento;
+        this.ciudad = ciudad;
+        this.direccion = direccion;
+        this.telefono = telefono;
+        this.usuario = usuario;
+    }
+
 }
