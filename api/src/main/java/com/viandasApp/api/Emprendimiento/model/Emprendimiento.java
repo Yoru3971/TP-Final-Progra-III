@@ -34,8 +34,9 @@ public class Emprendimiento {
 
     private Long telefono;
 
-    @Column(nullable = false)
+    @ManyToOne(optional = false)    //  muchos emprendimientos pueden pertenecer a un mismo dueño
+    @JoinColumn(name = "usuario_id", nullable = false)
     private User usuario;
-    
+
 
 }
