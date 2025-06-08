@@ -5,7 +5,6 @@ import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
-import com.viandasApp.api.User.model.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -48,8 +47,8 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     }
 
     @Override
-    public List<EmprendimientoDTO> getEmprendimientosByUsuario(User usuario) {
-        return emprendimientoRepository.findByUsuario(usuario)
+    public List<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long id) {
+        return emprendimientoRepository.findByUsuarioId(id)
                 .stream().map(this::convertToDto).toList();
     }
 

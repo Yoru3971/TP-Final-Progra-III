@@ -28,7 +28,6 @@ public class CreateEmprendimientoDTO {
     @Pattern(regexp = "\\d+", message = "El teléfono debe contener solo números")
     private String telefono;
 
-    //  la validación del rol debería ir en el servicio (y acá usar solo el id?)
     @NotNull
     private User usuario;
 

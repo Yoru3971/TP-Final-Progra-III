@@ -42,8 +42,8 @@ public class EmprendimientoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/nombre/{nombre}")
-    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByNombre(String nombreEmp){
+    @GetMapping("/nombre/{nombreEmp}")
+    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByNombre(@PathVariable String nombreEmp){
 
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByNombre(nombreEmp);
 
@@ -51,17 +51,17 @@ public class EmprendimientoController {
     }
 
     @GetMapping("/ciudad/{ciudad}")
-    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByCiudad(String ciudad){
+    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByCiudad(@PathVariable String ciudad){
 
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByCiudad(ciudad);
 
         return ResponseEntity.ok(emprendimientos);
     }
 
-    @GetMapping("/usuario/{usuario}")
-    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByUsuario(User usuario){
+    @GetMapping("/id-usuario/{idUsuario}")
+    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByUsuario(@PathVariable Long idUsuario){
 
-        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByUsuario(usuario);
+        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByUsuarioId(idUsuario);
 
         return ResponseEntity.ok(emprendimientos);
     }
