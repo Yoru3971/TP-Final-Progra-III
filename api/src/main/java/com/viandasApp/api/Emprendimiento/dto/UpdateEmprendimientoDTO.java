@@ -1,8 +1,7 @@
 package com.viandasApp.api.Emprendimiento.dto;
 
 
-import com.viandasApp.api.User.model.User;
-import jakarta.validation.constraints.NotBlank;
+import com.viandasApp.api.User.model.Usuario;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -29,6 +28,6 @@ public class UpdateEmprendimientoDTO {
     private String telefono;
 
     @NotNull
-    private User usuario;
+    private Usuario usuario;
 
 }

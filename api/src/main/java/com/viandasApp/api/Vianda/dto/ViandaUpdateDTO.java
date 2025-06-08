@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class ViandaUpdateDTO {
-
     @Size(max = 100, message = "El nombre debe contener max 100 caracteres")
     private String nombreVianda;
 

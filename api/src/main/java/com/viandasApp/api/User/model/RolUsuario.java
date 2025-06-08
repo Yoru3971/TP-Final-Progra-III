@@ -1,13 +1,13 @@
 package com.viandasApp.api.User.model;
 
-public enum UserRole {
+public enum RolUsuario {
     ADMIN("ADMIN"),
     OWNER("OWNER"),
     CLIENT("CLIENT");
 
     private final String dbIdentifier;
 
-    UserRole(String dbIdentifier) {
+    RolUsuario(String dbIdentifier) {
         this.dbIdentifier = dbIdentifier;
     }
 }

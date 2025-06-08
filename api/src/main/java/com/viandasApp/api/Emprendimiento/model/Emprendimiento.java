@@ -1,6 +1,6 @@
 package com.viandasApp.api.Emprendimiento.model;
 
-import com.viandasApp.api.User.model.User;
+import com.viandasApp.api.User.model.Usuario;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 
 public class Emprendimiento {
-
     @Id
+    @Column(name = "emprendimiento_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -36,10 +36,10 @@ public class Emprendimiento {
 
     @ManyToOne(optional = false)    //  muchos emprendimientos pueden pertenecer a un mismo dueño
     @JoinColumn(name = "usuario_id", nullable = false)
-    private User usuario;
+    private Usuario usuario;
 
 
-    public Emprendimiento(String nombreEmprendimiento, String ciudad, String direccion, String telefono, User usuario) {
+    public Emprendimiento(String nombreEmprendimiento, String ciudad, String direccion, String telefono, Usuario usuario) {
         this.nombreEmprendimiento = nombreEmprendimiento;
         this.ciudad = ciudad;
         this.direccion = direccion;

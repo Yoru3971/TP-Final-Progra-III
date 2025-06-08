@@ -1,7 +1,6 @@
 package com.viandasApp.api.Emprendimiento.repository;
 
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
-import com.viandasApp.api.User.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

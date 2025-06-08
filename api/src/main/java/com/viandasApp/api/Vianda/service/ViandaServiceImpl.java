@@ -71,7 +71,8 @@ public class ViandaServiceImpl implements ViandaService {
                 vianda.getPrecio(),
                 vianda.getEsVegano(),
                 vianda.getEsVegetariano(),
-                vianda.getEsSinTacc()
+                vianda.getEsSinTacc(),
+                vianda.getEmprendimiento()
         );
     }
 
@@ -83,7 +84,8 @@ public class ViandaServiceImpl implements ViandaService {
                 viandaDTO.getPrecio(),
                 viandaDTO.getEsVegano(),
                 viandaDTO.getEsVegetariano(),
-                viandaDTO.getEsSinTacc()
+                viandaDTO.getEsSinTacc(),
+                viandaDTO.getEmprendimiento()
         );
     }
 }

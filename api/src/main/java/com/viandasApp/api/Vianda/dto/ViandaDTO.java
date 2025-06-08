@@ -1,7 +1,10 @@
 package com.viandasApp.api.Vianda.dto;
 
 
+import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Vianda.model.CategoriaVianda;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class ViandaDTO {
-
     private Long id;
 
     private String nombreVianda;
@@ -26,4 +28,6 @@ public class ViandaDTO {
     private Boolean esVegetariano;
 
     private Boolean esSinTacc;
+
+    private Emprendimiento emprendimiento;
 }

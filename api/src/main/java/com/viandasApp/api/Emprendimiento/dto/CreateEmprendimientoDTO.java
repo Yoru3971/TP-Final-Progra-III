@@ -1,7 +1,6 @@
 package com.viandasApp.api.Emprendimiento.dto;
 
-
-import com.viandasApp.api.User.model.User;
+import com.viandasApp.api.User.model.Usuario;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateEmprendimientoDTO {
-
     @NotBlank(message = "El nombre del emprendimiento no puede estar vacío")
     @Size(min=3, max=100, message = "El nombre debe tener entre [min] y [max] caracteres")
     private String nombreEmprendimiento;
@@ -29,6 +27,5 @@ public class CreateEmprendimientoDTO {
     private String telefono;
 
     @NotNull
-    private User usuario;
-
+    private Usuario usuario;
 }

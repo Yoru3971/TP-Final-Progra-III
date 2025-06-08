@@ -1,5 +1,6 @@
 package com.viandasApp.api.Vianda.model;
 
+import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,8 +12,8 @@ import lombok.*;
 @NoArgsConstructor
 @Data
 public class Vianda {
-
     @Id
+    @Column(name = "vianda_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -26,6 +27,7 @@ public class Vianda {
     private CategoriaVianda categoria;
 
     @Column
+    @NotBlank
     private String descripcion;
 
     @Column(nullable = false)
@@ -40,12 +42,11 @@ public class Vianda {
     @Column(nullable = false)
     private Boolean esSinTacc;
 
-    // @ManyToOne(fetch = FetchType.LAZY)
-    // @JoinColumn(name = "emprendimiento_id", nullable = false)
-    // private Emprendimiento emprendimiento;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "emprendimiento_id", nullable = false)
+    private Emprendimiento emprendimiento;
 
-
-    public Vianda(String nombreVianda, CategoriaVianda categoria, String descripcion, Double precio, Boolean esVegano, Boolean esVegetariano, Boolean esSinTacc) {
+    public Vianda(String nombreVianda, CategoriaVianda categoria, String descripcion, Double precio, Boolean esVegano, Boolean esVegetariano, Boolean esSinTacc, Emprendimiento emprendimiento) {
         this.nombreVianda = nombreVianda;
         this.categoria = categoria;
         this.descripcion = descripcion;
@@ -53,5 +54,6 @@ public class Vianda {
         this.esVegano = esVegano;
         this.esVegetariano = esVegetariano;
         this.esSinTacc = esSinTacc;
+        this.emprendimiento = emprendimiento;
     }
 }

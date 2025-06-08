@@ -1,7 +1,7 @@
 package com.viandasApp.api.Emprendimiento.dto;
 
 
-import com.viandasApp.api.User.model.User;
+import com.viandasApp.api.User.model.Usuario;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EmprendimientoDTO {
-
     private Long id;
 
     private String nombreEmprendimiento;
@@ -21,6 +20,5 @@ public class EmprendimientoDTO {
 
     private String telefono;
 
-    private User usuario;
-
+    private Usuario usuario;
 }
