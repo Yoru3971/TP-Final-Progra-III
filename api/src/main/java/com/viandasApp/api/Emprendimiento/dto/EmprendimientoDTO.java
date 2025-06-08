@@ -21,7 +21,6 @@ public class EmprendimientoDTO {
 
     private String telefono;
 
-    //  REVISAR: quiero todo el usuario? o algún dato en particular?
     private User usuario;
 
 }

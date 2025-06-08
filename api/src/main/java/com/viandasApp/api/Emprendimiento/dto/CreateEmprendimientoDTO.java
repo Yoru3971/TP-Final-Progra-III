@@ -31,5 +31,4 @@ public class CreateEmprendimientoDTO {
     @NotNull
     private User usuario;
 
-
 }
