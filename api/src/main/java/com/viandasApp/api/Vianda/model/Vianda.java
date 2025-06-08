@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Entity
-@Table(name="viandas")
+@Table(name = "viandas")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -44,4 +44,14 @@ public class Vianda {
     // @JoinColumn(name = "emprendimiento_id", nullable = false)
     // private Emprendimiento emprendimiento;
 
+
+    public Vianda(String nombreVianda, CategoriaVianda categoria, String descripcion, Double precio, Boolean esVegano, Boolean esVegetariano, Boolean esSinTacc) {
+        this.nombreVianda = nombreVianda;
+        this.categoria = categoria;
+        this.descripcion = descripcion;
+        this.precio = precio;
+        this.esVegano = esVegano;
+        this.esVegetariano = esVegetariano;
+        this.esSinTacc = esSinTacc;
+    }
 }
