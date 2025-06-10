@@ -4,6 +4,7 @@ import com.viandasApp.api.Emprendimiento.service.EmprendimientoServiceImpl;
 import com.viandasApp.api.Vianda.dto.ViandaCreateDTO;
 import com.viandasApp.api.Vianda.dto.ViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaUpdateDTO;
+import com.viandasApp.api.Vianda.model.CategoriaVianda;
 import com.viandasApp.api.Vianda.model.Vianda;
 import com.viandasApp.api.Vianda.repository.ViandaRepository;
 import org.springframework.stereotype.Service;
@@ -109,6 +110,14 @@ public class ViandaServiceImpl implements ViandaService {
     @Override
     public List<ViandaDTO> getViandasByEmprendimientoId(Long id) {
         return repository.findByEmprendimientoId(id)
+                .stream()
+                .map(ViandaDTO::new)
+                .toList();
+    }
+
+    @Override
+    public List<ViandaDTO> getViandasByCategoria(CategoriaVianda categoriaVianda) {
+        return repository.findByCategoria(categoriaVianda)
                 .stream()
                 .map(ViandaDTO::new)
                 .toList();
