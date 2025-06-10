@@ -30,14 +30,14 @@ public class ViandaController {
         return ResponseEntity.ok(service.getAllViandas());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ResponseEntity<ViandaDTO> findById(@PathVariable Long id) {
         return service.findViandaById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/id/{id}")
     public ResponseEntity<ViandaDTO> update(
             @PathVariable Long id,
             @Valid @RequestBody ViandaUpdateDTO dto
@@ -47,7 +47,7 @@ public class ViandaController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/id/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         return service.deleteVianda(id)
                 ? new ResponseEntity<>(HttpStatus.NO_CONTENT)
