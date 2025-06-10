@@ -15,29 +15,29 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class ViandaCreateDTO {
-    @NotBlank(message = "El nombre no puede estar vacío")
-    @Size(max = 100, message = "El nombre debe contener [max] caracteres")
+    @NotBlank(message = "El nombre es obligatorio.")
+    @Size(min = 1, max = 100, message = "El nombre debe tener [min, max] caracteres.")
     private String nombreVianda;
 
-    @NotNull(message = "La categoria no puede estar vacia")
+    @NotNull(message = "La categoria es obligatoria.")
     private CategoriaVianda categoria;
 
-    @Size(max = 400, message = "La descripcion puede contener [max] caracteres")
+    @Size(max = 400, message = "La descripcion debe tener [max] caracteres.")
     private String descripcion;
 
-    @NotNull
-    @DecimalMin(value = "0.0", message = "El precio no puede ser negativo")
+    @NotNull(message = "El precio es obligatorio.")
+    @DecimalMin(value = "0.0", message = "El precio no puede ser negativo.")
     private Double precio;
 
-    @NotNull
+    @NotNull(message = "Indique si es vegano.")
     private Boolean esVegano;
 
-    @NotNull
+    @NotNull(message = "Indique si es vegetariano.")
     private Boolean esVegetariano;
 
-    @NotNull
+    @NotNull(message = "Indique si es sin TACC.")
     private Boolean esSinTacc;
 
-    @NotNull
+    @NotNull(message = "El emprendimiento es obligatorio.")
     private Emprendimiento emprendimiento;
 }
