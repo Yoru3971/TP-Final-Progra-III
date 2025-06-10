@@ -23,19 +23,19 @@ public class ViandaServiceImpl implements ViandaService {
     public ViandaDTO create(ViandaCreateDTO dto) {
         final Vianda vianda = DTOtoEntity(dto);
         final Vianda nuevaVianda = repository.save(vianda);
-        return entityToDTO(nuevaVianda);
+        return new ViandaDTO(nuevaVianda);
     }
 
     @Override
     public List<ViandaDTO> read() {
         return repository.findAll().stream()
-                .map(this::entityToDTO)
+                .map(ViandaDTO::new)
                 .collect(Collectors.toList());
     }
 
     @Override
     public Optional<ViandaDTO> findById(Long id) {
-        return repository.findById(id).map(this::entityToDTO);
+        return repository.findById(id).map(ViandaDTO::new);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class ViandaServiceImpl implements ViandaService {
             if (dto.getEsVegetariano() != null) existing.setEsVegetariano(dto.getEsVegetariano());
             if (dto.getEsSinTacc() != null) existing.setEsSinTacc(dto.getEsSinTacc());
 
-            return entityToDTO(repository.save(existing));
+            return new ViandaDTO(repository.save(existing));
         });
     }
 
@@ -60,20 +60,6 @@ public class ViandaServiceImpl implements ViandaService {
             return true;
         }
         return false;
-    }
-
-    private ViandaDTO entityToDTO(Vianda vianda) {
-        return new ViandaDTO(
-                vianda.getId(),
-                vianda.getNombreVianda(),
-                vianda.getCategoria(),
-                vianda.getDescripcion(),
-                vianda.getPrecio(),
-                vianda.getEsVegano(),
-                vianda.getEsVegetariano(),
-                vianda.getEsSinTacc(),
-                vianda.getEmprendimiento()
-        );
     }
 
     private Vianda DTOtoEntity(ViandaCreateDTO viandaDTO) {
