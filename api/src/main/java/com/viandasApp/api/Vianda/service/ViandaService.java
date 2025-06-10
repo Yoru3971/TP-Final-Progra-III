@@ -8,9 +8,16 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ViandaService {
-    ViandaDTO create(ViandaCreateDTO viandaDto);
-    List<ViandaDTO> read();
-    Optional<ViandaDTO> findById(Long id);
-    Optional<ViandaDTO> update(Long id, ViandaUpdateDTO viandaDto);
-    boolean delete(Long id);
+    ViandaDTO createVianda(ViandaCreateDTO viandaDto);
+    Optional<ViandaDTO> findViandaById(Long id);
+    Optional<ViandaDTO> updateVianda(Long id, ViandaUpdateDTO viandaDto);
+    boolean deleteVianda(Long id);
+
+    List<ViandaDTO> getAllViandas();
+    List<ViandaDTO> getViandasByEmprendimientoId(Long id);
+    List<ViandaDTO> getViandasByPrecio(Double min, Double max);
+    List<ViandaDTO> getViandasByNombre(String nombre);
+    List<ViandaDTO> getViandasByEsSinTaccTrue();
+    List<ViandaDTO> getViandasByEsVegetarianoTrue();
+    List<ViandaDTO> getViandasByEsVeganoTrue();
 }

@@ -22,17 +22,17 @@ public class ViandaController {
 
     @PostMapping
     public ResponseEntity<ViandaDTO> create(@Valid @RequestBody ViandaCreateDTO dto) {
-        return new ResponseEntity<>(service.create(dto), HttpStatus.CREATED);
+        return new ResponseEntity<>(service.createVianda(dto), HttpStatus.CREATED);
     }
 
     @GetMapping
     public ResponseEntity<List<ViandaDTO>> read() {
-        return ResponseEntity.ok(service.read());
+        return ResponseEntity.ok(service.getAllViandas());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ViandaDTO> findById(@PathVariable Long id) {
-        return service.findById(id)
+        return service.findViandaById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -42,14 +42,14 @@ public class ViandaController {
             @PathVariable Long id,
             @Valid @RequestBody ViandaUpdateDTO dto
     ) {
-        return service.update(id, dto)
+        return service.updateVianda(id, dto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        return service.delete(id)
+        return service.deleteVianda(id)
                 ? new ResponseEntity<>(HttpStatus.NO_CONTENT)
                 : ResponseEntity.notFound().build();
     }

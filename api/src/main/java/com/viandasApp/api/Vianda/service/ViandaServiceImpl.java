@@ -1,5 +1,6 @@
 package com.viandasApp.api.Vianda.service;
 
+import com.viandasApp.api.Emprendimiento.service.EmprendimientoServiceImpl;
 import com.viandasApp.api.Vianda.dto.ViandaCreateDTO;
 import com.viandasApp.api.Vianda.dto.ViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaUpdateDTO;
@@ -15,31 +16,25 @@ import java.util.stream.Collectors;
 public class ViandaServiceImpl implements ViandaService {
     private final ViandaRepository repository;
 
-    public ViandaServiceImpl(ViandaRepository repository) {
+    public ViandaServiceImpl(ViandaRepository repository, EmprendimientoServiceImpl emprendimientoService) {
         this.repository = repository;
     }
 
     @Override
-    public ViandaDTO create(ViandaCreateDTO dto) {
+    public ViandaDTO createVianda(ViandaCreateDTO dto) {
         final Vianda vianda = DTOtoEntity(dto);
         final Vianda nuevaVianda = repository.save(vianda);
         return new ViandaDTO(nuevaVianda);
     }
 
-    @Override
-    public List<ViandaDTO> read() {
-        return repository.findAll().stream()
-                .map(ViandaDTO::new)
-                .collect(Collectors.toList());
-    }
 
     @Override
-    public Optional<ViandaDTO> findById(Long id) {
+    public Optional<ViandaDTO> findViandaById(Long id) {
         return repository.findById(id).map(ViandaDTO::new);
     }
 
     @Override
-    public Optional<ViandaDTO> update(Long id, ViandaUpdateDTO dto) {
+    public Optional<ViandaDTO> updateVianda(Long id, ViandaUpdateDTO dto) {
         return repository.findById(id).map(existing -> {
             if (dto.getNombreVianda() != null) existing.setNombreVianda(dto.getNombreVianda());
             if (dto.getCategoria() != null) existing.setCategoria(dto.getCategoria());
@@ -54,13 +49,72 @@ public class ViandaServiceImpl implements ViandaService {
     }
 
     @Override
-    public boolean delete(Long id) {
+    public boolean deleteVianda(Long id) {
         if (repository.existsById(id)) {
             repository.deleteById(id);
             return true;
         }
         return false;
     }
+
+    //  ---------   listado
+
+    @Override
+    public List<ViandaDTO> getAllViandas() {
+        return repository.findAll().stream()
+                .map(ViandaDTO::new)
+                .toList();
+    }
+
+    @Override
+    public List<ViandaDTO> getViandasByPrecio(Double min, Double max) {
+        return repository.findByPrecioBetween(min, max)
+                .stream()
+                .map(ViandaDTO::new)
+                .toList();
+    }
+
+    @Override
+    public List<ViandaDTO> getViandasByNombre(String nombre) {
+        return repository.findByNombreViandaContainingIgnoreCase(nombre)
+                .stream()
+                .map(ViandaDTO::new)
+                .toList();
+    }
+
+    @Override
+    public List<ViandaDTO> getViandasByEsSinTaccTrue() {
+        return repository.findByEsSinTaccTrue()
+                .stream()
+                .map(ViandaDTO::new)
+                .toList();
+    }
+
+    @Override
+    public List<ViandaDTO> getViandasByEsVegetarianoTrue() {
+        return repository.findByEsVegetarianoTrue()
+                .stream()
+                .map(ViandaDTO::new)
+                .toList();
+    }
+
+    @Override
+    public List<ViandaDTO> getViandasByEsVeganoTrue() {
+        return repository.findByEsVeganoTrue()
+                .stream()
+                .map(ViandaDTO::new)
+                .toList();
+    }
+
+    @Override
+    public List<ViandaDTO> getViandasByEmprendimientoId(Long id) {
+        return repository.findByEmprendimientoId(id)
+                .stream()
+                .map(ViandaDTO::new)
+                .toList();
+    }
+
+    // --------- mapeo
 
     private Vianda DTOtoEntity(ViandaCreateDTO viandaDTO) {
         return new Vianda(
