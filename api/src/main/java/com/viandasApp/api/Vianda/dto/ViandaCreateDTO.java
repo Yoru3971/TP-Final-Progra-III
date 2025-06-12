@@ -1,7 +1,5 @@
 package com.viandasApp.api.Vianda.dto;
 
-import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
-import com.viandasApp.api.User.model.Usuario;
 import com.viandasApp.api.Vianda.model.CategoriaVianda;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -39,5 +37,5 @@ public class ViandaCreateDTO {
     private Boolean esSinTacc;
 
     @NotNull(message = "El emprendimiento es obligatorio.")
-    private Emprendimiento emprendimiento;
+    private Long emprendimientoId;
 }

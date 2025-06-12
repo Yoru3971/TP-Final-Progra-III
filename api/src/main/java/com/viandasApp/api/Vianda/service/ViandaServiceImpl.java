@@ -1,6 +1,7 @@
 package com.viandasApp.api.Vianda.service;
 
-import com.viandasApp.api.Emprendimiento.service.EmprendimientoServiceImpl;
+import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
+import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
 import com.viandasApp.api.Vianda.dto.ViandaCreateDTO;
 import com.viandasApp.api.Vianda.dto.ViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaUpdateDTO;
@@ -11,14 +12,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class ViandaServiceImpl implements ViandaService {
     private final ViandaRepository repository;
+    private final EmprendimientoRepository emprendimientoRepository;
 
-    public ViandaServiceImpl(ViandaRepository repository, EmprendimientoServiceImpl emprendimientoService) {
+    public ViandaServiceImpl(ViandaRepository repository, EmprendimientoRepository emprendimientoRepository) {
         this.repository = repository;
+        this.emprendimientoRepository = emprendimientoRepository;
     }
 
     @Override
@@ -126,7 +128,9 @@ public class ViandaServiceImpl implements ViandaService {
     // --------- mapeo
 
     private Vianda DTOtoEntity(ViandaCreateDTO viandaDTO) {
-        return new Vianda(
+        Optional<Emprendimiento> emprendimiento = emprendimientoRepository.findById(viandaDTO.getEmprendimientoId());
+
+        return emprendimiento.map(value -> new Vianda(
                 viandaDTO.getNombreVianda(),
                 viandaDTO.getCategoria(),
                 viandaDTO.getDescripcion(),
@@ -134,7 +138,9 @@ public class ViandaServiceImpl implements ViandaService {
                 viandaDTO.getEsVegano(),
                 viandaDTO.getEsVegetariano(),
                 viandaDTO.getEsSinTacc(),
-                viandaDTO.getEmprendimiento()
-        );
+                value
+        )).orElseThrow(NullPointerException::new);
+
+        // todo: Revisar la excepcion esa si esta bien o modificarla
     }
 }

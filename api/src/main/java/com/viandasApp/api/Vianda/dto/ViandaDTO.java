@@ -1,11 +1,8 @@
 package com.viandasApp.api.Vianda.dto;
 
 
-import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Vianda.model.CategoriaVianda;
 import com.viandasApp.api.Vianda.model.Vianda;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,7 +27,7 @@ public class ViandaDTO {
 
     private Boolean esSinTacc;
 
-    private Emprendimiento emprendimiento;
+    private Long emprendimientoId;
 
     public ViandaDTO(Vianda vianda) {
         this.id = vianda.getId();
@@ -41,6 +38,6 @@ public class ViandaDTO {
         this.esVegano = vianda.getEsVegano();
         this.esVegetariano = vianda.getEsVegetariano();
         this.esSinTacc = vianda.getEsSinTacc();
-        this.emprendimiento = vianda.getEmprendimiento();
+        this.emprendimientoId = vianda.getEmprendimiento().getId();
     }
 }
