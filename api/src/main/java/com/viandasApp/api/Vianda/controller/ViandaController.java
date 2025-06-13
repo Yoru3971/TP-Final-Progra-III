@@ -22,7 +22,7 @@ public class ViandaController {
     }
 
     @PostMapping
-    public ResponseEntity<ViandaDTO> create(@Valid @RequestBody ViandaCreateDTO dto) {
+    public ResponseEntity<ViandaDTO> createVianda(@Valid @RequestBody ViandaCreateDTO dto) {
         return new ResponseEntity<>(viandasService.createVianda(dto), HttpStatus.CREATED);
     }
 
@@ -47,7 +47,7 @@ public class ViandaController {
     }
 
     @PutMapping("/id/{id}")
-    public ResponseEntity<ViandaDTO> update(
+    public ResponseEntity<ViandaDTO> updateVianda(
             @PathVariable Long id,
             @Valid @RequestBody ViandaUpdateDTO dto
     ) {
@@ -57,7 +57,7 @@ public class ViandaController {
     }
 
     @DeleteMapping("/id/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteVianda(@PathVariable Long id) {
         return viandasService.deleteVianda(id)
                 ? new ResponseEntity<>(HttpStatus.NO_CONTENT)
                 : ResponseEntity.notFound().build();

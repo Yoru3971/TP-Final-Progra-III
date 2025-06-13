@@ -2,6 +2,7 @@ package com.viandasApp.api.Vianda.service;
 
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
+import com.viandasApp.api.Emprendimiento.service.EmprendimientoServiceImpl;
 import com.viandasApp.api.Vianda.dto.FiltroViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaCreateDTO;
 import com.viandasApp.api.Vianda.dto.ViandaDTO;
@@ -11,7 +12,9 @@ import com.viandasApp.api.Vianda.model.Vianda;
 import com.viandasApp.api.Vianda.repository.ViandaRepository;
 import com.viandasApp.api.Vianda.specification.ViandaSpecifications;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,11 +22,11 @@ import java.util.Optional;
 @Service
 public class ViandaServiceImpl implements ViandaService {
     private final ViandaRepository repository;
-    private final EmprendimientoRepository emprendimientoRepository;
+    private final EmprendimientoServiceImpl emprendimientoService;
 
-    public ViandaServiceImpl(ViandaRepository repository, EmprendimientoRepository emprendimientoRepository) {
+    public ViandaServiceImpl(ViandaRepository repository, EmprendimientoServiceImpl emprendimientoService) {
         this.repository = repository;
-        this.emprendimientoRepository = emprendimientoRepository;
+        this.emprendimientoService = emprendimientoService;
     }
 
     @Override
@@ -112,9 +115,11 @@ public class ViandaServiceImpl implements ViandaService {
     // --------- mapeo
 
     private Vianda DTOtoEntity(ViandaCreateDTO viandaDTO) {
-        Optional<Emprendimiento> emprendimiento = emprendimientoRepository.findById(viandaDTO.getEmprendimientoId());
+        Long id = viandaDTO.getEmprendimientoId();
+        Emprendimiento emprendimiento = emprendimientoService.findEntityById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + id));
 
-        return emprendimiento.map(value -> new Vianda(
+        return new Vianda(
                 viandaDTO.getNombreVianda(),
                 viandaDTO.getCategoria(),
                 viandaDTO.getDescripcion(),
@@ -122,9 +127,7 @@ public class ViandaServiceImpl implements ViandaService {
                 viandaDTO.getEsVegano(),
                 viandaDTO.getEsVegetariano(),
                 viandaDTO.getEsSinTacc(),
-                value
-        )).orElseThrow(NullPointerException::new);
-
-        // todo: Revisar la excepcion esa si esta bien o modificarla
+                emprendimiento
+        );
     }
 }
