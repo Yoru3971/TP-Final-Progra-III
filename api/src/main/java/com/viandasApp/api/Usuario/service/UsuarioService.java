@@ -1,22 +1,27 @@
-package com.viandasApp.api.User.service;
+package com.viandasApp.api.Usuario.service;
 
-import com.viandasApp.api.User.dto.UsuarioCreateDTO;
-import com.viandasApp.api.User.dto.UsuarioDTO;
-import com.viandasApp.api.User.dto.UsuarioUpdateDTO;
+import com.viandasApp.api.Usuario.dto.UsuarioCreateDTO;
+import com.viandasApp.api.Usuario.dto.UsuarioDTO;
+import com.viandasApp.api.Usuario.dto.UsuarioUpdateDTO;
+import com.viandasApp.api.Usuario.model.RolUsuario;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface UsuarioService {
-    UsuarioDTO create(UsuarioCreateDTO userDto);
+    UsuarioDTO createUsuario(UsuarioCreateDTO userDto);
 
-    List<UsuarioDTO> read();
+    List<UsuarioDTO> readUsuarios();
 
     Optional<UsuarioDTO> findById(Long id);
 
+    Optional<UsuarioDTO> findByNombreCompleto(String nombreCompleto);
+
     Optional<UsuarioDTO> findByEmail(String email);
 
-    Optional<UsuarioDTO> update(Long id, UsuarioUpdateDTO userDto);
+    Optional<UsuarioDTO> findByRolUsuario(RolUsuario rolUsuario);
 
-    boolean delete(Long id);
+    Optional<UsuarioDTO> updateUsuario(Long id, UsuarioUpdateDTO userDto);
+
+    boolean deleteUsuario(Long id);
 }

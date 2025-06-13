@@ -1,7 +1,7 @@
 package com.viandasApp.api.Pedido.model;
 
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
-import com.viandasApp.api.User.model.Usuario;
+import com.viandasApp.api.Usuario.model.Usuario;
 import jakarta.persistence.*;
 import lombok.*;
 
