@@ -6,11 +6,12 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 @Entity
+@Table(name = "viandas_por_pedido")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PedidoVianda {
+public class DetallePedido {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +25,5 @@ public class PedidoVianda {
     @JoinColumn(name = "vianda_id")
     private Vianda vianda;
 
-    @NotNull
-    @Min(1)
     private Integer cantidad;
 }

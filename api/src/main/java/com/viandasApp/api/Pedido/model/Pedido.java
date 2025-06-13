@@ -10,11 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "pedidos")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Pedido {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,15 +25,26 @@ public class Pedido {
     @JoinColumn(name = "cliente_id")
     private Usuario cliente;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "emprendimiento_id")
-    private Emprendimiento emprendimiento;
-
-    private LocalDateTime fechaPedido;
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DetallePedido> viandas = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private EstadoPedido estado;
 
-    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PedidoVianda> items = new ArrayList<>();
+    private LocalDateTime fecha;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.fecha == null) {
+            this.fecha = LocalDateTime.now();
+        }
+        if (this.estado == null) {
+            this.estado = EstadoPedido.PENDIENTE;
+        }
+    }
+
+    public void agregarDetalle(DetallePedido detalle) {
+        detalle.setPedido(this);
+        this.viandas.add(detalle);
+    }
 }
