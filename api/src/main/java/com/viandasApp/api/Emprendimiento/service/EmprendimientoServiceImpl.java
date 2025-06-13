@@ -133,4 +133,9 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         );
     }
 
+    @Override
+    public Optional<Emprendimiento> findEntityById(Long id) {
+        return emprendimientoRepository.findById(id);
+    }
+
 }
