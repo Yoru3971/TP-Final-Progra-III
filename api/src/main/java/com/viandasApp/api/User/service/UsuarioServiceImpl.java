@@ -99,4 +99,10 @@ public class UsuarioServiceImpl implements UsuarioService {
                 usuario.getRolUsuario()
         );
     }
+
+    @Override
+    public Optional<Usuario> findEntityById(Long id) {
+        return repository.findById(id);
+    }
+
 }

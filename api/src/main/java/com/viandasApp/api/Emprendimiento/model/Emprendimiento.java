@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class Emprendimiento {
     @Id
     @Column(name = "emprendimiento_id")
@@ -34,7 +33,7 @@ public class Emprendimiento {
     @NotBlank
     private String telefono;
 
-    @ManyToOne(optional = false)    //  muchos emprendimientos pueden pertenecer a un mismo dueño
+    @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
