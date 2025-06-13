@@ -1,37 +1,48 @@
 package com.viandasApp.api.Pedido.controller;
 
+import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Pedido.dto.PedidoCreateDTO;
 import com.viandasApp.api.Pedido.dto.PedidoDTO;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.service.PedidoService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/pedidos")
+@RequestMapping("/api/pedidos")
 @RequiredArgsConstructor
 public class PedidoController {
+
     private final PedidoService pedidoService;
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public PedidoDTO crearPedido(@RequestBody PedidoCreateDTO dto) {
-        return pedidoService.crearPedido(dto);
+    public ResponseEntity<PedidoDTO> crearPedido(@RequestBody @Valid PedidoCreateDTO pedidoCreateDTO) {
+        PedidoDTO pedidoDTO = pedidoService.crearPedido(pedidoCreateDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoDTO);
     }
 
-    @PutMapping("/{id}/estado")
-    public PedidoDTO cambiarEstado(
-            @PathVariable Long id,
-            @RequestParam EstadoPedido estado
-    ) {
-        return pedidoService.cambiarEstado(id, estado);
+    @GetMapping
+    public ResponseEntity<List<PedidoDTO>> obtenerPedidos(){
+
+        List<PedidoDTO> pedido = pedidoService.getAllPedidos();
+
+        return ResponseEntity.ok(pedido);
     }
 
-    @GetMapping("/cliente/{idCliente}")
-    public List<PedidoDTO> listarPedidosCliente(@PathVariable Long idCliente) {
-        return pedidoService.listarPedidosPorCliente(idCliente);
+    @GetMapping("/{id}")
+    public ResponseEntity<PedidoDTO> obtenerPedidoPorId(@PathVariable Long id) {
+        PedidoDTO pedidoDTO = pedidoService.obtenerPedidoPorId(id);
+        return ResponseEntity.ok(pedidoDTO);
+    }
+
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<List<PedidoDTO>> listarPedidosDeUsuario(@PathVariable Long idCliente) {
+        List<PedidoDTO> pedidos = pedidoService.listarPedidosPorCliente(idCliente);
+        return ResponseEntity.ok(pedidos);
     }
 }
