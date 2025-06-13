@@ -3,6 +3,7 @@ package com.viandasApp.api.User.service;
 import com.viandasApp.api.User.dto.UsuarioCreateDTO;
 import com.viandasApp.api.User.dto.UsuarioDTO;
 import com.viandasApp.api.User.dto.UsuarioUpdateDTO;
+import com.viandasApp.api.User.model.Usuario;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,4 +20,6 @@ public interface UsuarioService {
     Optional<UsuarioDTO> update(Long id, UsuarioUpdateDTO userDto);
 
     boolean delete(Long id);
+
+    Optional<Usuario> findEntityById(Long id);
 }
