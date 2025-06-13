@@ -31,41 +31,41 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     @Override
     public List<EmprendimientoDTO> getAllEmprendimientos() {
         return emprendimientoRepository.findAll().stream()
-                .map(this::convertToDto)
+                .map(EmprendimientoDTO::new)
                 .toList();
     }
 
     @Override
     public Optional<EmprendimientoDTO> getEmprendimientoById(Long id) {
         return emprendimientoRepository.findById(id)
-                .map(this::convertToDto);
+                .map(EmprendimientoDTO::new);
     }
 
     @Override
     public List<EmprendimientoDTO> getEmprendimientosByNombre(String nombreEmprendimiento) {
         return emprendimientoRepository.findByNombreEmprendimientoContaining(nombreEmprendimiento)
-                .stream().map(this::convertToDto).toList();
+                .stream().map(EmprendimientoDTO::new).toList();
     }
 
     @Override
     public List<EmprendimientoDTO> getEmprendimientosByCiudad(String ciudad) {
         return emprendimientoRepository.findByCiudad(ciudad)
-                .stream().map(this::convertToDto).toList();
+                .stream().map(EmprendimientoDTO::new).toList();
     }
 
     @Override
     public List<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long id) {
         return emprendimientoRepository.findByUsuarioId(id)
-                .stream().map(this::convertToDto).toList();
+                .stream().map(EmprendimientoDTO::new).toList();
     }
 
     @Override
     public EmprendimientoDTO createEmprendimiento(CreateEmprendimientoDTO createEmprendimientoDTO) {
 
-        Emprendimiento emprendimiento = convertToEntity(createEmprendimientoDTO);
+        Emprendimiento emprendimiento = DTOToEntity(createEmprendimientoDTO);
         Emprendimiento emprendimientoGuardado = emprendimientoRepository.save(emprendimiento);
 
-        return convertToDto(emprendimientoGuardado);
+        return new EmprendimientoDTO(emprendimientoGuardado);
     }
 
     @Override
@@ -97,7 +97,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                     }
                     Emprendimiento emprendimientoActualizado = emprendimientoRepository.save(emprendimientoExistente);
 
-                    return convertToDto(emprendimientoActualizado);
+                    return new EmprendimientoDTO(emprendimientoActualizado);
                 });
     }
 
@@ -112,18 +112,8 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         return false;
     }
 
-    private EmprendimientoDTO convertToDto(Emprendimiento emprendimiento){
-        return new EmprendimientoDTO(
-                emprendimiento.getId(),
-                emprendimiento.getNombreEmprendimiento(),
-                emprendimiento.getCiudad(),
-                emprendimiento.getDireccion(),
-                emprendimiento.getTelefono(),
-                emprendimiento.getUsuario()
-        );
-    }
 
-    private Emprendimiento convertToEntity(CreateEmprendimientoDTO createEmprendimientoDTO){
+    private Emprendimiento DTOToEntity(CreateEmprendimientoDTO createEmprendimientoDTO){
 
         //  habría que chequear si estas validaciones están bien acá
         Long id = createEmprendimientoDTO.getIdUsuario();
