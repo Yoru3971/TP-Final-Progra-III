@@ -2,6 +2,7 @@ package com.viandasApp.api.Pedido.service;
 
 import com.viandasApp.api.Pedido.dto.PedidoCreateDTO;
 import com.viandasApp.api.Pedido.dto.PedidoDTO;
+import com.viandasApp.api.Pedido.dto.UpdatePedidoDTO;
 import com.viandasApp.api.Pedido.dto.ViandaCantidadDTO;
 import com.viandasApp.api.Pedido.model.DetallePedido;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
@@ -14,7 +15,9 @@ import com.viandasApp.api.Vianda.repository.ViandaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
@@ -27,15 +30,15 @@ public class PedidoServiceImpl implements PedidoService {
     private final ViandaRepository viandaRepository;
 
     @Override
-    public PedidoDTO crearPedido(PedidoCreateDTO request) {
-        Usuario cliente = usuarioRepository.findById(request.getClienteId())
+    public PedidoDTO createPedido(PedidoCreateDTO pedidoCreateDTO) {
+        Usuario cliente = usuarioRepository.findById(pedidoCreateDTO.getCliente_id())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         Pedido pedido = new Pedido();
         pedido.setCliente(cliente);
 
-        for (ViandaCantidadDTO dto : request.getViandas()) {
-            Vianda vianda = viandaRepository.findById(dto.getViandaId())
+        for (ViandaCantidadDTO dto : pedidoCreateDTO.getViandas()) {
+            Vianda vianda = viandaRepository.findById(dto.getVianda_id())
                     .orElseThrow(() -> new RuntimeException("Vianda no encontrada"));
 
             DetallePedido detalle = new DetallePedido();
@@ -50,6 +53,16 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     @Override
+    public Optional<PedidoDTO> updatePedido(Long id, UpdatePedidoDTO updatePedidoDTO) {
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean deletePedido(Long id) {
+        return false;
+    }
+
+    @Override
     public List<PedidoDTO> getAllPedidos() {
         return pedidoRepository.findAll().stream()
                 .map(PedidoDTO::new)
@@ -57,14 +70,14 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     @Override
-    public PedidoDTO obtenerPedidoPorId(Long id) {
+    public PedidoDTO getPedidoById(Long id) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
         return new PedidoDTO(pedido);
     }
 
     @Override
-    public List<PedidoDTO> listarPedidosPorCliente(Long idCliente) {
+    public List<PedidoDTO> getAllPedidosByClienteId(Long idCliente) {
         Usuario usuario = usuarioRepository.findById(idCliente)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
@@ -72,5 +85,16 @@ public class PedidoServiceImpl implements PedidoService {
         return pedidos.stream().map(PedidoDTO::new).toList();
     }
 
+    @Override
+    public List<PedidoDTO> getAllPedidosByEstado(EstadoPedido estado) {
+        return pedidoRepository.findAll().stream()
+                .filter(pedido -> pedido.getEstado().equals(estado))
+                .map(PedidoDTO::new)
+                .toList();
+    }
 
+    @Override
+    public List<PedidoDTO> getAllPedidosByFecha(LocalDateTime fecha) {
+        return List.of();
+    }
 }
