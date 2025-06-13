@@ -1,9 +1,9 @@
 package com.viandasApp.api.Vianda.service;
 
+import com.viandasApp.api.Vianda.dto.FiltroViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaCreateDTO;
 import com.viandasApp.api.Vianda.dto.ViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaUpdateDTO;
-import com.viandasApp.api.Vianda.model.CategoriaVianda;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,11 +15,5 @@ public interface ViandaService {
     boolean deleteVianda(Long id);
 
     List<ViandaDTO> getAllViandas();
-    List<ViandaDTO> getViandasByCategoria(CategoriaVianda categoriaVianda);
-    List<ViandaDTO> getViandasByEmprendimientoId(Long id);
-    List<ViandaDTO> getViandasByPrecio(Double min, Double max);
-    List<ViandaDTO> getViandasByNombre(String nombre);
-    List<ViandaDTO> getViandasByEsSinTaccTrue();
-    List<ViandaDTO> getViandasByEsVegetarianoTrue();
-    List<ViandaDTO> getViandasByEsVeganoTrue();
+    List<ViandaDTO> filtrarViandas(FiltroViandaDTO filtroViandaDTO);
 }

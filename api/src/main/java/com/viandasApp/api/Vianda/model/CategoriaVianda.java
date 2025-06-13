@@ -1,5 +1,6 @@
 package com.viandasApp.api.Vianda.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum CategoriaVianda {
@@ -32,5 +33,15 @@ public enum CategoriaVianda {
     @JsonValue
     public String getDescripcion() {
         return descripcion;
+    }
+
+    @JsonCreator
+    public static CategoriaVianda fromDescripcion(String descripcion) {
+        for (CategoriaVianda categoria : values()) {
+            if (categoria.getDescripcion().equalsIgnoreCase(descripcion)) {
+                return categoria;
+            }
+        }
+        throw new IllegalArgumentException("Categoría inválida");
     }
 }

@@ -1,9 +1,9 @@
 package com.viandasApp.api.Vianda.controller;
 
+import com.viandasApp.api.Vianda.dto.FiltroViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaCreateDTO;
 import com.viandasApp.api.Vianda.dto.ViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaUpdateDTO;
-import com.viandasApp.api.Vianda.model.CategoriaVianda;
 import com.viandasApp.api.Vianda.service.ViandaService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -31,12 +31,11 @@ public class ViandaController {
         return ResponseEntity.ok(viandasService.getAllViandas());
     }
 
-    @GetMapping("/categoria/{categoria}")
-    public ResponseEntity<List<ViandaDTO>> getViandasByCategoria(@PathVariable CategoriaVianda categoriaVianda) {
-        List<ViandaDTO> viandas = viandasService.getViandasByCategoria(categoriaVianda);
-        return ResponseEntity.ok(viandas);
+    @PostMapping("/filtrar")
+    public ResponseEntity<List<ViandaDTO>> filtrarViandas(@Valid @RequestBody FiltroViandaDTO filtro) {
+        List<ViandaDTO> resultados = viandasService.filtrarViandas(filtro);
+        return ResponseEntity.ok(resultados);
     }
-
 
     // ---------------------------------------------------------------------------------------
 

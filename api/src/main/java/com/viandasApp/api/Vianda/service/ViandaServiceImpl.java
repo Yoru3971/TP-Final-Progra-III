@@ -2,12 +2,15 @@ package com.viandasApp.api.Vianda.service;
 
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
+import com.viandasApp.api.Vianda.dto.FiltroViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaCreateDTO;
 import com.viandasApp.api.Vianda.dto.ViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaUpdateDTO;
 import com.viandasApp.api.Vianda.model.CategoriaVianda;
 import com.viandasApp.api.Vianda.model.Vianda;
 import com.viandasApp.api.Vianda.repository.ViandaRepository;
+import com.viandasApp.api.Vianda.specification.ViandaSpecifications;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -70,59 +73,40 @@ public class ViandaServiceImpl implements ViandaService {
     }
 
     @Override
-    public List<ViandaDTO> getViandasByPrecio(Double min, Double max) {
-        return repository.findByPrecioBetween(min, max)
-                .stream()
-                .map(ViandaDTO::new)
-                .toList();
-    }
+    public List<ViandaDTO> filtrarViandas(FiltroViandaDTO filtroViandaDTO) {
+        Specification<Vianda> spec = (root, query, cb) -> cb.conjunction();
 
-    @Override
-    public List<ViandaDTO> getViandasByNombre(String nombre) {
-        return repository.findByNombreViandaContainingIgnoreCase(nombre)
-                .stream()
-                .map(ViandaDTO::new)
-                .toList();
-    }
+        if (filtroViandaDTO.getEmprendimientoId() != null)
+            spec = spec.and(ViandaSpecifications.perteneceAEmprendimiento(filtroViandaDTO.getEmprendimientoId()));
 
-    @Override
-    public List<ViandaDTO> getViandasByEsSinTaccTrue() {
-        return repository.findByEsSinTaccTrue()
-                .stream()
-                .map(ViandaDTO::new)
-                .toList();
-    }
+        if (filtroViandaDTO.getEsVegano() != null)
+            spec = spec.and(ViandaSpecifications.esVegana(filtroViandaDTO.getEsVegano()));
 
-    @Override
-    public List<ViandaDTO> getViandasByEsVegetarianoTrue() {
-        return repository.findByEsVegetarianoTrue()
-                .stream()
-                .map(ViandaDTO::new)
-                .toList();
-    }
+        if (filtroViandaDTO.getEsVegetariano() != null)
+            spec = spec.and(ViandaSpecifications.esVegetariana(filtroViandaDTO.getEsVegetariano()));
 
-    @Override
-    public List<ViandaDTO> getViandasByEsVeganoTrue() {
-        return repository.findByEsVeganoTrue()
-                .stream()
-                .map(ViandaDTO::new)
-                .toList();
-    }
+        if (filtroViandaDTO.getEsSinTacc() != null)
+            spec = spec.and(ViandaSpecifications.esSinTacc(filtroViandaDTO.getEsSinTacc()));
 
-    @Override
-    public List<ViandaDTO> getViandasByEmprendimientoId(Long id) {
-        return repository.findByEmprendimientoId(id)
-                .stream()
-                .map(ViandaDTO::new)
-                .toList();
-    }
+        if (filtroViandaDTO.getCategoria() != null) {
+            try {
+                CategoriaVianda categoriaEnum = CategoriaVianda.fromDescripcion(filtroViandaDTO.getCategoria());
+                spec = spec.and(ViandaSpecifications.tieneCategoria(categoriaEnum));
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
 
-    @Override
-    public List<ViandaDTO> getViandasByCategoria(CategoriaVianda categoriaVianda) {
-        return repository.findByCategoria(categoriaVianda)
-                .stream()
-                .map(ViandaDTO::new)
-                .toList();
+        if (filtroViandaDTO.getPrecioMin() != null)
+            spec = spec.and(ViandaSpecifications.precioMayorA(filtroViandaDTO.getPrecioMin()));
+
+        if (filtroViandaDTO.getPrecioMax() != null)
+            spec = spec.and(ViandaSpecifications.precioMenorA(filtroViandaDTO.getPrecioMax()));
+
+        if (filtroViandaDTO.getNombreVianda() != null)
+            spec = spec.and(ViandaSpecifications.nombreContieneIgnoreCase(filtroViandaDTO.getNombreVianda()));
+
+        List<Vianda> viandas = repository.findAll(spec);
+        return viandas.stream().map(ViandaDTO::new).toList();
     }
 
     // --------- mapeo
