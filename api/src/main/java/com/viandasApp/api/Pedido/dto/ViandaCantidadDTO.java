@@ -4,14 +4,13 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ItemPedidoDTO {
+public class ViandaCantidadDTO {
     @NotNull
-    private Long idVianda;
 
+    private Long vianda_id;
     @NotNull
     @Min(1)
     private Integer cantidad;

@@ -10,12 +10,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PedidoCreateDTO {
-    @NotNull
-    private Long idCliente;
-
-    @NotNull
-    private Long idEmprendimiento;
-
-    @NotNull
-    private List<ItemPedidoDTO> items;
+    private Long cliente_id; //Podria omitirse si se toma del usuario autenticado, checkear
+    private List<ViandaCantidadDTO> viandas;
 }
