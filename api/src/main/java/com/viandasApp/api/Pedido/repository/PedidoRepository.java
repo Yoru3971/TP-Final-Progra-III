@@ -9,5 +9,6 @@ import java.util.List;
 @Repository
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     List<Pedido> findByClienteId(Long idCliente);
-
+    List<Pedido> findByEstado(EstadoPedido estado);
+    List<Pedido> findByfecha(LocalDateTime fecha);
 }

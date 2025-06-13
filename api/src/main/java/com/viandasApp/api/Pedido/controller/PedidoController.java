@@ -1,9 +1,7 @@
 package com.viandasApp.api.Pedido.controller;
 
-import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Pedido.dto.PedidoCreateDTO;
 import com.viandasApp.api.Pedido.dto.PedidoDTO;
-import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.service.PedidoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +20,7 @@ public class PedidoController {
 
     @PostMapping
     public ResponseEntity<PedidoDTO> crearPedido(@RequestBody @Valid PedidoCreateDTO pedidoCreateDTO) {
-        PedidoDTO pedidoDTO = pedidoService.crearPedido(pedidoCreateDTO);
+        PedidoDTO pedidoDTO = pedidoService.createPedido(pedidoCreateDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(pedidoDTO);
     }
 
@@ -36,13 +34,13 @@ public class PedidoController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PedidoDTO> obtenerPedidoPorId(@PathVariable Long id) {
-        PedidoDTO pedidoDTO = pedidoService.obtenerPedidoPorId(id);
+        PedidoDTO pedidoDTO = pedidoService.getPedidoById(id);
         return ResponseEntity.ok(pedidoDTO);
     }
 
     @GetMapping("/usuario/{usuarioId}")
     public ResponseEntity<List<PedidoDTO>> listarPedidosDeUsuario(@PathVariable Long idCliente) {
-        List<PedidoDTO> pedidos = pedidoService.listarPedidosPorCliente(idCliente);
+        List<PedidoDTO> pedidos = pedidoService.getAllPedidosByClienteId(idCliente);
         return ResponseEntity.ok(pedidos);
     }
 }
