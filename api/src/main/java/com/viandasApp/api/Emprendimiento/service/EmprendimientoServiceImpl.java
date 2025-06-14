@@ -27,43 +27,6 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
 
     @Override
-    public List<EmprendimientoDTO> getAllEmprendimientos() {
-        return emprendimientoRepository.findAll().stream()
-                .map(EmprendimientoDTO::new)
-                .toList();
-    }
-
-    @Override
-    public Optional<EmprendimientoDTO> getEmprendimientoById(Long id) {
-        return emprendimientoRepository.findById(id)
-                .map(EmprendimientoDTO::new);
-    }
-
-    @Override
-    public List<EmprendimientoDTO> getEmprendimientosByNombre(String nombreEmprendimiento) {
-        return emprendimientoRepository.findByNombreEmprendimientoContaining(nombreEmprendimiento)
-                .stream().map(EmprendimientoDTO::new).toList();
-    }
-
-    @Override
-    public List<EmprendimientoDTO> getEmprendimientosByCiudad(String ciudad) {
-        return emprendimientoRepository.findByCiudad(ciudad)
-                .stream().map(EmprendimientoDTO::new).toList();
-    }
-
-    @Override
-    public List<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long id) {
-        return emprendimientoRepository.findByUsuarioId(id)
-                .stream().map(EmprendimientoDTO::new).toList();
-    }
-
-    @Override
-    public Optional<Emprendimiento> findEntityById(Long id) {
-
-        return emprendimientoRepository.findById(id);
-    }
-
-    @Override
     public EmprendimientoDTO createEmprendimiento(CreateEmprendimientoDTO createEmprendimientoDTO) {
 
         Emprendimiento emprendimiento = DTOToEntity(createEmprendimientoDTO);
@@ -116,6 +79,43 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         return false;
     }
 
+    @Override
+    public List<EmprendimientoDTO> getAllEmprendimientos() {
+        return emprendimientoRepository.findAll().stream()
+                .map(EmprendimientoDTO::new)
+                .toList();
+    }
+
+    @Override
+    public Optional<EmprendimientoDTO> getEmprendimientoById(Long id) {
+        return emprendimientoRepository.findById(id)
+                .map(EmprendimientoDTO::new);
+    }
+
+    @Override
+    public List<EmprendimientoDTO> getEmprendimientosByNombre(String nombreEmprendimiento) {
+        return emprendimientoRepository.findByNombreEmprendimientoContaining(nombreEmprendimiento)
+                .stream().map(EmprendimientoDTO::new).toList();
+    }
+
+    @Override
+    public List<EmprendimientoDTO> getEmprendimientosByCiudad(String ciudad) {
+        return emprendimientoRepository.findByCiudad(ciudad)
+                .stream().map(EmprendimientoDTO::new).toList();
+    }
+
+    @Override
+    public List<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long id) {
+        return emprendimientoRepository.findByUsuarioId(id)
+                .stream().map(EmprendimientoDTO::new).toList();
+    }
+
+    @Override
+    public Optional<Emprendimiento> findEntityById(Long id) {
+
+        return emprendimientoRepository.findById(id);
+    }
+
 
     private Emprendimiento DTOToEntity(CreateEmprendimientoDTO createEmprendimientoDTO){
 
@@ -135,7 +135,6 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                 usuario
         );
     }
-
 
 
 }

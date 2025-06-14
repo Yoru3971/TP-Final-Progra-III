@@ -28,63 +28,6 @@ public class EmprendimientoController {
     }
 
 
-    @GetMapping
-    public ResponseEntity<List<EmprendimientoDTO>> getAllEmprendimientos(){
-
-        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getAllEmprendimientos();
-
-        if ( emprendimientos.isEmpty() ) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
-        return ResponseEntity.ok(emprendimientos);
-    }
-
-    @GetMapping("/id/{id}")
-    public ResponseEntity<EmprendimientoDTO> getEmprendimientoById (@PathVariable Long id){
-
-        Optional<EmprendimientoDTO> emprendimiento = emprendimientoService.getEmprendimientoById(id);
-
-        return emprendimiento.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/nombre/{nombreEmp}")
-    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByNombre(@PathVariable String nombreEmp){
-
-        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByNombre(nombreEmp);
-
-        if ( emprendimientos.isEmpty() ) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
-        return ResponseEntity.ok(emprendimientos);
-    }
-
-    @GetMapping("/ciudad/{ciudad}")
-    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByCiudad(@PathVariable String ciudad){
-
-        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByCiudad(ciudad);
-
-        if ( emprendimientos.isEmpty() ) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
-        return ResponseEntity.ok(emprendimientos);
-    }
-
-    @GetMapping("/id-usuario/{idUsuario}")
-    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByUsuario(@PathVariable Long idUsuario){
-
-        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByUsuarioId(idUsuario);
-
-        if ( emprendimientos.isEmpty() ) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
-        return ResponseEntity.ok(emprendimientos);
-    }
-
     @PostMapping
     public ResponseEntity<?> createEmprendimiento(@Valid @RequestBody CreateEmprendimientoDTO createEmprendimientoDTO, BindingResult result){
 
@@ -152,6 +95,63 @@ public class EmprendimientoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
+    }
+
+    @GetMapping
+    public ResponseEntity<List<EmprendimientoDTO>> getAllEmprendimientos(){
+
+        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getAllEmprendimientos();
+
+        if ( emprendimientos.isEmpty() ) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        return ResponseEntity.ok(emprendimientos);
+    }
+
+    @GetMapping("/id/{id}")
+    public ResponseEntity<EmprendimientoDTO> getEmprendimientoById (@PathVariable Long id){
+
+        Optional<EmprendimientoDTO> emprendimiento = emprendimientoService.getEmprendimientoById(id);
+
+        return emprendimiento.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/nombre/{nombreEmp}")
+    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByNombre(@PathVariable String nombreEmp){
+
+        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByNombre(nombreEmp);
+
+        if ( emprendimientos.isEmpty() ) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        return ResponseEntity.ok(emprendimientos);
+    }
+
+    @GetMapping("/ciudad/{ciudad}")
+    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByCiudad(@PathVariable String ciudad){
+
+        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByCiudad(ciudad);
+
+        if ( emprendimientos.isEmpty() ) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        return ResponseEntity.ok(emprendimientos);
+    }
+
+    @GetMapping("/id-usuario/{idUsuario}")
+    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByUsuario(@PathVariable Long idUsuario){
+
+        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByUsuarioId(idUsuario);
+
+        if ( emprendimientos.isEmpty() ) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        return ResponseEntity.ok(emprendimientos);
     }
 
 }
