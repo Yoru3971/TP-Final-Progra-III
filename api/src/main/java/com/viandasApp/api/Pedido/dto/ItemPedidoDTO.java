@@ -1,21 +1,18 @@
 package com.viandasApp.api.Pedido.dto;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-
-import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PedidoCreateDTO {
+public class ItemPedidoDTO {
     @NotNull
-    private Long idCliente;
+    private Long idVianda;
 
     @NotNull
-    private Long idEmprendimiento;
-
-    @NotNull
-    private List<ItemPedidoDTO> items;
+    @Min(1)
+    private Integer cantidad;
 }

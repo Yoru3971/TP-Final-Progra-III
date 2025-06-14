@@ -1,5 +1,7 @@
 package com.viandasApp.api.Vianda.dto;
 
+import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
+import com.viandasApp.api.User.model.Usuario;
 import com.viandasApp.api.Vianda.model.CategoriaVianda;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -13,29 +15,29 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class ViandaCreateDTO {
-    @NotBlank(message = "El nombre es obligatorio.")
-    @Size(min = 1, max = 100, message = "El nombre debe tener [min, max] caracteres.")
+    @NotBlank(message = "El nombre no puede estar vacío")
+    @Size(max = 100, message = "El nombre debe contener [max] caracteres")
     private String nombreVianda;
 
-    @NotNull(message = "La categoria es obligatoria.")
+    @NotNull(message = "La categoria no puede estar vacia")
     private CategoriaVianda categoria;
 
-    @Size(max = 400, message = "La descripcion debe tener [max] caracteres.")
+    @Size(max = 400, message = "La descripcion puede contener [max] caracteres")
     private String descripcion;
 
-    @NotNull(message = "El precio es obligatorio.")
-    @DecimalMin(value = "0.0", message = "El precio no puede ser negativo.")
+    @NotNull
+    @DecimalMin(value = "0.0", message = "El precio no puede ser negativo")
     private Double precio;
 
-    @NotNull(message = "Indique si es vegano.")
+    @NotNull
     private Boolean esVegano;
 
-    @NotNull(message = "Indique si es vegetariano.")
+    @NotNull
     private Boolean esVegetariano;
 
-    @NotNull(message = "Indique si es sin TACC.")
+    @NotNull
     private Boolean esSinTacc;
 
-    @NotNull(message = "El emprendimiento es obligatorio.")
-    private Long emprendimientoId;
+    @NotNull
+    private Emprendimiento emprendimiento;
 }
