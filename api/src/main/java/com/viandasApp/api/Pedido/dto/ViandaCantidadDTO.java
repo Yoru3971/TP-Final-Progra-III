@@ -5,13 +5,12 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class ViandaCantidadDTO {
-    @NotNull
 
-    private Long vianda_id;
-    @NotNull
-    @Min(1)
+    @NotNull(message = "El ID de la vianda es obligatorio")
+    private Long viandaId;
+
+    @NotNull(message = "La cantidad es obligatoria")
+    @Min(value = 1, message = "La cantidad debe ser al menos 1")
     private Integer cantidad;
 }

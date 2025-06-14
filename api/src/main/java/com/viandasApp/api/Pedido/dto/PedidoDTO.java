@@ -2,7 +2,8 @@ package com.viandasApp.api.Pedido.dto;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
 import lombok.*;
-import java.time.LocalDateTime;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -12,7 +13,7 @@ public class PedidoDTO {
     private Long id;
     private Long clienteId;
     private EstadoPedido estado;
-    private LocalDateTime fecha;
+    private LocalDate fecha;
     private Double total;
     private List<DetalleViandaDTO> viandas;
 
