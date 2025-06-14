@@ -24,6 +24,7 @@ public class EmprendimientoDTO {
     private Usuario usuario;
 
     public EmprendimientoDTO(Emprendimiento emprendimiento){
+        this.id = emprendimiento.getId();
         this.nombreEmprendimiento = emprendimiento.getNombreEmprendimiento();
         this.ciudad = emprendimiento.getCiudad();
         this.direccion = emprendimiento.getDireccion();
