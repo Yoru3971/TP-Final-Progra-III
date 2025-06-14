@@ -1,11 +1,10 @@
 package com.viandasApp.api.Pedido.model;
 
-import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.User.model.Usuario;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,12 +30,12 @@ public class Pedido {
     @Enumerated(EnumType.STRING)
     private EstadoPedido estado;
 
-    private LocalDateTime fecha;
+    private LocalDate fecha;
 
     @PrePersist
     public void prePersist() {
         if (this.fecha == null) {
-            this.fecha = LocalDateTime.now();
+            this.fecha = LocalDate.now();
         }
         if (this.estado == null) {
             this.estado = EstadoPedido.PENDIENTE;
