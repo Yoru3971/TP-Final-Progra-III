@@ -1,6 +1,6 @@
 package com.viandasApp.api.Emprendimiento.model;
 
-import com.viandasApp.api.Usuario.model.Usuario;
+import com.viandasApp.api.User.model.Usuario;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

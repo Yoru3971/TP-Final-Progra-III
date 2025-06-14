@@ -1,4 +1,4 @@
-package com.viandasApp.api.Usuario.model;
+package com.viandasApp.api.User.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
