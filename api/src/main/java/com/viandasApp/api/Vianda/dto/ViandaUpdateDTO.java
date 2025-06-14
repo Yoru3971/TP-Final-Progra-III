@@ -11,15 +11,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class ViandaUpdateDTO {
-    @Size(max = 100, message = "El nombre debe contener max 100 caracteres")
+    @Size(min = 1, max = 100, message = "El nombre debe tener [min, max] caracteres.")
     private String nombreVianda;
 
     private CategoriaVianda categoria;
 
-    @Size(max = 400, message = "La descripcion puede contener max 400 caracteres")
+    @Size(max = 400, message = "La descripcion debe tener [max] caracteres.")
     private String descripcion;
 
-    @DecimalMin(value = "0.0", message = "El precio no puede ser negativo")
+    @DecimalMin(value = "0.0", message = "El precio no puede ser negativo.")
     private Double precio;
 
     private Boolean esVegano;
@@ -27,4 +27,6 @@ public class ViandaUpdateDTO {
     private Boolean esVegetariano;
 
     private Boolean esSinTacc;
+
+    private Boolean estaDisponible;
 }
