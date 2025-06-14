@@ -10,14 +10,13 @@ import java.util.Optional;
 
 public interface EmprendimientoService {
 
+    EmprendimientoDTO createEmprendimiento(CreateEmprendimientoDTO createEmprendimientoDTO);
+    Optional<EmprendimientoDTO> updateEmprendimiento(Long id, UpdateEmprendimientoDTO updateEmprendimientoDTO);
+    boolean deleteEmprendimiento(Long id);
     List<EmprendimientoDTO> getAllEmprendimientos();
     Optional<EmprendimientoDTO> getEmprendimientoById(Long id);
     List<EmprendimientoDTO> getEmprendimientosByNombre(String nombreEmprendimiento);
     List<EmprendimientoDTO> getEmprendimientosByCiudad(String ciudad);
     List<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long id);
-    EmprendimientoDTO createEmprendimiento(CreateEmprendimientoDTO createEmprendimientoDTO);
-    Optional<EmprendimientoDTO> updateEmprendimiento(Long id, UpdateEmprendimientoDTO updateEmprendimientoDTO);
-    boolean deleteEmprendimiento(Long id);
-
     Optional<Emprendimiento> findEntityById(Long id);
 }
