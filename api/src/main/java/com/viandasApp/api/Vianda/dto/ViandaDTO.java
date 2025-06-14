@@ -29,6 +29,8 @@ public class ViandaDTO {
 
     private Long emprendimientoId;
 
+    private Boolean estaDisponible;
+
     public ViandaDTO(Vianda vianda) {
         this.id = vianda.getId();
         this.nombreVianda = vianda.getNombreVianda();
@@ -39,5 +41,6 @@ public class ViandaDTO {
         this.esVegetariano = vianda.getEsVegetariano();
         this.esSinTacc = vianda.getEsSinTacc();
         this.emprendimientoId = vianda.getEmprendimiento().getId();
+        this.estaDisponible = vianda.getEstaDisponible();
     }
 }
