@@ -1,6 +1,6 @@
-package com.viandasApp.api.Usuario.dto;
+package com.viandasApp.api.User.dto;
 
-import com.viandasApp.api.Usuario.model.RolUsuario;
+import com.viandasApp.api.User.model.RolUsuario;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
