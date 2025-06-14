@@ -2,6 +2,7 @@ package com.viandasApp.api.Pedido.controller;
 
 import com.viandasApp.api.Pedido.dto.PedidoCreateDTO;
 import com.viandasApp.api.Pedido.dto.PedidoDTO;
+import com.viandasApp.api.Pedido.dto.PedidoUpdateViandasDTO;
 import com.viandasApp.api.Pedido.dto.UpdatePedidoDTO;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
@@ -57,6 +58,27 @@ public class PedidoController {
         }
         else{
             response.put("message", "Pedido no encontrado");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+    @PutMapping("/{id}/viandas")
+    public ResponseEntity<?> actualizarViandasPedido(@PathVariable Long id, @Valid @RequestBody PedidoUpdateViandasDTO dto, BindingResult result) {
+
+        if (result.hasErrors()) {
+            Map<String, String> errores = new HashMap<>();
+            result.getFieldErrors().forEach(error ->
+                    errores.put(error.getField(), error.getDefaultMessage())
+            );
+            return ResponseEntity.badRequest().body(errores);
+        }
+
+        Optional<PedidoDTO> actualizado = pedidoService.updateViandasPedido(id, dto);
+        if (actualizado.isPresent()) {
+            return ResponseEntity.ok(actualizado.get());
+        } else {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Pedido o vianda no encontrada");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
@@ -132,13 +154,13 @@ public class PedidoController {
 
     @GetMapping("/fecha/{fecha}")
     public ResponseEntity<?> obtenerPorFecha(
-            @RequestParam("fecha") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
 
         List<PedidoDTO> pedido = pedidoService.getAllPedidosByFecha(fecha);
 
         if (!pedido.isEmpty()) {
             return ResponseEntity.ok(pedido);
-        }else{
+        } else {
             Map<String, String> response = new HashMap<>();
             response.put("message", "No se encontraron pedidos");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);

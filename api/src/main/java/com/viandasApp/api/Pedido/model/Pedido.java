@@ -22,7 +22,7 @@ public class Pedido {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "cliente_id")
-    private Usuario cliente;
+    private Usuario usuario;
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetallePedido> viandas = new ArrayList<>();

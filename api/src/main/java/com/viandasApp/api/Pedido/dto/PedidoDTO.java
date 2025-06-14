@@ -19,7 +19,7 @@ public class PedidoDTO {
 
     public PedidoDTO(Pedido pedido) {
         this.id = pedido.getId();
-        this.clienteId = pedido.getCliente().getId();
+        this.clienteId = pedido.getUsuario().getId();
         this.estado = pedido.getEstado();
         this.fecha = pedido.getFecha();
 

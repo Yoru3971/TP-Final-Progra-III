@@ -1,9 +1,6 @@
 package com.viandasApp.api.Pedido.service;
 
-import com.viandasApp.api.Pedido.dto.PedidoCreateDTO;
-import com.viandasApp.api.Pedido.dto.PedidoDTO;
-import com.viandasApp.api.Pedido.dto.UpdatePedidoDTO;
-import com.viandasApp.api.Pedido.dto.ViandaCantidadDTO;
+import com.viandasApp.api.Pedido.dto.*;
 import com.viandasApp.api.Pedido.model.DetallePedido;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
@@ -16,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -31,11 +27,11 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public PedidoDTO createPedido(PedidoCreateDTO pedidoCreateDTO) {
-        Usuario cliente = usuarioRepository.findById(pedidoCreateDTO.getCliente_id())
+        Usuario cliente = usuarioRepository.findById(pedidoCreateDTO.getClienteId())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         Pedido pedido = new Pedido();
-        pedido.setCliente(cliente);
+        pedido.setUsuario(cliente);
 
         for (ViandaCantidadDTO dto : pedidoCreateDTO.getViandas()) {
             Vianda vianda = viandaRepository.findById(dto.getViandaId())
@@ -64,6 +60,29 @@ public class PedidoServiceImpl implements PedidoService {
             Pedido actualizado = pedidoRepository.save(pedido);
             return new PedidoDTO(actualizado);
         });
+    }
+
+    @Override
+    public Optional<PedidoDTO> updateViandasPedido(Long pedidoId, PedidoUpdateViandasDTO dto) {
+        return pedidoRepository.findById(pedidoId).map(pedido -> {
+            pedido.getViandas().clear();
+
+            for (PedidoUpdateViandasDTO.ViandaCantidadDTO vc : dto.getViandas()) {
+                Optional<Vianda> viandaOpt = viandaRepository.findById(vc.getViandaId());
+                if (viandaOpt.isEmpty()) {
+                    // Si alguna vianda no existe, retorna vacío como señal de error
+                    return null;
+                }
+                DetallePedido detalle = new DetallePedido();
+                detalle.setPedido(pedido);
+                detalle.setVianda(viandaOpt.get());
+                detalle.setCantidad(vc.getCantidad());
+                pedido.agregarDetalle(detalle);
+            }
+
+            Pedido actualizado = pedidoRepository.save(pedido);
+            return new PedidoDTO(actualizado);
+        }).filter(dtoResult -> dtoResult != null);
     }
 
     @Override

@@ -26,4 +26,7 @@ public class DetallePedido {
     private Vianda vianda;
 
     private Integer cantidad;
+
+    public DetallePedido(Pedido pedido, Vianda vianda, @NotNull @Min(value = 1, message = "La cantidad debe ser al menos 1") Integer cantidad) {
+    }
 }
