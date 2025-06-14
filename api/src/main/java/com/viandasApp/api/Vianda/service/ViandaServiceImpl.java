@@ -1,7 +1,6 @@
 package com.viandasApp.api.Vianda.service;
 
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
-import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoServiceImpl;
 import com.viandasApp.api.Vianda.dto.FiltroViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaCreateDTO;
@@ -52,6 +51,7 @@ public class ViandaServiceImpl implements ViandaService {
             if (dto.getEsVegano() != null) existing.setEsVegano(dto.getEsVegano());
             if (dto.getEsVegetariano() != null) existing.setEsVegetariano(dto.getEsVegetariano());
             if (dto.getEsSinTacc() != null) existing.setEsSinTacc(dto.getEsSinTacc());
+            if (dto.getEstaDisponible() != null) existing.setEstaDisponible(dto.getEstaDisponible());
 
             return new ViandaDTO(repository.save(existing));
         });
@@ -77,7 +77,7 @@ public class ViandaServiceImpl implements ViandaService {
 
     @Override
     public List<ViandaDTO> filtrarViandas(FiltroViandaDTO filtroViandaDTO) {
-        Specification<Vianda> spec = (root, query, cb) -> cb.conjunction();
+        Specification<Vianda> spec = ViandaSpecifications.estaDisponible();
 
         if (filtroViandaDTO.getEmprendimientoId() != null)
             spec = spec.and(ViandaSpecifications.perteneceAEmprendimiento(filtroViandaDTO.getEmprendimientoId()));

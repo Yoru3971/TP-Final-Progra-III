@@ -6,6 +6,10 @@ import org.springframework.data.jpa.domain.Specification;
 
 public class ViandaSpecifications {
 
+    public static Specification<Vianda> estaDisponible() {
+        return (root, query, cb) -> cb.isTrue(root.get("estaDisponible"));
+    }
+
     public static Specification<Vianda> perteneceAEmprendimiento(Long emprendimientoId) {
         return (root, query, cb) -> emprendimientoId == null ? null : cb.equal(root.get("emprendimiento").get("id"), emprendimientoId);
     }

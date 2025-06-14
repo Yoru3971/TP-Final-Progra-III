@@ -46,6 +46,9 @@ public class Vianda {
     @JoinColumn(name = "emprendimiento_id", nullable = false)
     private Emprendimiento emprendimiento;
 
+    @Column(nullable = false)
+    private Boolean estaDisponible;
+
     public Vianda(String nombreVianda, CategoriaVianda categoria, String descripcion, Double precio, Boolean esVegano, Boolean esVegetariano, Boolean esSinTacc, Emprendimiento emprendimiento) {
         this.nombreVianda = nombreVianda;
         this.categoria = categoria;
@@ -55,5 +58,6 @@ public class Vianda {
         this.esVegetariano = esVegetariano;
         this.esSinTacc = esSinTacc;
         this.emprendimiento = emprendimiento;
+        this.estaDisponible = true;
     }
 }

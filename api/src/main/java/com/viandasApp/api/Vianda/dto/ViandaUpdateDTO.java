@@ -27,4 +27,6 @@ public class ViandaUpdateDTO {
     private Boolean esVegetariano;
 
     private Boolean esSinTacc;
+
+    private Boolean estaDisponible;
 }
