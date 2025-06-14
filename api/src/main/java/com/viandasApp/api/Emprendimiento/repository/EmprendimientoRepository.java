@@ -11,6 +11,7 @@ public interface EmprendimientoRepository extends JpaRepository<Emprendimiento, 
 
     List<Emprendimiento> findByNombreEmprendimientoContaining(String nombreEmprendimiento);
     List<Emprendimiento> findByCiudad(String ciudad);
+    //  List<Emprendimiento> findByUsuario(User usuario);
     List<Emprendimiento> findByUsuarioId(Long id);
 
 }

@@ -5,34 +5,60 @@ import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
-import com.viandasApp.api.User.model.RolUsuario;
-import com.viandasApp.api.User.model.Usuario;
-import com.viandasApp.api.User.service.UsuarioServiceImpl;
-import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.expression.AccessException;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class EmprendimientoServiceImpl implements EmprendimientoService {
 
     private final EmprendimientoRepository emprendimientoRepository;
-    private final UsuarioServiceImpl usuarioService;
 
+    public EmprendimientoServiceImpl(EmprendimientoRepository emprendimientoRepository) {
+
+        this.emprendimientoRepository = emprendimientoRepository;
+    }
+
+
+    @Override
+    public List<EmprendimientoDTO> getAllEmprendimientos() {
+        return emprendimientoRepository.findAll().stream()
+                .map(this::convertToDto)
+                .toList();
+    }
+
+    @Override
+    public Optional<EmprendimientoDTO> getEmprendimientoById(Long id) {
+        return emprendimientoRepository.findById(id)
+                .map(this::convertToDto);
+    }
+
+    @Override
+    public List<EmprendimientoDTO> getEmprendimientosByNombre(String nombreEmprendimiento) {
+        return emprendimientoRepository.findByNombreEmprendimientoContaining(nombreEmprendimiento)
+                .stream().map(this::convertToDto).toList();
+    }
+
+    @Override
+    public List<EmprendimientoDTO> getEmprendimientosByCiudad(String ciudad) {
+        return emprendimientoRepository.findByCiudad(ciudad)
+                .stream().map(this::convertToDto).toList();
+    }
+
+    @Override
+    public List<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long id) {
+        return emprendimientoRepository.findByUsuarioId(id)
+                .stream().map(this::convertToDto).toList();
+    }
 
     @Override
     public EmprendimientoDTO createEmprendimiento(CreateEmprendimientoDTO createEmprendimientoDTO) {
 
-        Emprendimiento emprendimiento = DTOToEntity(createEmprendimientoDTO);
+        Emprendimiento emprendimiento = convertToEntity(createEmprendimientoDTO);
         Emprendimiento emprendimientoGuardado = emprendimientoRepository.save(emprendimiento);
 
-        return new EmprendimientoDTO(emprendimientoGuardado);
+        return convertToDto(emprendimientoGuardado);
     }
 
     @Override
@@ -51,20 +77,12 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                     if ( updateEmprendimientoDTO.getTelefono() != null ){
                         emprendimientoExistente.setTelefono(updateEmprendimientoDTO.getTelefono());
                     }
-                    if ( updateEmprendimientoDTO.getIdUsuario() != null ){
-
-                        Usuario usuario = usuarioService.findEntityById(updateEmprendimientoDTO.getIdUsuario())
-                                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + id));
-
-                        if ( usuario.getRolUsuario() != RolUsuario.OWNER ){
-                            throw new RuntimeException("Solo los usuarios con rol DUEÑO pueden tener emprendimientos.");
-                        }
-
-                        emprendimientoExistente.setUsuario(usuario);
+                    if ( updateEmprendimientoDTO.getUsuario() != null ){
+                        emprendimientoExistente.setUsuario(updateEmprendimientoDTO.getUsuario());
                     }
                     Emprendimiento emprendimientoActualizado = emprendimientoRepository.save(emprendimientoExistente);
 
-                    return new EmprendimientoDTO(emprendimientoActualizado);
+                    return convertToDto(emprendimientoActualizado);
                 });
     }
 
@@ -79,62 +97,25 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         return false;
     }
 
-    @Override
-    public List<EmprendimientoDTO> getAllEmprendimientos() {
-        return emprendimientoRepository.findAll().stream()
-                .map(EmprendimientoDTO::new)
-                .toList();
+    private EmprendimientoDTO convertToDto(Emprendimiento emprendimiento){
+        return new EmprendimientoDTO(
+                emprendimiento.getId(),
+                emprendimiento.getNombreEmprendimiento(),
+                emprendimiento.getCiudad(),
+                emprendimiento.getDireccion(),
+                emprendimiento.getTelefono(),
+                emprendimiento.getUsuario()
+        );
     }
 
-    @Override
-    public Optional<EmprendimientoDTO> getEmprendimientoById(Long id) {
-        return emprendimientoRepository.findById(id)
-                .map(EmprendimientoDTO::new);
-    }
-
-    @Override
-    public List<EmprendimientoDTO> getEmprendimientosByNombre(String nombreEmprendimiento) {
-        return emprendimientoRepository.findByNombreEmprendimientoContaining(nombreEmprendimiento)
-                .stream().map(EmprendimientoDTO::new).toList();
-    }
-
-    @Override
-    public List<EmprendimientoDTO> getEmprendimientosByCiudad(String ciudad) {
-        return emprendimientoRepository.findByCiudad(ciudad)
-                .stream().map(EmprendimientoDTO::new).toList();
-    }
-
-    @Override
-    public List<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long id) {
-        return emprendimientoRepository.findByUsuarioId(id)
-                .stream().map(EmprendimientoDTO::new).toList();
-    }
-
-    @Override
-    public Optional<Emprendimiento> findEntityById(Long id) {
-
-        return emprendimientoRepository.findById(id);
-    }
-
-
-    private Emprendimiento DTOToEntity(CreateEmprendimientoDTO createEmprendimientoDTO){
-
-        Long id = createEmprendimientoDTO.getIdUsuario();
-        Usuario usuario = usuarioService.findEntityById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + id));
-
-        if ( usuario.getRolUsuario() != RolUsuario.OWNER ){
-            throw new RuntimeException("Solo los usuarios con rol DUEÑO pueden crear emprendimientos.");
-        }
-
+    private Emprendimiento convertToEntity(CreateEmprendimientoDTO createEmprendimientoDTO){
         return new Emprendimiento(
                 createEmprendimientoDTO.getNombreEmprendimiento(),
                 createEmprendimientoDTO.getCiudad(),
                 createEmprendimientoDTO.getDireccion(),
                 createEmprendimientoDTO.getTelefono(),
-                usuario
+                createEmprendimientoDTO.getUsuario()
         );
     }
-
 
 }
