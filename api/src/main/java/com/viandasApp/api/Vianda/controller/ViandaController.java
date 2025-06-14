@@ -31,7 +31,7 @@ public class ViandaController {
         return ResponseEntity.ok(viandasService.getAllViandas());
     }
 
-    @PostMapping("/filtrar")
+    @GetMapping("/filtrar")
     public ResponseEntity<List<ViandaDTO>> filtrarViandas(@Valid @RequestBody FiltroViandaDTO filtro) {
         List<ViandaDTO> resultados = viandasService.filtrarViandas(filtro);
         return ResponseEntity.ok(resultados);
