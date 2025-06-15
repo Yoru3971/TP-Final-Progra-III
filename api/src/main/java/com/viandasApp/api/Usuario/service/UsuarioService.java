@@ -1,9 +1,9 @@
-package com.viandasApp.api.User.service;
+package com.viandasApp.api.Usuario.service;
 
-import com.viandasApp.api.User.dto.UsuarioCreateDTO;
-import com.viandasApp.api.User.dto.UsuarioDTO;
-import com.viandasApp.api.User.dto.UsuarioUpdateDTO;
-import com.viandasApp.api.User.model.Usuario;
+import com.viandasApp.api.Usuario.dto.UsuarioCreateDTO;
+import com.viandasApp.api.Usuario.dto.UsuarioDTO;
+import com.viandasApp.api.Usuario.dto.UsuarioUpdateDTO;
+import com.viandasApp.api.Usuario.model.Usuario;
 
 import java.util.List;
 import java.util.Optional;

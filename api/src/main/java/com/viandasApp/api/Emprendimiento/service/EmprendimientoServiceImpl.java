@@ -5,15 +5,12 @@ import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
-import com.viandasApp.api.User.model.RolUsuario;
-import com.viandasApp.api.User.model.Usuario;
-import com.viandasApp.api.User.service.UsuarioServiceImpl;
+import com.viandasApp.api.Usuario.model.RolUsuario;
+import com.viandasApp.api.Usuario.model.Usuario;
+import com.viandasApp.api.Usuario.service.UsuarioServiceImpl;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.expression.AccessException;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;

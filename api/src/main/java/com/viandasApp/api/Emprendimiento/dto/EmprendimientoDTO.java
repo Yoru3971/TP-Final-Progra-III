@@ -2,7 +2,7 @@ package com.viandasApp.api.Emprendimiento.dto;
 
 
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
-import com.viandasApp.api.User.model.Usuario;
+import com.viandasApp.api.Usuario.model.Usuario;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -1,9 +1,9 @@
-package com.viandasApp.api.User.controller;
+package com.viandasApp.api.Usuario.controller;
 
-import com.viandasApp.api.User.dto.UsuarioCreateDTO;
-import com.viandasApp.api.User.dto.UsuarioDTO;
-import com.viandasApp.api.User.dto.UsuarioUpdateDTO;
-import com.viandasApp.api.User.service.UsuarioService;
+import com.viandasApp.api.Usuario.dto.UsuarioCreateDTO;
+import com.viandasApp.api.Usuario.dto.UsuarioDTO;
+import com.viandasApp.api.Usuario.dto.UsuarioUpdateDTO;
+import com.viandasApp.api.Usuario.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

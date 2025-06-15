@@ -1,4 +1,4 @@
-package com.viandasApp.api.User.model;
+package com.viandasApp.api.Usuario.model;
 
 public enum RolUsuario {
     ADMIN("ADMIN"),
