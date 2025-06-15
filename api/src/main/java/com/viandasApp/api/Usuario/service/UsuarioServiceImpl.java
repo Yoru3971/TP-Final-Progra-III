@@ -50,13 +50,19 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public Optional<UsuarioDTO> findByEmail(String email) {
-        return repository.findByEmail(email).map(UsuarioDTO::new);
+    public List<UsuarioDTO> findByEmail(String email) {
+        return repository.findByEmail(email)
+                .stream()
+                .map(UsuarioDTO::new)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Optional<UsuarioDTO> findByRolUsuario(RolUsuario rolUsuario) {
-        return repository.findByRolUsuario(rolUsuario).map(UsuarioDTO::new);
+    public List<UsuarioDTO> findByRolUsuario(RolUsuario rolUsuario) {
+        return repository.findByRolUsuario(rolUsuario)
+                .stream()
+                .map(UsuarioDTO::new)
+                .collect(Collectors.toList());
     }
 
     @Override

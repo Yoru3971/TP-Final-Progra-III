@@ -1,5 +1,6 @@
 package com.viandasApp.api.Usuario.controller;
 
+import com.viandasApp.api.Pedido.dto.PedidoDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioCreateDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioUpdateDTO;
@@ -84,71 +85,65 @@ public class UsuarioController {
 
     @GetMapping("/email/{email}")
     public ResponseEntity<?> findByEmail(
-            @PathVariable String email,
-            BindingResult result
+            @PathVariable String email
     ) {
-        final var errores = procesarErrores(result);
+        List<UsuarioDTO> usuario = service.findByEmail(email);
+        Map<String, String> response = new HashMap<>();
 
-        if (!errores.isEmpty()) {
-            return ResponseEntity.badRequest().body(errores);
+        if (!usuario.isEmpty()) {
+            return ResponseEntity.ok(usuario);
+        } else {
+            response.put("message", "No se encontraron usuarios con ese mail");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
-
-        final Optional<UsuarioDTO> user = service.findByEmail(email);
-
-        return user.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/rol/{rolUsuario}")
     public ResponseEntity<?> findByRolUsuario(
-            @PathVariable RolUsuario rolUsuario,
-            BindingResult result
+            @Valid @PathVariable RolUsuario rolUsuario
     ) {
-        final var errores = procesarErrores(result);
+        List<UsuarioDTO> usuario = service.findByRolUsuario(rolUsuario);
+        Map<String, String> response = new HashMap<>();
 
-        if (!errores.isEmpty()) {
-            return ResponseEntity.badRequest().body(errores);
+        if (!usuario.isEmpty()) {
+            return ResponseEntity.ok(usuario);
+        } else {
+            response.put("message", "No se encontraron usuarios con el rol especificado");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
-
-        final Optional<UsuarioDTO> user = service.findByRolUsuario(rolUsuario);
-
-        return user.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUsuario(
-            @PathVariable Long id,
-            @Valid @RequestBody UsuarioUpdateDTO userDto,
-            BindingResult result
-    ) {
-        final var errores = procesarErrores(result);
+            @Valid @PathVariable Long id,
+            @Valid @RequestBody UsuarioUpdateDTO userDto) {
+        Optional<UsuarioDTO> usuarioActualizar = service.updateUsuario(id, userDto);
+        Map<String, String> response = new HashMap<>();
 
-        if (!errores.isEmpty()) {
-            return ResponseEntity.badRequest().body(errores);
+        if (usuarioActualizar.isPresent()) {
+            response.put("message", "Usuario actualizado correctamente");
+            return ResponseEntity.ok(usuarioActualizar.get());
+        } else {
+
+            response.put("message", "Usuario no encontrado");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
-
-        final Optional<UsuarioDTO> updatedUser = service.updateUsuario(id, userDto);
-
-        return updatedUser.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUsuario(
-            @PathVariable Long id,
-            BindingResult result
-    ) {
-        final var errores = procesarErrores(result);
+            @PathVariable Long id) {
+        Optional<UsuarioDTO> usuarioEliminar = service.findById(id);
+        Map<String, String> response = new HashMap<>();
 
-        if (!errores.isEmpty()) {
-            return ResponseEntity.badRequest().body(errores);
+        if(usuarioEliminar.isPresent()){
+            service.deleteUsuario(id);
+            response.put("message", "Usuario eliminado correctamente");
+            return ResponseEntity.ok(response);
         }
-
-        if (service.deleteUsuario(id)) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } else {
-            return ResponseEntity.notFound().build();
+        else{
+            response.put("message", "Usuario no encontrado");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 

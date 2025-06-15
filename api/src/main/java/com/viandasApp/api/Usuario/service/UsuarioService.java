@@ -20,9 +20,9 @@ public interface UsuarioService {
 
     Optional<UsuarioDTO> findByNombreCompleto(String nombreCompleto);
 
-    Optional<UsuarioDTO> findByEmail(String email);
+    List<UsuarioDTO> findByEmail(String email);
 
-    Optional<UsuarioDTO> findByRolUsuario(RolUsuario rolUsuario);
+    List<UsuarioDTO> findByRolUsuario(RolUsuario rolUsuario);
 
     Optional<UsuarioDTO> updateUsuario(Long id, UsuarioUpdateDTO userDto);
 
