@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/usuarios")
+@RequestMapping("/api/public/usuarios")
 public class UsuarioController {
     private final UsuarioService service;
 
@@ -87,14 +87,14 @@ public class UsuarioController {
     public ResponseEntity<?> findByEmail(
             @PathVariable String email
     ) {
-        List<UsuarioDTO> usuario = service.findByEmail(email);
+        Optional<UsuarioDTO> usuario = service.findByEmail(email);
         Map<String, String> response = new HashMap<>();
 
-        if (!usuario.isEmpty()) {
-            return ResponseEntity.ok(usuario);
-        } else {
+        if (usuario.isEmpty()) {
             response.put("message", "No se encontraron usuarios con ese mail");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } else {
+            return ResponseEntity.ok(usuario);
         }
     }
 

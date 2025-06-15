@@ -25,6 +25,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         this.passwordEncoder = new SecurityConfig().passwordEncoder(); // Obtiene el PasswordEncoder de la configuración de seguridad
     }
 
+
     @Override
     public UsuarioDTO createUsuario(UsuarioCreateDTO usuarioDTO) {
         Usuario usuario = DTOToEntity(usuarioDTO);
@@ -55,11 +56,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public List<UsuarioDTO> findByEmail(String email) {
+    public Optional<UsuarioDTO> findByEmail(String email) {
         return repository.findByEmail(email)
-                .stream()
-                .map(UsuarioDTO::new)
-                .collect(Collectors.toList());
+                .map(UsuarioDTO::new);
     }
 
     @Override

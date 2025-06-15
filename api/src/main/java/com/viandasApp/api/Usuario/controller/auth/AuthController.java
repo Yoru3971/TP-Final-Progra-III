@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/public")
@@ -46,12 +47,11 @@ public class AuthController {
             return ResponseEntity.badRequest().body(procesarErrores(result));
         }
         try {
-            var usuarios = usuarioService.findByEmail(loginDTO.getEmail());
-            if (usuarios.isEmpty()) {
+            Optional<UsuarioDTO> usuario = usuarioService.findByEmail(loginDTO.getEmail());
+            if (usuario.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("error", "Usuario no encontrado"));
             }
-            UsuarioDTO usuario = usuarios.get(0);
 
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -61,9 +61,9 @@ public class AuthController {
 
             return ResponseEntity.ok(Map.of(
                     "mensaje", "Login exitoso",
-                    "usuarioId", usuario.getId(),
-                    "email", usuario.getEmail(),
-                    "rol", usuario.getRolUsuario().name()
+                    "usuarioId", usuario.get().getId(),
+                    "email", usuario.get().getEmail(),
+                    "rol", usuario.get().getRolUsuario()
             ));
 
         } catch (AuthenticationException e) {
