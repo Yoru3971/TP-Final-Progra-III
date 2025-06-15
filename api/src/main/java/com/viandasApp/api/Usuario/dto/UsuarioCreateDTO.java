@@ -28,6 +28,10 @@ public class UsuarioCreateDTO {
     @Size(min = 1, max = 64, message = "El email debe tener [min, max] caracteres.")
     private String email;
 
+    @NotBlank(message = "La contraseña es obligatoria.")
+    @Size(min = 4, max = 16, message = "La contraseña debe tener [min, max] caracteres.")
+    private String password;
+
     @Enumerated(EnumType.STRING)
     @NotNull(message = "El rol es obligatorio.")
     private RolUsuario rolUsuario;

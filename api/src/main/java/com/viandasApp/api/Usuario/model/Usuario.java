@@ -25,6 +25,10 @@ public class Usuario {
     private String email;
 
     @Column(nullable = false)
+    @NotBlank
+    private String password;
+
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @NotNull
     private RolUsuario rolUsuario;
