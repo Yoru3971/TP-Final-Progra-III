@@ -53,7 +53,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                         Usuario usuario = usuarioService.findEntityById(updateEmprendimientoDTO.getIdUsuario())
                                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + id));
 
-                        if ( usuario.getRolUsuario() != RolUsuario.OWNER ){
+                        if ( usuario.getRolUsuario() != RolUsuario.DUENO ){
                             throw new RuntimeException("Solo los usuarios con rol DUEÑO pueden tener emprendimientos.");
                         }
 
@@ -120,7 +120,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         Usuario usuario = usuarioService.findEntityById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + id));
 
-        if ( usuario.getRolUsuario() != RolUsuario.OWNER ){
+        if ( usuario.getRolUsuario() != RolUsuario.DUENO ){
             throw new RuntimeException("Solo los usuarios con rol DUEÑO pueden crear emprendimientos.");
         }
 
