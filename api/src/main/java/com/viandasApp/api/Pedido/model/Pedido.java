@@ -40,6 +40,8 @@ public class Pedido {
         if (this.estado == null) {
             this.estado = EstadoPedido.PENDIENTE;
         }
+
+        //comentario de prueba
     }
 
     public void agregarDetalle(DetallePedido detalle) {
