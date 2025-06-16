@@ -24,7 +24,9 @@ public class ViandaPublicController {
     }
 
     @GetMapping("/id-emprendimiento/{idEmprendimiento}")
-    public ResponseEntity<List<ViandaDTO>> getViandasDisponiblesByEmprendimiento(@Valid @RequestBody FiltroViandaDTO filtro, @PathVariable Long idEmprendimiento) {
+    public ResponseEntity<List<ViandaDTO>> getViandasDisponiblesByEmprendimiento(
+            @Valid @ModelAttribute FiltroViandaDTO filtro,
+            @PathVariable Long idEmprendimiento) {
         List<ViandaDTO> resultados = viandasService.getViandasDisponiblesByEmprendimiento(filtro, idEmprendimiento);
         return ResponseEntity.ok(resultados);
     }
