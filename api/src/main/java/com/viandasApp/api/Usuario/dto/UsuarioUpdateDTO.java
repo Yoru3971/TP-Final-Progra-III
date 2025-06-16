@@ -1,13 +1,11 @@
 package com.viandasApp.api.Usuario.dto;
 
 import com.viandasApp.api.Usuario.model.RolUsuario;
+import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 @AllArgsConstructor
@@ -30,4 +28,9 @@ public class UsuarioUpdateDTO {
     @Enumerated(EnumType.STRING)
     @NotNull(message = "El rol es obligatorio.")
     private RolUsuario rolUsuario;
+
+    @Column(nullable = false)
+    @NotBlank(message = "El telefono es obligatorio.")
+    @Pattern(regexp = "\\d{10,15}", message = "El teléfono debe tener entre 10 y 15 dígitos")
+    private String telefono;
 }

@@ -35,6 +35,10 @@ public class Usuario implements UserDetails {
     private String password;
 
     @Column(nullable = false)
+    @NotBlank
+    private String telefono;
+
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @NotNull
     private RolUsuario rolUsuario;

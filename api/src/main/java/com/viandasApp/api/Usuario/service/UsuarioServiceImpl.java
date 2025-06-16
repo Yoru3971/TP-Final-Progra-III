@@ -110,6 +110,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 usuarioCreateDTO.getNombreCompleto(),
                 usuarioCreateDTO.getEmail(),
                 passwordEncoder.encode(usuarioCreateDTO.getPassword()),
+                usuarioCreateDTO.getTelefono(),
                 usuarioCreateDTO.getRolUsuario()
         );
     }
