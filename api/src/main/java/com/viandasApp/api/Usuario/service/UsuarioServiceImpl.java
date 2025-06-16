@@ -1,7 +1,6 @@
 package com.viandasApp.api.Usuario.service;
 
-import ch.qos.logback.core.encoder.Encoder;
-import com.viandasApp.api.Seguridad.SecurityConfig;
+import com.viandasApp.api.Config.SecurityConfig;
 import com.viandasApp.api.Usuario.dto.UsuarioCreateDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioUpdateDTO;

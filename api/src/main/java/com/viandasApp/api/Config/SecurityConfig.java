@@ -1,8 +1,7 @@
-package com.viandasApp.api.Seguridad;
+package com.viandasApp.api.Config;
 
 import com.viandasApp.api.Usuario.controller.auth.UsuarioDetailsServiceImpl;
 import com.viandasApp.api.Usuario.repository.UsuarioRepository;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
