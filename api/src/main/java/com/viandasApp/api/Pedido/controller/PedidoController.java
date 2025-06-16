@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/pedidos")
+@RequestMapping("/api/admin/pedidos")
 @RequiredArgsConstructor
 public class PedidoController {
 

@@ -1,5 +1,6 @@
 package com.viandasApp.api.Pedido.model;
 
+import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Usuario.model.Usuario;
 import jakarta.persistence.*;
 import lombok.*;
@@ -23,6 +24,10 @@ public class Pedido {
     @ManyToOne(optional = false)
     @JoinColumn(name = "cliente_id")
     private Usuario usuario;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "emprendimiento_id")
+    private Emprendimiento emprendimiento;
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetallePedido> viandas = new ArrayList<>();

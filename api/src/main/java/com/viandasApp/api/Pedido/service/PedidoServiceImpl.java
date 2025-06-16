@@ -1,5 +1,7 @@
 package com.viandasApp.api.Pedido.service;
 
+import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
+import com.viandasApp.api.Emprendimiento.service.EmprendimientoServiceImpl;
 import com.viandasApp.api.Pedido.dto.*;
 import com.viandasApp.api.Pedido.model.DetallePedido;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
@@ -7,8 +9,10 @@ import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.repository.UsuarioRepository;
+import com.viandasApp.api.Usuario.service.UsuarioServiceImpl;
 import com.viandasApp.api.Vianda.model.Vianda;
 import com.viandasApp.api.Vianda.repository.ViandaRepository;
+import com.viandasApp.api.Vianda.service.ViandaServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,19 +26,28 @@ import java.util.Optional;
 public class PedidoServiceImpl implements PedidoService {
 
     private final PedidoRepository pedidoRepository;
-    private final UsuarioRepository usuarioRepository;
-    private final ViandaRepository viandaRepository;
+    private final UsuarioServiceImpl usuarioService;
+    private final EmprendimientoServiceImpl emprendimientoService;
+    private final ViandaServiceImpl viandaService;
+
+
+    //  MÉTODOS DEL ADMIN
 
     @Override
     public PedidoDTO createPedido(PedidoCreateDTO pedidoCreateDTO) {
-        Usuario cliente = usuarioRepository.findById(pedidoCreateDTO.getClienteId())
+
+        Usuario cliente = usuarioService.findEntityById(pedidoCreateDTO.getClienteId())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        Emprendimiento emprendimiento = emprendimientoService.findEntityById(pedidoCreateDTO.getEmprendimientoId())
+                .orElseThrow(() -> new RuntimeException("Emprendimiento no encontrado"));
 
         Pedido pedido = new Pedido();
         pedido.setUsuario(cliente);
+        pedido.setEmprendimiento(emprendimiento);
 
         for (ViandaCantidadDTO dto : pedidoCreateDTO.getViandas()) {
-            Vianda vianda = viandaRepository.findById(dto.getViandaId())
+            Vianda vianda = viandaService.findEntityViandaById(dto.getViandaId())
                     .orElseThrow(() -> new RuntimeException("Vianda no encontrada"));
 
             DetallePedido detalle = new DetallePedido();
@@ -68,7 +81,7 @@ public class PedidoServiceImpl implements PedidoService {
             pedido.getViandas().clear();
 
             for (PedidoUpdateViandasDTO.ViandaCantidadDTO vc : dto.getViandas()) {
-                Optional<Vianda> viandaOpt = viandaRepository.findById(vc.getViandaId());
+                Optional<Vianda> viandaOpt = viandaService.findEntityViandaById(vc.getViandaId());
                 if (viandaOpt.isEmpty()) {
                     // Si alguna vianda no existe, retorna vacío como señal de error
                     return null;
@@ -123,11 +136,17 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public List<PedidoDTO> getAllPedidosByUsuarioId(Long idUsuario) {
-        return usuarioRepository.findById(idUsuario)
+        return usuarioService.findById(idUsuario)
                 .map(usuario -> pedidoRepository.findByUsuarioId(usuario.getId()).stream()
                         .map(PedidoDTO::new)
                         .toList()
                 )
                 .orElse(Collections.emptyList());
     }
+
+    //  MÉTODOS DEL DUEÑO
+
+    //  MÉTODOS DEL CLIENTE
+
+
 }

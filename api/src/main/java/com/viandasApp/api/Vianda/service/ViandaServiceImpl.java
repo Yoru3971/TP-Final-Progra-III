@@ -42,6 +42,11 @@ public class ViandaServiceImpl implements ViandaService {
     }
 
     @Override
+    public Optional<Vianda> findEntityViandaById(Long id) {
+        return repository.findById(id);
+    }
+
+    @Override
     public Optional<ViandaDTO> updateVianda(Long id, ViandaUpdateDTO dto) {
         return repository.findById(id).map(existing -> {
             if (dto.getNombreVianda() != null) existing.setNombreVianda(dto.getNombreVianda());
