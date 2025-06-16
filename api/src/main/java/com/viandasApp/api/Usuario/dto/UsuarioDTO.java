@@ -2,12 +2,11 @@ package com.viandasApp.api.Usuario.dto;
 
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @AllArgsConstructor
-@Data
+@Setter
+@Getter
 @NoArgsConstructor
 public class UsuarioDTO {
     private Long id;

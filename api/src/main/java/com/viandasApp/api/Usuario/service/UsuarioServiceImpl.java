@@ -1,11 +1,13 @@
 package com.viandasApp.api.Usuario.service;
 
+import com.viandasApp.api.Config.SecurityConfig;
 import com.viandasApp.api.Usuario.dto.UsuarioCreateDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioUpdateDTO;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.repository.UsuarioRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,15 +17,18 @@ import java.util.stream.Collectors;
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
     private final UsuarioRepository repository;
+    private final PasswordEncoder passwordEncoder;
 
     public UsuarioServiceImpl(UsuarioRepository repository) {
         this.repository = repository;
+        this.passwordEncoder = new SecurityConfig().passwordEncoder(); // Obtiene el PasswordEncoder de la configuración de seguridad
     }
 
+
     @Override
-    public UsuarioDTO createUsuario(UsuarioCreateDTO userDto) {
-        final Usuario usuario = DTOToEntity(userDto);
-        final Usuario savedUsuario = repository.save(usuario);
+    public UsuarioDTO createUsuario(UsuarioCreateDTO usuarioDTO) {
+        Usuario usuario = DTOToEntity(usuarioDTO);
+        Usuario savedUsuario = repository.save(usuario);
         return new UsuarioDTO(savedUsuario);
     }
 
@@ -50,11 +55,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public List<UsuarioDTO> findByEmail(String email) {
+    public Optional<UsuarioDTO> findByEmail(String email) {
         return repository.findByEmail(email)
-                .stream()
-                .map(UsuarioDTO::new)
-                .collect(Collectors.toList());
+                .map(UsuarioDTO::new);
     }
 
     @Override
@@ -66,26 +69,26 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public Optional<UsuarioDTO> updateUsuario(Long id, UsuarioUpdateDTO userDto) {
+    public Optional<UsuarioDTO> updateUsuario(Long id, UsuarioUpdateDTO usuarioUpdateDTO) {
         return repository.findById(id).map(
-                existingUser -> {
-                    if (userDto.getId() != null) {
-                        existingUser.setId(userDto.getId());
+                usuarioExistente -> {
+                    if (usuarioUpdateDTO.getId() != null) {
+                        usuarioExistente.setId(usuarioUpdateDTO.getId());
                     }
 
-                    if (userDto.getNombreCompleto() != null) {
-                        existingUser.setNombreCompleto(userDto.getNombreCompleto());
+                    if (usuarioUpdateDTO.getNombreCompleto() != null) {
+                        usuarioExistente.setNombreCompleto(usuarioUpdateDTO.getNombreCompleto());
                     }
 
-                    if (userDto.getEmail() != null) {
-                        existingUser.setEmail(userDto.getEmail());
+                    if (usuarioUpdateDTO.getEmail() != null) {
+                        usuarioExistente.setEmail(usuarioUpdateDTO.getEmail());
                     }
 
-                    if (userDto.getRolUsuario() != null) {
-                        existingUser.setRolUsuario(userDto.getRolUsuario());
+                    if (usuarioUpdateDTO.getRolUsuario() != null) {
+                        usuarioExistente.setRolUsuario(usuarioUpdateDTO.getRolUsuario());
                     }
 
-                    final Usuario updatedUsuario = repository.save(existingUser);
+                    final Usuario updatedUsuario = repository.save(usuarioExistente);
                     return new UsuarioDTO(updatedUsuario);
                 }
         );
@@ -101,12 +104,13 @@ public class UsuarioServiceImpl implements UsuarioService {
         return false;
     }
 
-    private Usuario DTOToEntity(UsuarioCreateDTO userDto) {
+    private Usuario DTOToEntity(UsuarioCreateDTO usuarioCreateDTO) {
         return new Usuario(
-                userDto.getId(),
-                userDto.getNombreCompleto(),
-                userDto.getEmail(),
-                userDto.getRolUsuario()
+                usuarioCreateDTO.getId(),
+                usuarioCreateDTO.getNombreCompleto(),
+                usuarioCreateDTO.getEmail(),
+                passwordEncoder.encode(usuarioCreateDTO.getPassword()),
+                usuarioCreateDTO.getRolUsuario()
         );
     }
 }

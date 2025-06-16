@@ -5,7 +5,8 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 @AllArgsConstructor
-@Data
+@Setter
+@Getter
 @Entity
 @NoArgsConstructor
 @Table(name = "usuarios")
@@ -23,6 +24,10 @@ public class Usuario {
     @Email
     @NotBlank
     private String email;
+
+    @Column(nullable = false)
+    @NotBlank
+    private String password;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

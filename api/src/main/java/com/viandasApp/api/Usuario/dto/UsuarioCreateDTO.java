@@ -8,12 +8,11 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @AllArgsConstructor
-@Data
+@Setter
+@Getter
 @NoArgsConstructor
 public class UsuarioCreateDTO {
     @Id
@@ -27,6 +26,10 @@ public class UsuarioCreateDTO {
     @NotBlank(message = "El email es obligatorio.")
     @Size(min = 1, max = 64, message = "El email debe tener [min, max] caracteres.")
     private String email;
+
+    @NotBlank(message = "La contraseña es obligatoria.")
+    @Size(min = 4, max = 16, message = "La contraseña debe tener [min, max] caracteres.")
+    private String password;
 
     @Enumerated(EnumType.STRING)
     @NotNull(message = "El rol es obligatorio.")
