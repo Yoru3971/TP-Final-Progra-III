@@ -27,7 +27,7 @@ public class PedidoDuenoController {
 
     private final PedidoService pedidoService;
 
-    @PutMapping("/{id}")
+    @PutMapping("/id/{id}")
     public ResponseEntity<Map<String, Object>> updatePedido(@PathVariable Long id, @RequestBody @Valid UpdatePedidoDTO updatePedidoDTO) {
 
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
@@ -81,7 +81,6 @@ public class PedidoDuenoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
-
     @GetMapping("/fecha/{fecha}/idEmprendimiento/{idEmprendimiento}")
     public ResponseEntity<?> getPedidosPorFechaAndEmprendimiento(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
                                                                  @PathVariable Long idEmprendimiento) {
@@ -99,5 +98,4 @@ public class PedidoDuenoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
-
 }

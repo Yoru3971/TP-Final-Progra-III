@@ -52,7 +52,7 @@ public class PedidoClienteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(pedidoDTO);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/id/{id}")
     public ResponseEntity<Map<String, Object>> updatePedido(@PathVariable Long id, @RequestBody @Valid UpdatePedidoDTO updatePedidoDTO) {
 
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
@@ -96,7 +96,7 @@ public class PedidoClienteController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/id/{id}")
     public ResponseEntity<Map<String, String>>  deletePedido(@PathVariable Long id) {
 
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext()

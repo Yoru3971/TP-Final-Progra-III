@@ -13,7 +13,7 @@ public class PedidoDTO {
     private Long id;
     private Long clienteId;
     private EstadoPedido estado;
-    private LocalDate fecha;
+    private LocalDate fechaEntrega;
     private Double total;
     private List<DetalleViandaDTO> viandas;
 
@@ -21,7 +21,7 @@ public class PedidoDTO {
         this.id = pedido.getId();
         this.clienteId = pedido.getUsuario().getId();
         this.estado = pedido.getEstado();
-        this.fecha = pedido.getFechaEntrega();
+        this.fechaEntrega = pedido.getFechaEntrega();
 
         this.viandas = pedido.getViandas().stream()
                 .map(DetalleViandaDTO::new)

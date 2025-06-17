@@ -9,7 +9,6 @@ import java.util.List;
 
 @Data
 public class PedidoCreateDTO {
-
     @NotNull(message = "El ID del cliente no puede ser nulo")
     private Long clienteId;
 

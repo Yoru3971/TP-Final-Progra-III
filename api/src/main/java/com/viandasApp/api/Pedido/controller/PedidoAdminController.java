@@ -91,7 +91,7 @@ public class PedidoAdminController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/id/{id}")
     public ResponseEntity<Map<String, String>>  deletePedido(@PathVariable Long id) {
 
         Optional<PedidoDTO> pedidoEliminar = pedidoService.getPedidoById(id);
@@ -121,7 +121,7 @@ public class PedidoAdminController {
         }
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ResponseEntity<?> getPedidoPorId(@PathVariable Long id) {
         Optional<PedidoDTO> pedido = pedidoService.getPedidoById(id);
         if (pedido.isPresent()) {
@@ -134,9 +134,9 @@ public class PedidoAdminController {
         }
     }
 
-    @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<?> getPedidosDeUsuario(@PathVariable Long usuarioId) {
-        List<PedidoDTO> pedido = pedidoService.getAllPedidosByUsuarioId(usuarioId);
+    @GetMapping("/idUsuario/{idUsuario}")
+    public ResponseEntity<?> getPedidosDeUsuario(@PathVariable Long idUsuario) {
+        List<PedidoDTO> pedido = pedidoService.getAllPedidosByUsuarioId(idUsuario);
 
         if (!pedido.isEmpty()) {
             return ResponseEntity.ok(pedido);
@@ -181,7 +181,6 @@ public class PedidoAdminController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
     }
-
     @GetMapping("/estado/{estado}")
     public ResponseEntity<?> getPedidosPorEstado(@PathVariable EstadoPedido estado) {
         List<PedidoDTO> pedido = pedidoService.getAllPedidosByEstado(estado);
@@ -211,9 +210,9 @@ public class PedidoAdminController {
 
     @GetMapping("/fecha/{fecha}/idUsuario/{idUsuario}")
     public ResponseEntity<?> getPedidosPorFechaAndUsuarioId(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
-                                                            @PathVariable Long id) {
+                                                            @PathVariable Long idUsuario) {
 
-        List<PedidoDTO> pedido = pedidoService.getAllPedidosByFechaAndUsuarioId(fecha,id);
+        List<PedidoDTO> pedido = pedidoService.getAllPedidosByFechaAndUsuarioId(fecha,idUsuario);
 
         if (!pedido.isEmpty()) {
             return ResponseEntity.ok(pedido);
