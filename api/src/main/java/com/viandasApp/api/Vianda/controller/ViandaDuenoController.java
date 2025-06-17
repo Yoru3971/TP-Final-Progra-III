@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,10 +46,10 @@ public class ViandaDuenoController {
 
     @PostMapping
     public ResponseEntity<ViandaDTO> createVianda(
-            @Valid @RequestBody ViandaCreateDTO dto,
-            Authentication authentication) {
-        Usuario usuario = (Usuario) authentication.getPrincipal();
-        return new ResponseEntity<>(viandasService.createVianda(dto, usuario), HttpStatus.CREATED);
+            @Valid @RequestBody ViandaCreateDTO dto) {
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        return new ResponseEntity<>(viandasService.createVianda(dto, autenticado), HttpStatus.CREATED);
     }
 
     @PutMapping("/id/{id}")

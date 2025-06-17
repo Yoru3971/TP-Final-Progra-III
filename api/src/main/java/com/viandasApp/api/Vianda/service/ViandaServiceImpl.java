@@ -56,12 +56,11 @@ public class ViandaServiceImpl implements ViandaService {
 
         Long duenioEmprendimientoId = emprendimiento.getUsuario().getId();
 
-        boolean esAdmin = usuarioLogueado.getRolUsuario() == RolUsuario.ADMIN;
-        boolean esDuenio = usuarioLogueado.getRolUsuario() == RolUsuario.DUENO;
+        boolean esDuenio = usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO);
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
 
-        if (esDuenio && !esDuenioDelEmprendimiento || !esAdmin) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar esta vianda.");
+        if (esDuenio && !esDuenioDelEmprendimiento) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para crear esta vianda.");
         }
 
         Vianda vianda = DTOtoEntity(dto);
@@ -108,11 +107,10 @@ public class ViandaServiceImpl implements ViandaService {
 
         Long duenioEmprendimientoId = viandaActual.getEmprendimiento().getUsuario().getId();
 
-        boolean esAdmin = usuarioLogueado.getRolUsuario() == RolUsuario.ADMIN;
-        boolean esDuenio = usuarioLogueado.getRolUsuario() == RolUsuario.DUENO;
+        boolean esDuenio = usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO);
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
 
-        if (esDuenio && !esDuenioDelEmprendimiento || !esAdmin) {
+        if (esDuenio && !esDuenioDelEmprendimiento) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar esta vianda.");
         }
 

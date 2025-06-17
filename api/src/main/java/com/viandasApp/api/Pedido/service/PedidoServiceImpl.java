@@ -40,18 +40,21 @@ public class PedidoServiceImpl implements PedidoService {
         Usuario cliente = usuarioService.findEntityById(pedidoCreateDTO.getClienteId())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        Emprendimiento emprendimiento = emprendimientoService.findEntityById(pedidoCreateDTO.getEmprendimientoId())
+        Emprendimiento emprendimientoPedido = emprendimientoService.findEntityById(pedidoCreateDTO.getEmprendimientoId())
                 .orElseThrow(() -> new RuntimeException("Emprendimiento no encontrado"));
 
         Pedido pedido = new Pedido();
         pedido.setFechaEntrega(pedidoCreateDTO.getFechaEntrega());
         pedido.setUsuario(cliente);
-        pedido.setEmprendimiento(emprendimiento);
+        pedido.setEmprendimiento(emprendimientoPedido);
 
         for (ViandaCantidadDTO dto : pedidoCreateDTO.getViandas()) {
             Vianda vianda = viandaService.findEntityViandaById(dto.getViandaId())
                     .orElseThrow(() -> new RuntimeException("Vianda no encontrada"));
 
+            if ( !vianda.getEmprendimiento().equals(emprendimientoPedido) ) {
+                throw new RuntimeException("Las viandas deben pertenecer al mismo emprendimiento del pedido.");
+            }
             DetallePedido detalle = new DetallePedido();
             detalle.setVianda(vianda);
             detalle.setCantidad(dto.getCantidad());
