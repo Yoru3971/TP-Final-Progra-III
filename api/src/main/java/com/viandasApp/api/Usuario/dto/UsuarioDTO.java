@@ -17,13 +17,13 @@ public class UsuarioDTO {
 
     private RolUsuario rolUsuario;
 
-    private Long telefono;
+    private String telefono;
 
     public UsuarioDTO(Usuario usuario) {
         this.id = usuario.getId();
         this.nombreCompleto = usuario.getNombreCompleto();
         this.email = usuario.getEmail();
         this.rolUsuario = usuario.getRolUsuario();
-        this.telefono = Long.parseLong(usuario.getTelefono());
+        this.telefono = usuario.getTelefono();
     }
 }
