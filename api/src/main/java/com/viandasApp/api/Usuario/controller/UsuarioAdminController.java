@@ -25,10 +25,10 @@ import java.util.Optional;
 @RequestMapping("/api/admin/usuarios")
 @PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class UsuarioAdminController {
-    private final UsuarioService service;
+    private final UsuarioService usuarioService;
 
-    public UsuarioAdminController(UsuarioService service) {
-        this.service = service;
+    public UsuarioAdminController(UsuarioService usuarioService) {
+        this.usuarioService = usuarioService;
     }
 
     @PostMapping("/register")
@@ -36,13 +36,13 @@ public class UsuarioAdminController {
         if (result.hasErrors()) {
             return ResponseEntity.badRequest().body(ErrorHandler.procesarErrores(result));
         }
-        UsuarioDTO nuevoUsuario = service.createUsuario(usuarioCreateDTO);
+        UsuarioDTO nuevoUsuario = usuarioService.createUsuario(usuarioCreateDTO);
         return ResponseEntity.ok(nuevoUsuario);
     }
 
     @GetMapping
     public ResponseEntity<?> readUsuarios() {
-        List<UsuarioDTO> usuarios = service.readUsuarios();
+        List<UsuarioDTO> usuarios = usuarioService.readUsuarios();
 
         if (usuarios.isEmpty()) {
             Map<String, String> response = new HashMap<>();
@@ -59,7 +59,7 @@ public class UsuarioAdminController {
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
 
-        Optional<UsuarioDTO> usuario = service.findById(autenticado.getId());
+        Optional<UsuarioDTO> usuario = usuarioService.findById(autenticado.getId());
 
         if (usuario.isPresent()) {
             return ResponseEntity.ok(usuario.get());
@@ -72,7 +72,7 @@ public class UsuarioAdminController {
 
     @GetMapping("/id/{id}")
     public ResponseEntity<?> findById(@PathVariable Long id) {
-        final Optional<UsuarioDTO> usuario = service.findById(id);
+        final Optional<UsuarioDTO> usuario = usuarioService.findById(id);
 
         if (usuario.isEmpty()) {
             Map<String, String> response = new HashMap<>();
@@ -88,7 +88,7 @@ public class UsuarioAdminController {
     public ResponseEntity<?> findByNombreCompleto(
             String nombreCompleto
     ) {
-        Optional<UsuarioDTO> usuarioEncontrado = service.findByNombreCompleto(nombreCompleto);
+        Optional<UsuarioDTO> usuarioEncontrado = usuarioService.findByNombreCompleto(nombreCompleto);
 
         if (usuarioEncontrado.isEmpty()) {
             Map<String, String> response = new HashMap<>();
@@ -103,7 +103,7 @@ public class UsuarioAdminController {
     public ResponseEntity<?> findByEmail(
             @PathVariable String email
     ) {
-        Optional<UsuarioDTO> usuario = service.findByEmail(email);
+        Optional<UsuarioDTO> usuario = usuarioService.findByEmail(email);
         Map<String, String> response = new HashMap<>();
 
         if (usuario.isEmpty()) {
@@ -117,7 +117,7 @@ public class UsuarioAdminController {
     public ResponseEntity<?> findByRolUsuario(
             @PathVariable RolUsuario rolUsuario
     ) {
-        List<UsuarioDTO> usuario = service.findByRolUsuario(rolUsuario);
+        List<UsuarioDTO> usuario = usuarioService.findByRolUsuario(rolUsuario);
         Map<String, String> response = new HashMap<>();
 
         if (usuario.isEmpty()) {
@@ -131,7 +131,7 @@ public class UsuarioAdminController {
     public ResponseEntity<?> updateUsuario(
             @Valid @PathVariable Long id,
             @Valid @RequestBody UsuarioUpdateRolDTO userDto) {
-        Optional<UsuarioDTO> usuarioActualizar = service.updateUsuarioAdmin(id, userDto);
+        Optional<UsuarioDTO> usuarioActualizar = usuarioService.updateUsuarioAdmin(id, userDto);
         Map<String, String> response = new HashMap<>();
 
         if (usuarioActualizar.isPresent()) {
@@ -147,14 +147,14 @@ public class UsuarioAdminController {
     public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
         Map<String, String> response = new HashMap<>();
 
-        Optional<UsuarioDTO> usuarioEliminar = service.findById(id);
+        Optional<UsuarioDTO> usuarioEliminar = usuarioService.findById(id);
 
         if (usuarioEliminar.isEmpty()) {
             response.put("message", "Usuario no encontrado");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
-        service.deleteUsuarioAdmin(id);
+        usuarioService.deleteUsuarioAdmin(id);
         response.put("message", "Usuario eliminado correctamente");
         return ResponseEntity.ok(response);
     }
@@ -164,7 +164,7 @@ public class UsuarioAdminController {
             @PathVariable Long id,
             @RequestBody AdminPasswordUpdateDTO adminPasswordUpdateDTO
     ) {
-        boolean ok = service.cambiarPasswordAdmin(id, adminPasswordUpdateDTO.getNuevaPassword());
+        boolean ok = usuarioService.cambiarPasswordAdmin(id, adminPasswordUpdateDTO.getNuevaPassword());
         Map<String, String> response = new HashMap<>();
 
         if (!ok) {

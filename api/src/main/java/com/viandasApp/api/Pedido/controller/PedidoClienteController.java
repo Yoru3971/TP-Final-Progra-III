@@ -6,14 +6,12 @@ import com.viandasApp.api.Pedido.dto.PedidoUpdateViandasDTO;
 import com.viandasApp.api.Pedido.dto.UpdatePedidoDTO;
 import com.viandasApp.api.Pedido.service.PedidoService;
 import com.viandasApp.api.Usuario.model.Usuario;
-import com.viandasApp.api.Usuario.service.UsuarioServiceImpl;
-import com.viandasApp.api.Vianda.service.ViandaServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +24,9 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/cliente/pedidos")
+@PreAuthorize("hasAuthority('ROLE_CLIENTE')")
 @RequiredArgsConstructor
-public class PedidosClienteController {
+public class PedidoClienteController {
 
     private final PedidoService pedidoService;
 

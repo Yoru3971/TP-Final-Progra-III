@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,8 +21,9 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/dueno/pedidos")
+@PreAuthorize("hasAuthority('ROLE_DUENO')")
 @RequiredArgsConstructor
-public class PedidosDuenoController {
+public class PedidoDuenoController {
 
     private final PedidoService pedidoService;
 

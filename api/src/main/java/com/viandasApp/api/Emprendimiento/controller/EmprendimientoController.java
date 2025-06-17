@@ -27,7 +27,6 @@ public class EmprendimientoController {
         this.emprendimientoService = emprendimientoService;
     }
 
-
     @PostMapping
     public ResponseEntity<?> createEmprendimiento(@Valid @RequestBody CreateEmprendimientoDTO createEmprendimientoDTO, BindingResult result){
 
@@ -153,5 +152,4 @@ public class EmprendimientoController {
 
         return ResponseEntity.ok(emprendimientos);
     }
-
 }
