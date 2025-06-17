@@ -14,7 +14,7 @@ public interface ViandaService {
     ViandaDTO createVianda(ViandaCreateDTO viandaDto, Usuario usuario);
     Optional<ViandaDTO> updateVianda(Long id, ViandaUpdateDTO viandaDto, Usuario usuario);
     boolean deleteVianda(Long id, Usuario usuario);
-    Optional<Vianda> findEntityViandaById(Long id);
+
     Optional<ViandaDTO> findViandaById(Long id);
     List<ViandaDTO> getAllViandas();
     List<ViandaDTO> getViandasByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento);
