@@ -8,7 +8,6 @@ import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioServiceImpl;
-import com.viandasApp.api.Vianda.model.Vianda;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -122,9 +121,19 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     }
 
     @Override
-    public Optional<EmprendimientoDTO> getEmprendimientoById(Long id) {
-        return emprendimientoRepository.findById(id)
-                .map(EmprendimientoDTO::new);
+    public Optional<EmprendimientoDTO> getEmprendimientoById(Long id, Usuario usuario) {
+
+        Optional<Emprendimiento> emprendimiento = emprendimientoRepository.findById(id);
+
+        boolean esDuenio = usuario.getRolUsuario() == RolUsuario.DUENO;
+        boolean esDuenioDelEmprendimiento = emprendimiento.isPresent() && emprendimiento.get().getUsuario().getId().equals(usuario.getId());
+
+        if (esDuenio && !esDuenioDelEmprendimiento) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver este emprendimiento.");
+        }
+
+        return emprendimiento.map(EmprendimientoDTO::new);
+
     }
 
     @Override
@@ -140,9 +149,20 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     }
 
     @Override
-    public List<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long id) {
-        return emprendimientoRepository.findByUsuarioId(id)
-                .stream().map(EmprendimientoDTO::new).toList();
+    public List<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long idUsuario, Usuario usuario) {
+        List<Emprendimiento> emprendimientos = emprendimientoRepository.findByUsuarioId(idUsuario);
+
+        boolean esDuenio = usuario.getRolUsuario() == RolUsuario.DUENO;
+        boolean esDuenioDelEmprendimiento = idUsuario.equals(usuario.getId());
+
+        if (esDuenio && !esDuenioDelEmprendimiento) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver estos emprendimientos.");
+        }
+
+        return emprendimientos
+                .stream()
+                .map(EmprendimientoDTO::new)
+                .toList();
     }
 
     @Override
@@ -158,7 +178,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         Usuario usuario = usuarioService.findEntityById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + id));
 
-        if ( usuario.getRolUsuario() != RolUsuario.DUENO ){
+        if ( usuario.getRolUsuario() != RolUsuario.DUENO && usuario.getRolUsuario() != RolUsuario.ADMIN ) {
             throw new RuntimeException("Solo los usuarios con rol DUEÑO pueden crear emprendimientos.");
         }
 

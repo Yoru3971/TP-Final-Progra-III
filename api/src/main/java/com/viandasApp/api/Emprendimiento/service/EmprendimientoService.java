@@ -15,9 +15,9 @@ public interface EmprendimientoService {
     Optional<EmprendimientoDTO> updateEmprendimiento(Long id, UpdateEmprendimientoDTO updateEmprendimientoDTO, Usuario usuario);
     boolean deleteEmprendimiento(Long id, Usuario usuario);
     List<EmprendimientoDTO> getAllEmprendimientos();
-    Optional<EmprendimientoDTO> getEmprendimientoById(Long id);
+    Optional<EmprendimientoDTO> getEmprendimientoById(Long id, Usuario usuario);
     List<EmprendimientoDTO> getEmprendimientosByNombre(String nombreEmprendimiento);
     List<EmprendimientoDTO> getEmprendimientosByCiudad(String ciudad);
-    List<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long id);
+    List<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long id, Usuario usuario);
     Optional<Emprendimiento> findEntityById(Long id);
 }
