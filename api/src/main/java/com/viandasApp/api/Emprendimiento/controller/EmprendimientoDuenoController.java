@@ -4,10 +4,12 @@ import com.viandasApp.api.Emprendimiento.dto.CreateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoService;
+import com.viandasApp.api.Usuario.model.Usuario;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,20 +19,23 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/emprendimientos")
-public class EmprendimientoController {
+@RequestMapping("/api/dueno/emprendimientos")
+public class EmprendimientoDuenoController {
 
     private final EmprendimientoService emprendimientoService;
 
-    public EmprendimientoController(EmprendimientoService emprendimientoService) {
+    public EmprendimientoDuenoController(EmprendimientoService emprendimientoService) {
 
         this.emprendimientoService = emprendimientoService;
     }
 
-
     @PostMapping
-    public ResponseEntity<?> createEmprendimiento(@Valid @RequestBody CreateEmprendimientoDTO createEmprendimientoDTO, BindingResult result){
+    public ResponseEntity<?> createEmprendimiento(
+            @Valid @RequestBody CreateEmprendimientoDTO createEmprendimientoDTO,
+            BindingResult result,
+            Authentication authentication) {
 
+        Usuario usuario = (Usuario) authentication.getPrincipal();
         if (result.hasErrors()) {
             Map<String, String> errores = new HashMap<>();
             result.getFieldErrors().forEach(error ->
@@ -41,7 +46,7 @@ public class EmprendimientoController {
 
         try {
 
-            EmprendimientoDTO emprendimientoGuardado = emprendimientoService.createEmprendimiento(createEmprendimientoDTO);
+            EmprendimientoDTO emprendimientoGuardado = emprendimientoService.createEmprendimiento(createEmprendimientoDTO, usuario);
             return ResponseEntity.status(HttpStatus.CREATED).body(emprendimientoGuardado);
 
         } catch (EntityNotFoundException ex) {
@@ -53,18 +58,22 @@ public class EmprendimientoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> updateEmprendimiento(@PathVariable Long id, @Valid @RequestBody UpdateEmprendimientoDTO updateEmprendimientoDTO){
+    public ResponseEntity<Map<String, Object>> updateEmprendimiento(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateEmprendimientoDTO updateEmprendimientoDTO,
+            Authentication authentication) {
 
         Map<String, Object> response = new HashMap<>();
+        Usuario usuario = (Usuario) authentication.getPrincipal();
 
         try {
 
-            Optional<EmprendimientoDTO> emprendimientoActualizado = emprendimientoService.updateEmprendimiento(id, updateEmprendimientoDTO);
+            Optional<EmprendimientoDTO> emprendimientoActualizado = emprendimientoService.updateEmprendimiento(id, updateEmprendimientoDTO, usuario);
 
             if (emprendimientoActualizado.isEmpty()) {
                 response.put("message", "El emprendimiento no se pudo actualizar.");
                 return ResponseEntity.status(HttpStatus.NOT_MODIFIED).body(response);
-            }else {
+            } else {
                 response.put("message", "Emprendimiento actualizado correctamente.");
                 response.put("emprendimiento", emprendimientoActualizado.get());
                 return ResponseEntity.ok(response);
@@ -82,12 +91,17 @@ public class EmprendimientoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteEmprendimiento(@PathVariable Long id){
+    public ResponseEntity<Map<String, String>> deleteEmprendimiento(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+
+        Usuario usuario = (Usuario) authentication.getPrincipal();
 
         Map<String, String> response = new HashMap<>();
-        boolean eliminado = emprendimientoService.deleteEmprendimiento(id);
+        boolean eliminado = emprendimientoService.deleteEmprendimiento(id, usuario);
 
-        if ( eliminado ){
+        if (eliminado) {
             response.put("message", "Emprendimiento eliminado correctamente.");
             return ResponseEntity.ok(response);
         } else {
@@ -98,11 +112,11 @@ public class EmprendimientoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<EmprendimientoDTO>> getAllEmprendimientos(){
+    public ResponseEntity<List<EmprendimientoDTO>> getAllEmprendimientos() {
 
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getAllEmprendimientos();
 
-        if ( emprendimientos.isEmpty() ) {
+        if (emprendimientos.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
@@ -110,7 +124,7 @@ public class EmprendimientoController {
     }
 
     @GetMapping("/id/{id}")
-    public ResponseEntity<EmprendimientoDTO> getEmprendimientoById (@PathVariable Long id){
+    public ResponseEntity<EmprendimientoDTO> getEmprendimientoById(@PathVariable Long id) {
 
         Optional<EmprendimientoDTO> emprendimiento = emprendimientoService.getEmprendimientoById(id);
 
@@ -119,11 +133,11 @@ public class EmprendimientoController {
     }
 
     @GetMapping("/nombre/{nombreEmp}")
-    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByNombre(@PathVariable String nombreEmp){
+    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByNombre(@PathVariable String nombreEmp) {
 
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByNombre(nombreEmp);
 
-        if ( emprendimientos.isEmpty() ) {
+        if (emprendimientos.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
@@ -131,11 +145,11 @@ public class EmprendimientoController {
     }
 
     @GetMapping("/ciudad/{ciudad}")
-    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByCiudad(@PathVariable String ciudad){
+    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByCiudad(@PathVariable String ciudad) {
 
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByCiudad(ciudad);
 
-        if ( emprendimientos.isEmpty() ) {
+        if (emprendimientos.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
@@ -143,11 +157,11 @@ public class EmprendimientoController {
     }
 
     @GetMapping("/id-usuario/{idUsuario}")
-    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByUsuario(@PathVariable Long idUsuario){
+    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByUsuario(@PathVariable Long idUsuario) {
 
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByUsuarioId(idUsuario);
 
-        if ( emprendimientos.isEmpty() ) {
+        if (emprendimientos.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 

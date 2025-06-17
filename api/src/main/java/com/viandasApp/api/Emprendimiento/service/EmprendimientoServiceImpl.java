@@ -8,9 +8,12 @@ import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioServiceImpl;
+import com.viandasApp.api.Vianda.model.Vianda;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +27,16 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
 
     @Override
-    public EmprendimientoDTO createEmprendimiento(CreateEmprendimientoDTO createEmprendimientoDTO) {
+    public EmprendimientoDTO createEmprendimiento(CreateEmprendimientoDTO createEmprendimientoDTO, Usuario usuario) {
+
+        Long duenioEmprendimientoId = createEmprendimientoDTO.getIdUsuario();
+
+        boolean esAdmin = usuario.getRolUsuario() == RolUsuario.ADMIN;
+        boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuario.getId());
+
+        if (!esDuenioDelEmprendimiento && !esAdmin) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo podes crear emprendimientos a tu nombre.");
+        }
 
         Emprendimiento emprendimiento = DTOToEntity(createEmprendimientoDTO);
         Emprendimiento emprendimientoGuardado = emprendimientoRepository.save(emprendimiento);
@@ -33,7 +45,20 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     }
 
     @Override
-    public Optional<EmprendimientoDTO> updateEmprendimiento(Long id, UpdateEmprendimientoDTO updateEmprendimientoDTO) {
+    public Optional<EmprendimientoDTO> updateEmprendimiento(Long id, UpdateEmprendimientoDTO updateEmprendimientoDTO, Usuario usuarioLogueado) {
+        Optional<Emprendimiento> optionalEmprendimiento = emprendimientoRepository.findById(id);
+
+        if (optionalEmprendimiento.isEmpty()) return Optional.empty();
+
+        Long duenioEmprendimientoId = optionalEmprendimiento.get().getUsuario().getId();
+
+        boolean esAdmin = usuarioLogueado.getRolUsuario() == RolUsuario.ADMIN;
+        boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
+
+        if (!esDuenioDelEmprendimiento && !esAdmin) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar este emprendimiento.");
+        }
+
         return emprendimientoRepository.findById(id)
                 .map(emprendimientoExistente -> {
                     if ( updateEmprendimientoDTO.getNombreEmprendimiento() != null ){
@@ -66,7 +91,20 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     }
 
     @Override
-    public boolean deleteEmprendimiento(Long id) {
+    public boolean deleteEmprendimiento(Long id, Usuario usuario) {
+
+        Optional<Emprendimiento> optionalEmprendimiento = emprendimientoRepository.findById(id);
+
+        if (optionalEmprendimiento.isEmpty()) return false;
+
+        Long duenioEmprendimientoId = optionalEmprendimiento.get().getUsuario().getId();
+
+        boolean esAdmin = usuario.getRolUsuario() == RolUsuario.ADMIN;
+        boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuario.getId());
+
+        if (!esDuenioDelEmprendimiento && !esAdmin) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para eliminar este emprendimiento.");
+        }
 
         if ( emprendimientoRepository.existsById(id) ){
             emprendimientoRepository.deleteById(id);

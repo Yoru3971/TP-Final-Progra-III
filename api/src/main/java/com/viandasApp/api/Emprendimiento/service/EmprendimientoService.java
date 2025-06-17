@@ -4,15 +4,16 @@ import com.viandasApp.api.Emprendimiento.dto.CreateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
+import com.viandasApp.api.Usuario.model.Usuario;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface EmprendimientoService {
 
-    EmprendimientoDTO createEmprendimiento(CreateEmprendimientoDTO createEmprendimientoDTO);
-    Optional<EmprendimientoDTO> updateEmprendimiento(Long id, UpdateEmprendimientoDTO updateEmprendimientoDTO);
-    boolean deleteEmprendimiento(Long id);
+    EmprendimientoDTO createEmprendimiento(CreateEmprendimientoDTO createEmprendimientoDTO, Usuario usuario);
+    Optional<EmprendimientoDTO> updateEmprendimiento(Long id, UpdateEmprendimientoDTO updateEmprendimientoDTO, Usuario usuario);
+    boolean deleteEmprendimiento(Long id, Usuario usuario);
     List<EmprendimientoDTO> getAllEmprendimientos();
     Optional<EmprendimientoDTO> getEmprendimientoById(Long id);
     List<EmprendimientoDTO> getEmprendimientosByNombre(String nombreEmprendimiento);
