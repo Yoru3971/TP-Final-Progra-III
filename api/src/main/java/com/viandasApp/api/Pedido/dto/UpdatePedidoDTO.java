@@ -2,18 +2,17 @@ package com.viandasApp.api.Pedido.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
-import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Data;
 
 import java.time.LocalDate;
 
 @Data
 public class UpdatePedidoDTO {
-
-    @NotNull(message = "El estado no puede ser nulo")
+    @Enumerated(EnumType.STRING)
     private EstadoPedido estado;
 
-    @NotNull(message = "La fecha no puede ser nula")
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate fecha;
+    private LocalDate fechaEntrega;
 }

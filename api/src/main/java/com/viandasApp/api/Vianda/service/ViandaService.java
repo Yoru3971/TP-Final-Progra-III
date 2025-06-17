@@ -5,6 +5,7 @@ import com.viandasApp.api.Vianda.dto.FiltroViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaCreateDTO;
 import com.viandasApp.api.Vianda.dto.ViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaUpdateDTO;
+import com.viandasApp.api.Vianda.model.Vianda;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,7 @@ public interface ViandaService {
     Optional<ViandaDTO> updateVianda(Long id, ViandaUpdateDTO viandaDto, Usuario usuario);
     boolean deleteVianda(Long id, Usuario usuario);
 
+    Optional<Vianda> findEntityViandaById(Long id);
     Optional<ViandaDTO> findViandaById(Long id, Usuario usuario);
     List<ViandaDTO> getViandasByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento, Usuario usuario);
     List<ViandaDTO> getViandasDisponiblesByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento);

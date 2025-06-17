@@ -251,4 +251,8 @@ public class ViandaServiceImpl implements ViandaService {
         return viandas.stream().map(ViandaDTO::new).toList();
     }
 
+    @Override
+    public Optional<Vianda> findEntityViandaById(Long id) {
+        return repository.findById(id);
+    }
 }

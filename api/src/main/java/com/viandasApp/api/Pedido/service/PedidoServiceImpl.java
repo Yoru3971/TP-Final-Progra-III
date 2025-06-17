@@ -33,7 +33,7 @@ public class PedidoServiceImpl implements PedidoService {
     @Override
     public PedidoDTO createPedido(PedidoCreateDTO pedidoCreateDTO, Usuario usuarioLogueado) {
 
-        if ( usuarioLogueado.getRolUsuario().equals(RolUsuario.CLIENTE) && !usuarioLogueado.getId().equals(pedidoCreateDTO.getClienteId())){
+        if (usuarioLogueado.getRolUsuario().equals(RolUsuario.CLIENTE) && !usuarioLogueado.getId().equals(pedidoCreateDTO.getClienteId())){
             throw new RuntimeException("El usuario no tiene permiso para crear pedidos para otro cliente");
         }
 
@@ -44,6 +44,7 @@ public class PedidoServiceImpl implements PedidoService {
                 .orElseThrow(() -> new RuntimeException("Emprendimiento no encontrado"));
 
         Pedido pedido = new Pedido();
+        pedido.setFechaEntrega(pedidoCreateDTO.getFechaEntrega());
         pedido.setUsuario(cliente);
         pedido.setEmprendimiento(emprendimiento);
 
@@ -69,8 +70,8 @@ public class PedidoServiceImpl implements PedidoService {
             if (updatePedidoDTO.getEstado() != null) {
                 pedido.setEstado(updatePedidoDTO.getEstado());
             }
-            if (updatePedidoDTO.getFecha() != null) {
-                pedido.setFechaEntrega(updatePedidoDTO.getFecha());
+            if (updatePedidoDTO.getFechaEntrega() != null) {
+                pedido.setFechaEntrega(updatePedidoDTO.getFechaEntrega());
             }
             Pedido actualizado = pedidoRepository.save(pedido);
             return new PedidoDTO(actualizado);
@@ -79,18 +80,17 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public Optional<PedidoDTO> updatePedidoDueno(Long id, UpdatePedidoDTO updatePedidoDTO, Usuario usuarioLogueado) {
-
         Pedido pedido = pedidoRepository.findById(id)
                             .orElseThrow(()-> new RuntimeException("No se encontró el pedido con ID " + id + "."));
 
         //  Solo se puede actualizar un pedido si está pendiente
         if ( pedido.getEstado().equals(EstadoPedido.PENDIENTE) ){
 
-                if ( !pedido.getEmprendimiento().getUsuario().equals(usuarioLogueado) ){
+                if (!(pedido.getEmprendimiento().getUsuario().getId().equals(usuarioLogueado.getId()))){
                     throw new RuntimeException("El emprendimiento del pedido que se quiere actualizar no pertenece al usuario logueado.");
                 }
 
-                if ( updatePedidoDTO.getEstado().equals(EstadoPedido.ACEPTADO) || updatePedidoDTO.getEstado().equals(EstadoPedido.RECHAZADO) ){
+                if (updatePedidoDTO.getEstado().equals(EstadoPedido.ACEPTADO) || updatePedidoDTO.getEstado().equals(EstadoPedido.RECHAZADO) ){
 
                     pedido.setEstado(updatePedidoDTO.getEstado());
                     Pedido actualizado = pedidoRepository.save(pedido);
@@ -99,7 +99,6 @@ public class PedidoServiceImpl implements PedidoService {
                 }else throw new RuntimeException("El dueño del emprendimiento solo puede aceptar o rechazar el pedido.");
 
         }else throw new RuntimeException("No se puede actualizar un pedido que se encuentra aceptado o rechazado.");
-
     }
 
     @Override
@@ -111,15 +110,15 @@ public class PedidoServiceImpl implements PedidoService {
         //  Solo se puede actualizar un pedido si está pendiente
         if ( pedido.getEstado().equals(EstadoPedido.PENDIENTE) ){
 
-            if ( !pedido.getUsuario().equals(usuarioLogueado) ){
+            if (!(pedido.getUsuario().getId().equals(usuarioLogueado.getId()))){
                 throw new RuntimeException("El pedido que se quiere actualizar no pertenece al usuario logueado.");
             }
 
-            if (updatePedidoDTO.getFecha() != null) {
-                if ( updatePedidoDTO.getFecha().isBefore(LocalDate.now()) ){
+            if (updatePedidoDTO.getFechaEntrega() != null) {
+                if ( updatePedidoDTO.getFechaEntrega().isBefore(LocalDate.now()) ){
                     throw new RuntimeException("La fecha de entrega no puede ser anterior a la fecha de hoy.");
                 }
-                pedido.setFechaEntrega(updatePedidoDTO.getFecha());
+                pedido.setFechaEntrega(updatePedidoDTO.getFechaEntrega());
             }
             Pedido actualizado = pedidoRepository.save(pedido);
             return Optional.of(new PedidoDTO(actualizado));
@@ -160,7 +159,7 @@ public class PedidoServiceImpl implements PedidoService {
         return pedidoRepository.findById(pedidoId).flatMap(pedido -> {
 
             if ( pedido.getEstado().equals(EstadoPedido.PENDIENTE) ){
-                if ( !pedido.getUsuario().equals(usuarioLogueado) ){
+                if (!(pedido.getUsuario().getId().equals(usuarioLogueado.getId()))){
                     throw new RuntimeException("El pedido que se quiere actualizar no pertenece al usuario logueado.");
                 }
 
@@ -211,7 +210,7 @@ public class PedidoServiceImpl implements PedidoService {
 
         if ( pedido.isPresent() ) {
 
-            if ( !pedido.get().getUsuario().equals(usuarioLogueado) ){
+            if (!(pedido.get().getUsuario().getId().equals(usuarioLogueado.getId()))){
                 throw new RuntimeException("El pedido que se quiere eliminar no pertenece al usuario logueado.");
             }
             if ( !(pedido.get().getEstado().equals(EstadoPedido.PENDIENTE) || pedido.get().getEstado().equals(EstadoPedido.CARRITO)) ) {
@@ -237,7 +236,7 @@ public class PedidoServiceImpl implements PedidoService {
         Emprendimiento emprendimiento = emprendimientoService.findEntityById(idEmprendimiento)
                 .orElseThrow(() -> new RuntimeException("Emprendimiento no encontrado."));
 
-        if ( usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO) && !emprendimiento.getUsuario().equals(usuarioLogueado) ){
+        if ( usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO) && !(emprendimiento.getUsuario().getId().equals(usuarioLogueado.getId())) ){
             throw new RuntimeException("El emprendimiento no pertenece al usuario logueado.");
         }
 
@@ -327,5 +326,4 @@ public class PedidoServiceImpl implements PedidoService {
                 .map(PedidoDTO::new)
                 .toList();
     }
-
 }
