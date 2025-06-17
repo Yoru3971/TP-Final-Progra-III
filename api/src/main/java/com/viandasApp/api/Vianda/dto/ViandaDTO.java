@@ -1,6 +1,7 @@
 package com.viandasApp.api.Vianda.dto;
 
 
+import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Vianda.model.CategoriaVianda;
 import com.viandasApp.api.Vianda.model.Vianda;
@@ -28,7 +29,7 @@ public class ViandaDTO {
 
     private Boolean esSinTacc;
 
-    private Emprendimiento emprendimiento;
+    private EmprendimientoDTO emprendimiento;
 
     private Boolean estaDisponible;
 
@@ -41,7 +42,7 @@ public class ViandaDTO {
         this.esVegano = vianda.getEsVegano();
         this.esVegetariano = vianda.getEsVegetariano();
         this.esSinTacc = vianda.getEsSinTacc();
-        this.emprendimiento = vianda.getEmprendimiento();
+        this.emprendimiento = new EmprendimientoDTO(vianda.getEmprendimiento());
         this.estaDisponible = vianda.getEstaDisponible();
     }
 }
