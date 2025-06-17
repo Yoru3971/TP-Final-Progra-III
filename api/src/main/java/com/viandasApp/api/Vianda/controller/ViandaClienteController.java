@@ -18,11 +18,6 @@ public class ViandaClienteController {
         this.viandasService = viandasService;
     }
 
-    @GetMapping
-    public ResponseEntity<List<ViandaDTO>> getAllViandas() {
-        return ResponseEntity.ok(viandasService.getAllViandas());
-    }
-
     @GetMapping("/id-emprendimiento/{idEmprendimiento}")
     public ResponseEntity<List<ViandaDTO>> getViandasDisponiblesByEmprendimiento(
             @Valid @ModelAttribute FiltroViandaDTO filtro,
