@@ -26,14 +26,17 @@ public class ViandaDuenoController {
     @GetMapping("/id-emprendimiento/{idEmprendimiento}")
     public ResponseEntity<List<ViandaDTO>> getViandasByEmprendimiento(
             @Valid @ModelAttribute FiltroViandaDTO filtro,
-            @PathVariable Long idEmprendimiento) {
-        List<ViandaDTO> resultados = viandasService.getViandasByEmprendimiento(filtro, idEmprendimiento);
+            @PathVariable Long idEmprendimiento,
+            Authentication authentication) {
+        Usuario usuario = (Usuario) authentication.getPrincipal();
+        List<ViandaDTO> resultados = viandasService.getViandasByEmprendimiento(filtro, idEmprendimiento, usuario);
         return ResponseEntity.ok(resultados);
     }
 
     @GetMapping("/id/{id}")
-    public ResponseEntity<ViandaDTO> findById(@PathVariable Long id) {
-        return viandasService.findViandaById(id)
+    public ResponseEntity<ViandaDTO> findById(@PathVariable Long id, Authentication authentication) {
+        Usuario usuario = (Usuario) authentication.getPrincipal();
+        return viandasService.findViandaById(id, usuario)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

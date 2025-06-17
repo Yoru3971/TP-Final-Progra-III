@@ -1,5 +1,6 @@
 package com.viandasApp.api.Vianda.controller;
 
+import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Vianda.dto.FiltroViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaDTO;
 import com.viandasApp.api.Vianda.service.ViandaService;
@@ -29,8 +30,8 @@ public class ViandaPublicController {
     // ---------------------------------------------------------------------------------------
 
     @GetMapping("/id/{id}")
-    public ResponseEntity<ViandaDTO> findById(@PathVariable Long id) {
-        return viandasService.findViandaById(id)
+    public ResponseEntity<ViandaDTO> findById(@PathVariable Long id, Usuario usuario) {
+        return viandasService.findViandaById(id, usuario)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

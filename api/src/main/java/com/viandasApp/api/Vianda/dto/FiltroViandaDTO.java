@@ -28,6 +28,8 @@ public class FiltroViandaDTO {
 
     private String nombreVianda;
 
+    private Boolean estaDisponible;
+
     @AssertTrue(message = "El precio máximo debe ser mayor o igual al precio mínimo")
     private boolean isPrecioValido() {
         if (precioMin == null || precioMax == null) return true;
