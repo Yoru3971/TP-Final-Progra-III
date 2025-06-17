@@ -1,11 +1,15 @@
 package com.viandasApp.api.Usuario.model;
 
+import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
+import com.viandasApp.api.Pedido.model.Pedido;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -35,9 +39,30 @@ public class Usuario implements UserDetails {
     private String password;
 
     @Column(nullable = false)
+    @NotBlank
+    private String telefono;
+
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @NotNull
     private RolUsuario rolUsuario;
+
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Pedido> pedidos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Emprendimiento> emprendimientos = new ArrayList<>();
+
+    public Usuario(Long id, String nombreCompleto, String email, String password, String telefono, RolUsuario rolUsuario) {
+        this.id = id;
+        this.nombreCompleto = nombreCompleto;
+        this.email = email;
+        this.password = password;
+        this.telefono = telefono;
+        this.rolUsuario = rolUsuario;
+    }
+
+    // === MÉTODOS DE UserDetails ===
 
     @Override
     public String getUsername() {
@@ -46,7 +71,7 @@ public class Usuario implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return List.of(new SimpleGrantedAuthority("ROLE_" + rolUsuario.name()));
     }
 
     @Override

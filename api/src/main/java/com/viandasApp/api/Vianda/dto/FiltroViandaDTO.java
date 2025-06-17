@@ -2,7 +2,7 @@ package com.viandasApp.api.Vianda.dto;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotNull;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,9 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class FiltroViandaDTO {
-
-    @NotNull(message = "El emprendimiento es obligatorio.")
-    private Long emprendimientoId;
 
     private Boolean esVegano;
 
