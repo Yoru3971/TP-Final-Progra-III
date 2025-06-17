@@ -9,9 +9,11 @@ import java.util.List;
 
 @Data
 public class PedidoCreateDTO {
-
     @NotNull(message = "El ID del cliente no puede ser nulo")
     private Long clienteId;
+
+    @NotNull(message = "El ID del emprendimiento no puede ser nulo")
+    private Long emprendimientoId;
 
     @NotEmpty(message = "La lista de viandas no puede estar vacía")
     @Valid

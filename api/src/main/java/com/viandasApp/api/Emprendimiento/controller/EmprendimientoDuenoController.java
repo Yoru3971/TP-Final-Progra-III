@@ -136,5 +136,4 @@ public class EmprendimientoDuenoController {
 
         return ResponseEntity.ok(emprendimientos);
     }
-
 }

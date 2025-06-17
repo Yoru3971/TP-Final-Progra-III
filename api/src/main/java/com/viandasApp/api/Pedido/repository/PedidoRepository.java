@@ -11,6 +11,10 @@ import java.util.List;
 @Repository
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     List<Pedido> findByUsuarioId(Long idCliente);
+    List<Pedido> findByEmprendimientoId(Long idEmprendimiento);
+    List<Pedido> findByEmprendimientoIdAndUsuarioId(Long idEmprendimiento, Long idUsuario);
     List<Pedido> findByEstado(EstadoPedido estado);
-    List<Pedido> findByFecha(LocalDate fecha);
+    List<Pedido> findByFechaEntrega(LocalDate fechaEntrega);
+    List<Pedido> findByFechaEntregaAndUsuarioId(LocalDate fechaEntrega, Long idUsuario);
+    List<Pedido> findByFechaEntregaAndEmprendimientoId(LocalDate fechaEntrega, Long idEmprendimiento);
 }
