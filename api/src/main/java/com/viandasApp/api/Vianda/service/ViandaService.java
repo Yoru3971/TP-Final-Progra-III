@@ -5,6 +5,7 @@ import com.viandasApp.api.Vianda.dto.FiltroViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaCreateDTO;
 import com.viandasApp.api.Vianda.dto.ViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaUpdateDTO;
+import com.viandasApp.api.Vianda.model.Vianda;
 
 import java.util.List;
 import java.util.Optional;

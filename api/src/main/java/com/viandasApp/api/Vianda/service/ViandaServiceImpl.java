@@ -69,6 +69,8 @@ public class ViandaServiceImpl implements ViandaService {
         return new ViandaDTO(nuevaVianda);
     }
 
+
+
     @Override
     public Optional<ViandaDTO> findViandaById(Long id) {
         Optional<Vianda> vianda = repository.findById(id);
@@ -190,12 +192,14 @@ public class ViandaServiceImpl implements ViandaService {
             FiltroViandaDTO filtroViandaDTO,
             Long idEmprendimiento) {
 
+
         Specification<Vianda> spec = ViandaSpecifications
                 .estaDisponible()
                 .and(ViandaSpecifications.perteneceAEmprendimiento(idEmprendimiento));
 
         if (filtroViandaDTO.getEsVegano() != null)
             spec = spec.and(ViandaSpecifications.esVegana(filtroViandaDTO.getEsVegano()));
+
 
         if (filtroViandaDTO.getEsVegetariano() != null)
             spec = spec.and(ViandaSpecifications.esVegetariana(filtroViandaDTO.getEsVegetariano()));

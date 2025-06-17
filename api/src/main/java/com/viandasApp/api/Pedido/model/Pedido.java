@@ -1,5 +1,6 @@
 package com.viandasApp.api.Pedido.model;
 
+import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Usuario.model.Usuario;
 import jakarta.persistence.*;
 import lombok.*;
@@ -24,18 +25,22 @@ public class Pedido {
     @JoinColumn(name = "cliente_id")
     private Usuario usuario;
 
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "emprendimiento_id")
+    private Emprendimiento emprendimiento;
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetallePedido> viandas = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private EstadoPedido estado;
 
-    private LocalDate fecha;
+    private LocalDate fechaEntrega;
 
     @PrePersist
     public void prePersist() {
-        if (this.fecha == null) {
-            this.fecha = LocalDate.now();
+        if (this.fechaEntrega == null) {
+            this.fechaEntrega = LocalDate.now();
         }
         if (this.estado == null) {
             this.estado = EstadoPedido.PENDIENTE;
