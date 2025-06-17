@@ -1,14 +1,18 @@
 package com.viandasApp.api.Usuario.controller;
 
-import com.viandasApp.api.Pedido.dto.PedidoDTO;
+import com.viandasApp.api.Usuario.controller.auth.AdminPasswordUpdateDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioCreateDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
-import com.viandasApp.api.Usuario.dto.UsuarioUpdateDTO;
+import com.viandasApp.api.Usuario.dto.UsuarioUpdateRolDTO;
 import com.viandasApp.api.Usuario.model.RolUsuario;
+import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,57 +22,64 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/public/usuarios")
-public class UsuarioController {
+@RequestMapping("/api/admin/usuarios")
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+public class UsuarioAdminController {
     private final UsuarioService service;
 
-    public UsuarioController(UsuarioService service) {
+    public UsuarioAdminController(UsuarioService service) {
         this.service = service;
     }
 
-    @PostMapping
-    public ResponseEntity<?> createUsuario(
-            @Valid @RequestBody UsuarioCreateDTO userDto,
-            BindingResult result
-    ) {
-        final var errores = procesarErrores(result);
-
-        if (!errores.isEmpty()) {
-            return ResponseEntity.badRequest().body(errores);
+    @PostMapping("/register")
+    public ResponseEntity<?> registrar(@Valid @RequestBody UsuarioCreateDTO usuarioCreateDTO, BindingResult result) {
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest().body(procesarErrores(result));
         }
-
-        final UsuarioDTO createdUser = service.createUsuario(userDto);
-
-        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+        UsuarioDTO nuevoUsuario = service.createUsuario(usuarioCreateDTO);
+        return ResponseEntity.ok(nuevoUsuario);
     }
 
     @GetMapping
-    public ResponseEntity<List<UsuarioDTO>> readUsuarios() {
-        final List<UsuarioDTO> users = service.readUsuarios();
+    public ResponseEntity<?> readUsuarios() {
+        List<UsuarioDTO> usuarios = service.readUsuarios();
 
-        return ResponseEntity.ok(users);
+        if (usuarios.isEmpty()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "No hay usuarios registrados");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        return ResponseEntity.ok(usuarios);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> showProfile() {
+
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Optional<UsuarioDTO> usuario = service.findById(autenticado.getId());
+
+        if (usuario.isPresent()) {
+            return ResponseEntity.ok(usuario.get());
+        } else {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Usuario no encontrado");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
     }
 
     @GetMapping("/id/{id}")
-    public ResponseEntity<?> findById(
-            @PathVariable Long id,
-            BindingResult result
-    ) {
-        final var errores = procesarErrores(result);
-
-        if (!errores.isEmpty()) {
-            return ResponseEntity.badRequest().body(errores);
-        }
-
-        final Optional<UsuarioDTO> user = service.findById(id);
-
-        return user.map(ResponseEntity::ok)
+    public ResponseEntity<?> findById(@PathVariable Long id) {
+        final Optional<UsuarioDTO> usuario = service.findById(id);
+        return usuario.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/nombre/{nombreCompleto}")
     public ResponseEntity<?> findByNombreCompleto(
-            @PathVariable String nombreCompleto,
+            String nombreCompleto,
             BindingResult result
     ) {
         final var errores = procesarErrores(result);
@@ -100,7 +111,7 @@ public class UsuarioController {
 
     @GetMapping("/rol/{rolUsuario}")
     public ResponseEntity<?> findByRolUsuario(
-            @Valid @PathVariable RolUsuario rolUsuario
+            @PathVariable RolUsuario rolUsuario
     ) {
         List<UsuarioDTO> usuario = service.findByRolUsuario(rolUsuario);
         Map<String, String> response = new HashMap<>();
@@ -116,8 +127,8 @@ public class UsuarioController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUsuario(
             @Valid @PathVariable Long id,
-            @Valid @RequestBody UsuarioUpdateDTO userDto) {
-        Optional<UsuarioDTO> usuarioActualizar = service.updateUsuario(id, userDto);
+            @Valid @RequestBody UsuarioUpdateRolDTO userDto) {
+        Optional<UsuarioDTO> usuarioActualizar = service.updateUsuarioAdmin(id, userDto);
         Map<String, String> response = new HashMap<>();
 
         if (usuarioActualizar.isPresent()) {
@@ -129,20 +140,32 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
-
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUsuario(
-            @PathVariable Long id) {
-        Optional<UsuarioDTO> usuarioEliminar = service.findById(id);
+    public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
         Map<String, String> response = new HashMap<>();
 
-        if(usuarioEliminar.isPresent()){
-            service.deleteUsuario(id);
-            response.put("message", "Usuario eliminado correctamente");
-            return ResponseEntity.ok(response);
-        }
-        else{
+        boolean eliminado = service.deleteUsuarioAdmin(id);
+        if (!eliminado) {
             response.put("message", "Usuario no encontrado");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        response.put("message", "Usuario eliminado correctamente");
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/id/{id}/changePassword")
+    public ResponseEntity<?> cambiarPassword(
+            @PathVariable Long id,
+            @RequestBody AdminPasswordUpdateDTO adminPasswordUpdateDTO
+    ) {
+        boolean ok = service.cambiarPasswordAdmin(id, adminPasswordUpdateDTO.getNuevaPassword());
+        Map<String, String> response = new HashMap<>();
+        if (ok) {
+            response.put("message", "Contraseña actualizada correctamente");
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("message", "Contraseña invalida (no puede ser la misma que la anterior) o usuario no encontrado");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }

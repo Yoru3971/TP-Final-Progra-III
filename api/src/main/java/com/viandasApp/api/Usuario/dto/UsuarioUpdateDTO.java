@@ -1,14 +1,15 @@
 package com.viandasApp.api.Usuario.dto;
 
 import com.viandasApp.api.Usuario.model.RolUsuario;
+import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.*;
+import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @AllArgsConstructor
 @Setter
@@ -27,7 +28,8 @@ public class UsuarioUpdateDTO {
     @Size(min = 1, max = 64, message = "El email debe tener [min, max] caracteres.")
     private String email;
 
-    @Enumerated(EnumType.STRING)
-    @NotNull(message = "El rol es obligatorio.")
-    private RolUsuario rolUsuario;
+    @Column(nullable = false)
+    @NotBlank(message = "El telefono es obligatorio.")
+    @Pattern(regexp = "\\d{8,15}", message = "El teléfono debe tener entre 10 y 15 dígitos")
+    private String telefono;
 }

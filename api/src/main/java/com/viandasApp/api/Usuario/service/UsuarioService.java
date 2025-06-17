@@ -3,6 +3,7 @@ package com.viandasApp.api.Usuario.service;
 import com.viandasApp.api.Usuario.dto.UsuarioCreateDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioUpdateDTO;
+import com.viandasApp.api.Usuario.dto.UsuarioUpdateRolDTO;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 
@@ -13,18 +14,18 @@ public interface UsuarioService {
     UsuarioDTO createUsuario(UsuarioCreateDTO userDto);
 
     List<UsuarioDTO> readUsuarios();
-
     Optional<UsuarioDTO> findById(Long id);
-
     Optional<Usuario> findEntityById(Long id);
-
     Optional<UsuarioDTO> findByNombreCompleto(String nombreCompleto);
-
     Optional<UsuarioDTO> findByEmail(String email);
-
     List<UsuarioDTO> findByRolUsuario(RolUsuario rolUsuario);
 
-    Optional<UsuarioDTO> updateUsuario(Long id, UsuarioUpdateDTO userDto);
+    Optional<UsuarioDTO> updateUsuarioAdmin(Long id, UsuarioUpdateRolDTO userDto);
+    Optional<UsuarioDTO> updateUsuario(Long id, UsuarioUpdateDTO dto, Usuario autenticado);
 
-    boolean deleteUsuario(Long id);
+    boolean deleteUsuarioAdmin(Long id);
+    boolean deleteUsuario(Long id, Usuario autenticado);
+
+    boolean cambiarPasswordAdmin(Long id, String passwordNueva);
+    boolean cambiarPassword(Long id, String passwordActual, String passwordNueva, Usuario autenticado);
 }
