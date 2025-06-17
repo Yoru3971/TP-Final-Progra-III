@@ -1,6 +1,6 @@
 package com.viandasApp.api.Usuario.controller;
 
-import com.viandasApp.api.Usuario.controller.auth.PasswordUpdateDTO;
+import com.viandasApp.api.Usuario.dto.PasswordUpdateDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioUpdateDTO;
 import com.viandasApp.api.Usuario.model.Usuario;
@@ -47,20 +47,21 @@ public class UsuarioClienteDuenoController {
     public ResponseEntity<?> updateUsuario(
             @PathVariable Long id,
             @Valid @RequestBody UsuarioUpdateDTO usuarioUpdateDTO) {
+        Map<String, String> response = new HashMap<>();
 
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
 
-        Optional<UsuarioDTO> usuarioActualizado = usuarioService.updateUsuario(id, usuarioUpdateDTO, autenticado);
-        Map<String, String> response = new HashMap<>();
+        Optional<UsuarioDTO> usuarioActualizar = usuarioService.findById(id);
 
-        if (usuarioActualizado.isPresent()) {
-            response.put("message", "Usuario actualizado correctamente");
-            return ResponseEntity.ok(usuarioActualizado.get());
-        } else {
+        if(usuarioActualizar.isPresent()){
             response.put("message", "Usuario no encontrado o acceso denegado");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
+
+        Optional<UsuarioDTO> usuarioActualizado = usuarioService.updateUsuario(id, usuarioUpdateDTO, autenticado);
+        response.put("message", "Usuario actualizado correctamente");
+        return ResponseEntity.ok(usuarioActualizado.get());
     }
 
     @PutMapping("/changePassword/me")
@@ -71,13 +72,13 @@ public class UsuarioClienteDuenoController {
 
         boolean ok = usuarioService.cambiarPassword(autenticado.getId(), passwordUpdateDTO.getPasswordActual(), passwordUpdateDTO.getPasswordNueva(), autenticado);
         Map<String, String> response = new HashMap<>();
-        if (ok) {
-            response.put("message", "Contraseña actualizada correctamente");
-            return ResponseEntity.ok(response);
-        } else {
+
+        if (!ok) {
             response.put("message", "Contraseña actual incorrecta");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
         }
+        response.put("message", "Contraseña actualizada correctamente");
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
@@ -90,13 +91,12 @@ public class UsuarioClienteDuenoController {
         Map<String, String> response = new HashMap<>();
         boolean fueEliminado = usuarioService.deleteUsuario(id, autenticado);
 
-        if (fueEliminado) {
-            response.put("message", "Usuario eliminado correctamente");
-            return ResponseEntity.ok(response);
-        } else {
+        if (!fueEliminado) {
             response.put("message", "Acceso denegado o usuario no encontrado");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
         }
-    }
 
+        response.put("message", "Usuario eliminado correctamente");
+        return ResponseEntity.ok(response);
+    }
 }

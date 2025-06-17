@@ -5,6 +5,7 @@ import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioLoginDTO;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioService;
+import com.viandasApp.api.Utils.ErrorHandler;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -35,7 +36,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registrar(@Valid @RequestBody UsuarioCreateDTO usuarioCreateDTO, BindingResult result) {
         if (result.hasErrors()) {
-            return ResponseEntity.badRequest().body(procesarErrores(result));
+            return ResponseEntity.badRequest().body(ErrorHandler.procesarErrores(result));
         }
         UsuarioDTO nuevoUsuario = usuarioService.createUsuario(usuarioCreateDTO);
         return ResponseEntity.ok(nuevoUsuario);
@@ -44,8 +45,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody UsuarioLoginDTO loginDTO, BindingResult result) {
         if (result.hasErrors()) {
-            return ResponseEntity.badRequest().body(procesarErrores(result));
+            return ResponseEntity.badRequest().body(ErrorHandler.procesarErrores(result));
         }
+        if (loginDTO.getEmail() == null || loginDTO.getPassword() == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email y contraseña son obligatorios"));
+        }
+
         try {
             Optional<UsuarioDTO> usuario = usuarioService.findByEmail(loginDTO.getEmail());
             if (usuario.isEmpty()) {
@@ -70,13 +75,5 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Credenciales inválidas"));
         }
-    }
-
-    private static Map<String, String> procesarErrores(BindingResult result) {
-        Map<String, String> errores = new HashMap<>();
-        result.getFieldErrors().forEach(
-                error -> errores.put(error.getField(), error.getDefaultMessage())
-        );
-        return errores;
     }
 }

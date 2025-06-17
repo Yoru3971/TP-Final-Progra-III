@@ -2,7 +2,7 @@ package com.viandasApp.api.Emprendimiento.dto;
 
 
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
-import com.viandasApp.api.Usuario.model.Usuario;
+import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,7 +21,7 @@ public class EmprendimientoDTO {
 
     private String telefono;
 
-    private Usuario usuario;
+    private UsuarioDTO dueno;
 
     public EmprendimientoDTO(Emprendimiento emprendimiento){
         this.id = emprendimiento.getId();
@@ -29,6 +29,6 @@ public class EmprendimientoDTO {
         this.ciudad = emprendimiento.getCiudad();
         this.direccion = emprendimiento.getDireccion();
         this.telefono = emprendimiento.getTelefono();
-        this.usuario = emprendimiento.getUsuario();
+        this.dueno = new UsuarioDTO(emprendimiento.getUsuario());
     }
 }
