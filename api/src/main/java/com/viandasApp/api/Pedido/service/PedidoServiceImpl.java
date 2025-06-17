@@ -7,6 +7,7 @@ import com.viandasApp.api.Pedido.model.DetallePedido;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
+import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioServiceImpl;
@@ -16,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,7 +30,6 @@ public class PedidoServiceImpl implements PedidoService {
     private final ViandaServiceImpl viandaService;
 
 
-    //  admin y cliente
     @Override
     public PedidoDTO createPedido(PedidoCreateDTO pedidoCreateDTO, Usuario usuarioLogueado) {
 
@@ -116,13 +115,6 @@ public class PedidoServiceImpl implements PedidoService {
                 throw new RuntimeException("El pedido que se quiere actualizar no pertenece al usuario logueado.");
             }
 
-            if (updatePedidoDTO.getEstado() != null) {
-
-                if ( updatePedidoDTO.getEstado().equals(EstadoPedido.CANCELADO) ){
-                    pedido.setEstado(updatePedidoDTO.getEstado());
-                }else throw new RuntimeException("El cliente solo puede CANCELAR el pedido.");
-
-            }
             if (updatePedidoDTO.getFecha() != null) {
                 if ( updatePedidoDTO.getFecha().isBefore(LocalDate.now()) ){
                     throw new RuntimeException("La fecha de entrega no puede ser anterior a la fecha de hoy.");
@@ -204,7 +196,7 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     @Override
-    public boolean deletePedido(Long id) {
+    public boolean deletePedidoAdmin(Long id) {
         if (pedidoRepository.existsById(id)) {
             pedidoRepository.deleteById(id);
             return true;
@@ -213,22 +205,61 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     @Override
-    public List<PedidoDTO> getAllPedidosByEstado(EstadoPedido estado) {
-        return pedidoRepository.findByEstado(estado).stream()
-                .map(PedidoDTO::new)
-                .toList();
-    }
+    public boolean deletePedidoCliente(Long id, Usuario usuarioLogueado) {
 
-    @Override
-    public List<PedidoDTO> getAllPedidosByFecha(LocalDate fecha) {
-        return pedidoRepository.findByFecha(fecha).stream()
-                .map(PedidoDTO::new)
-                .toList();
+        Optional<Pedido> pedido = pedidoRepository.findById(id);
+
+        if ( pedido.isPresent() ) {
+
+            if ( !pedido.get().getUsuario().equals(usuarioLogueado) ){
+                throw new RuntimeException("El pedido que se quiere eliminar no pertenece al usuario logueado.");
+            }
+            if ( !(pedido.get().getEstado().equals(EstadoPedido.PENDIENTE) || pedido.get().getEstado().equals(EstadoPedido.CARRITO)) ) {
+                throw new RuntimeException("Solo se pueden eliminar pedidos que se encuentran PENDIENTES o en CARRITO.");
+            }
+            pedidoRepository.deleteById(id);
+            return true;
+        }else {
+            return false;
+        }
     }
 
     @Override
     public List<PedidoDTO> getAllPedidos() {
         return pedidoRepository.findAll().stream()
+                .map(PedidoDTO::new)
+                .toList();
+    }
+
+    @Override
+    public List<PedidoDTO> getAllPedidosByEmprendimiento(Long idEmprendimiento, Usuario usuarioLogueado) {
+
+        Emprendimiento emprendimiento = emprendimientoService.findEntityById(idEmprendimiento)
+                .orElseThrow(() -> new RuntimeException("Emprendimiento no encontrado."));
+
+        if ( usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO) && !emprendimiento.getUsuario().equals(usuarioLogueado) ){
+            throw new RuntimeException("El emprendimiento no pertenece al usuario logueado.");
+        }
+
+        return pedidoRepository.findByEmprendimientoId(idEmprendimiento).stream()
+                .map(PedidoDTO::new)
+                .toList();
+    }
+
+    @Override
+    public List<PedidoDTO> getAllPedidosByEmprendimientoAndUsuario(Long idEmprendimiento, Long idUsuario, Usuario usuarioLogueado) {
+
+        Emprendimiento emprendimiento = emprendimientoService.findEntityById(idEmprendimiento)
+                .orElseThrow(() -> new RuntimeException("Emprendimiento no encontrado."));
+
+        Usuario usuario = usuarioService.findEntityById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
+
+        if ( usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO) && !emprendimiento.getUsuario().equals(usuarioLogueado) ){
+            throw new RuntimeException("El emprendimiento no pertenece al usuario logueado.");
+        }
+
+        return pedidoRepository.findByEmprendimientoIdAndUsuarioId(idEmprendimiento, idUsuario).stream()
                 .map(PedidoDTO::new)
                 .toList();
     }
@@ -241,14 +272,60 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public List<PedidoDTO> getAllPedidosByUsuarioId(Long idUsuario) {
-        return usuarioService.findById(idUsuario)
-                .map(usuario -> pedidoRepository.findByUsuarioId(usuario.getId()).stream()
-                        .map(PedidoDTO::new)
-                        .toList()
-                )
-                .orElse(Collections.emptyList());
+
+        Optional<UsuarioDTO> usuario = usuarioService.findById(idUsuario);
+
+        if ( usuario.isEmpty() ){
+            throw new RuntimeException("Usuario no encontrado.");
+        }else {
+            return pedidoRepository.findByUsuarioId(usuario.get().getId()).stream()
+                            .map(PedidoDTO::new)
+                            .toList();
+        }
+
     }
 
+    @Override
+    public List<PedidoDTO> getAllPedidosByEstado(EstadoPedido estado) {
+        return pedidoRepository.findByEstado(estado).stream()
+                .map(PedidoDTO::new)
+                .toList();
+    }
 
+    @Override
+    public List<PedidoDTO> getAllPedidosByFecha(LocalDate fecha) {
+        return pedidoRepository.findByFechaEntrega(fecha).stream()
+                .map(PedidoDTO::new)
+                .toList();
+    }
+
+    @Override
+    public List<PedidoDTO> getAllPedidosByFechaAndUsuarioId(LocalDate fecha, Long idUsuario) {
+
+        Optional<UsuarioDTO> usuario = usuarioService.findById(idUsuario);
+
+        if ( usuario.isEmpty() ){
+            throw new RuntimeException("Usuario no encontrado.");
+        }else {
+            return pedidoRepository.findByFechaEntregaAndUsuarioId(fecha, idUsuario).stream()
+                    .map(PedidoDTO::new)
+                    .toList();
+        }
+    }
+
+    @Override
+    public List<PedidoDTO> getAllPedidosByFechaAndEmprendimiento(LocalDate fecha, Long idEmprendimiento, Usuario usuarioLogueado) {
+
+        Emprendimiento emprendimiento = emprendimientoService.findEntityById(idEmprendimiento)
+                .orElseThrow(() -> new RuntimeException("Emprendimiento no encontrado."));
+
+        if ( usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO) && !emprendimiento.getUsuario().equals(usuarioLogueado) ){
+            throw new RuntimeException("El emprendimiento no pertenece al usuario logueado.");
+        }
+
+        return pedidoRepository.findByFechaEntregaAndEmprendimientoId(fecha, idEmprendimiento).stream()
+                .map(PedidoDTO::new)
+                .toList();
+    }
 
 }

@@ -10,6 +10,7 @@ import com.viandasApp.api.Usuario.service.UsuarioServiceImpl;
 import com.viandasApp.api.Vianda.service.ViandaServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,7 +18,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -94,5 +97,75 @@ public class PedidosClienteController {
         }
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>>  deletePedido(@PathVariable Long id) {
+
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Optional<PedidoDTO> pedidoEliminar = pedidoService.getPedidoById(id);
+        Map<String, String> response = new HashMap<>();
+
+        if(pedidoEliminar.isPresent()){
+            pedidoService.deletePedidoCliente(id, autenticado);
+            response.put("message", "Pedido eliminado correctamente");
+            return ResponseEntity.ok(response);
+        }
+        else{
+            response.put("message", "Pedido no encontrado");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getAllPedidos() {
+
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        List<PedidoDTO> pedido = pedidoService.getAllPedidosByUsuarioId(autenticado.getId());
+
+        if (!pedido.isEmpty()) {
+            return ResponseEntity.ok(pedido);
+        }else{
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "No se encontraron pedidos");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+    @GetMapping("/idEmprendimiento/{idEmprendimiento}")
+    public ResponseEntity<?> getPedidosPorEmprendimiento(@PathVariable Long idEmprendimiento) {
+
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        List<PedidoDTO> pedido = pedidoService.getAllPedidosByEmprendimientoAndUsuario(idEmprendimiento, autenticado.getId(), autenticado);
+
+        if (!pedido.isEmpty()) {
+            return ResponseEntity.ok(pedido);
+        } else {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "No se encontraron pedidos");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+    @GetMapping("/fecha/{fecha}")
+    public ResponseEntity<?> getPedidosPorFecha(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
+
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        List<PedidoDTO> pedido = pedidoService.getAllPedidosByFechaAndUsuarioId(fecha, autenticado.getId());
+
+        if (!pedido.isEmpty()) {
+            return ResponseEntity.ok(pedido);
+        } else {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "No se encontraron pedidos");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
 
 }

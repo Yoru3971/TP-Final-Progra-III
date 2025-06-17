@@ -18,10 +18,15 @@ public interface PedidoService {
     Optional<PedidoDTO> updatePedidoCliente(Long id, UpdatePedidoDTO updatePedidoDTO, Usuario usuarioLogueado);
     Optional<PedidoDTO> updateViandasPedidoAdmin(Long pedidoId, PedidoUpdateViandasDTO dto);
     Optional<PedidoDTO> updateViandasPedidoCliente(Long pedidoId, PedidoUpdateViandasDTO dto, Usuario usuarioLogueado);
-    boolean deletePedido(Long id);
-    Optional<PedidoDTO> getPedidoById(Long id);
+    boolean deletePedidoAdmin(Long id);
+    boolean deletePedidoCliente(Long id, Usuario usuarioLogueado);
     List<PedidoDTO> getAllPedidos();
+    List<PedidoDTO> getAllPedidosByEmprendimiento(Long idEmprendimiento, Usuario usuarioLogueado);
+    List<PedidoDTO> getAllPedidosByEmprendimientoAndUsuario(Long idEmprendimiento,Long idUsuario, Usuario usuarioLogueado);
+    Optional<PedidoDTO> getPedidoById(Long id);
     List<PedidoDTO> getAllPedidosByUsuarioId(Long idUsuario);
     List<PedidoDTO> getAllPedidosByEstado(EstadoPedido estado);
     List<PedidoDTO> getAllPedidosByFecha(LocalDate fecha);
+    List<PedidoDTO> getAllPedidosByFechaAndUsuarioId(LocalDate fecha, Long idUsuario);
+    List<PedidoDTO> getAllPedidosByFechaAndEmprendimiento(LocalDate fecha, Long idEmprendimiento, Usuario usuarioLogueado);
 }

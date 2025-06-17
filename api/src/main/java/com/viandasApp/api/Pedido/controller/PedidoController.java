@@ -96,7 +96,7 @@ public class PedidoController {
         Map<String, String> response = new HashMap<>();
 
         if(pedidoEliminar.isPresent()){
-            pedidoService.deletePedido(id);
+            pedidoService.deletePedidoAdmin(id);
             response.put("message", "Pedido eliminado correctamente");
             return ResponseEntity.ok(response);
         }
@@ -107,7 +107,7 @@ public class PedidoController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getPedidos() {
+    public ResponseEntity<?> getAllPedidos() {
         List<PedidoDTO> pedido = pedidoService.getAllPedidos();
 
         if (!pedido.isEmpty()) {
@@ -122,7 +122,7 @@ public class PedidoController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getPedidoPorId(@PathVariable Long id) {
         Optional<PedidoDTO> pedido = pedidoService.getPedidoById(id);
-        if (!pedido.isEmpty()) {
+        if (pedido.isPresent()) {
             return ResponseEntity.ok(pedido);
         }
         else{
@@ -145,6 +145,41 @@ public class PedidoController {
         }
     }
 
+    @GetMapping("/idEmprendimiento/{idEmprendimiento}")
+    public ResponseEntity<?> getPedidosPorEmprendimiento(@PathVariable Long idEmprendimiento) {
+
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        List<PedidoDTO> pedido = pedidoService.getAllPedidosByEmprendimiento(idEmprendimiento, autenticado);
+
+        if (!pedido.isEmpty()) {
+            return ResponseEntity.ok(pedido);
+        }else{
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "No se encontraron pedidos");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+    @GetMapping("/idEmprendimiento/{idEmprendimiento}/idUsuario/{idUsuario}")
+    public ResponseEntity<?> getPedidosPorEmprendimientoYUsuario(@PathVariable Long idEmprendimiento,
+                                                                 @PathVariable Long idUsuario) {
+
+            Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                    .getAuthentication().getPrincipal();
+
+            List<PedidoDTO> pedido = pedidoService.getAllPedidosByEmprendimientoAndUsuario(idEmprendimiento, idUsuario, autenticado);
+
+            if (!pedido.isEmpty()) {
+                return ResponseEntity.ok(pedido);
+            } else {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "No se encontraron pedidos");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+    }
+
     @GetMapping("/estado/{estado}")
     public ResponseEntity<?> getPedidosPorEstado(@PathVariable EstadoPedido estado) {
         List<PedidoDTO> pedido = pedidoService.getAllPedidosByEstado(estado);
@@ -159,8 +194,7 @@ public class PedidoController {
     }
 
     @GetMapping("/fecha/{fecha}")
-    public ResponseEntity<?> getPedidosPorFecha(
-            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
+    public ResponseEntity<?> getPedidosPorFecha(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
 
         List<PedidoDTO> pedido = pedidoService.getAllPedidosByFecha(fecha);
 
@@ -173,6 +207,38 @@ public class PedidoController {
         }
     }
 
+    @GetMapping("/fecha/{fecha}/idUsuario/{idUsuario}")
+    public ResponseEntity<?> getPedidosPorFechaAndUsuarioId(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+                                                            @PathVariable Long id) {
+
+        List<PedidoDTO> pedido = pedidoService.getAllPedidosByFechaAndUsuarioId(fecha,id);
+
+        if (!pedido.isEmpty()) {
+            return ResponseEntity.ok(pedido);
+        } else {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "No se encontraron pedidos");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
+
+    @GetMapping("/fecha/{fecha}/idEmprendimiento/{idEmprendimiento}")
+    public ResponseEntity<?> getPedidosPorFechaAndEmprendimiento(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
+                                                                  @PathVariable Long idEmprendimiento) {
+
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        List<PedidoDTO> pedido = pedidoService.getAllPedidosByFechaAndEmprendimiento(fecha, idEmprendimiento, autenticado);
+
+        if (!pedido.isEmpty()) {
+            return ResponseEntity.ok(pedido);
+        } else {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "No se encontraron pedidos");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+    }
 
     // Métodos de respuesta genéricos, pueden ser utilizados para simplificar el manejo de respuestas
     // Se podrian almacenar en una clase utils para hacerlo reutilizable en otros controladores
