@@ -1,11 +1,15 @@
 package com.viandasApp.api.Emprendimiento.model;
 
 import com.viandasApp.api.Usuario.model.Usuario;
+import com.viandasApp.api.Vianda.model.Vianda;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "emprendimientos")
@@ -36,6 +40,9 @@ public class Emprendimiento {
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
+
+    @OneToMany(mappedBy = "emprendimiento", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Vianda> viandas = new ArrayList<>();
 
 
     public Emprendimiento(String nombreEmprendimiento, String ciudad, String direccion, String telefono, Usuario usuario) {

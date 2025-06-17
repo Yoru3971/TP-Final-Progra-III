@@ -1,10 +1,14 @@
 package com.viandasApp.api.Vianda.model;
 
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
+import com.viandasApp.api.Pedido.model.DetallePedido;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "viandas")
@@ -48,6 +52,9 @@ public class Vianda {
 
     @Column(nullable = false)
     private Boolean estaDisponible;
+
+    @OneToMany(mappedBy = "vianda", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DetallePedido> detalles = new ArrayList<>();
 
     public Vianda(String nombreVianda, CategoriaVianda categoria, String descripcion, Double precio, Boolean esVegano, Boolean esVegetariano, Boolean esSinTacc, Emprendimiento emprendimiento) {
         this.nombreVianda = nombreVianda;
