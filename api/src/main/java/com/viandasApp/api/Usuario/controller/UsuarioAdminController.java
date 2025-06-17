@@ -1,17 +1,17 @@
 package com.viandasApp.api.Usuario.controller;
 
-import com.viandasApp.api.Usuario.controller.auth.AdminPasswordUpdateDTO;
+import com.viandasApp.api.Usuario.dto.AdminPasswordUpdateDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioCreateDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioUpdateRolDTO;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioService;
+import com.viandasApp.api.Utils.ErrorHandler;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +34,7 @@ public class UsuarioAdminController {
     @PostMapping("/register")
     public ResponseEntity<?> registrar(@Valid @RequestBody UsuarioCreateDTO usuarioCreateDTO, BindingResult result) {
         if (result.hasErrors()) {
-            return ResponseEntity.badRequest().body(procesarErrores(result));
+            return ResponseEntity.badRequest().body(ErrorHandler.procesarErrores(result));
         }
         UsuarioDTO nuevoUsuario = service.createUsuario(usuarioCreateDTO);
         return ResponseEntity.ok(nuevoUsuario);
@@ -73,25 +73,30 @@ public class UsuarioAdminController {
     @GetMapping("/id/{id}")
     public ResponseEntity<?> findById(@PathVariable Long id) {
         final Optional<UsuarioDTO> usuario = service.findById(id);
-        return usuario.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+
+        if (usuario.isEmpty()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Usuario no encontrado");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+         // Si el usuario existe, devolvemos el DTO
+        return ResponseEntity.ok(usuario.get());
     }
 
     @GetMapping("/nombre/{nombreCompleto}")
     public ResponseEntity<?> findByNombreCompleto(
-            String nombreCompleto,
-            BindingResult result
+            String nombreCompleto
     ) {
-        final var errores = procesarErrores(result);
+        Optional<UsuarioDTO> usuarioEncontrado = service.findByNombreCompleto(nombreCompleto);
 
-        if (!errores.isEmpty()) {
-            return ResponseEntity.badRequest().body(errores);
+        if (usuarioEncontrado.isEmpty()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "No se encontró ningún usuario con ese nombre completo");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
-        final Optional<UsuarioDTO> user = service.findByNombreCompleto(nombreCompleto);
-
-        return user.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(usuarioEncontrado.get());
     }
 
     @GetMapping("/email/{email}")
@@ -104,9 +109,8 @@ public class UsuarioAdminController {
         if (usuario.isEmpty()) {
             response.put("message", "No se encontraron usuarios con ese mail");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        } else {
-            return ResponseEntity.ok(usuario);
         }
+            return ResponseEntity.ok(usuario);
     }
 
     @GetMapping("/rol/{rolUsuario}")
@@ -116,12 +120,11 @@ public class UsuarioAdminController {
         List<UsuarioDTO> usuario = service.findByRolUsuario(rolUsuario);
         Map<String, String> response = new HashMap<>();
 
-        if (!usuario.isEmpty()) {
-            return ResponseEntity.ok(usuario);
-        } else {
+        if (usuario.isEmpty()) {
             response.put("message", "No se encontraron usuarios con el rol especificado");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
+        return ResponseEntity.ok(usuario);
     }
 
     @PutMapping("/{id}")
@@ -135,21 +138,23 @@ public class UsuarioAdminController {
             response.put("message", "Usuario actualizado correctamente");
             return ResponseEntity.ok(usuarioActualizar.get());
         } else {
-
             response.put("message", "Usuario no encontrado");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
         Map<String, String> response = new HashMap<>();
 
-        boolean eliminado = service.deleteUsuarioAdmin(id);
-        if (!eliminado) {
+        Optional<UsuarioDTO> usuarioEliminar = service.findById(id);
+
+        if (usuarioEliminar.isEmpty()) {
             response.put("message", "Usuario no encontrado");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
+        service.deleteUsuarioAdmin(id);
         response.put("message", "Usuario eliminado correctamente");
         return ResponseEntity.ok(response);
     }
@@ -161,24 +166,13 @@ public class UsuarioAdminController {
     ) {
         boolean ok = service.cambiarPasswordAdmin(id, adminPasswordUpdateDTO.getNuevaPassword());
         Map<String, String> response = new HashMap<>();
-        if (ok) {
-            response.put("message", "Contraseña actualizada correctamente");
-            return ResponseEntity.ok(response);
-        } else {
+
+        if (!ok) {
             response.put("message", "Contraseña invalida (no puede ser la misma que la anterior) o usuario no encontrado");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
-    }
 
-    private static Map<String, String> procesarErrores(BindingResult result) {
-        Map<String, String> errores = new HashMap<>();
-
-        if (result.hasErrors()) {
-            result.getFieldErrors().forEach(
-                    error -> errores.put(error.getField(), error.getDefaultMessage())
-            );
-        }
-
-        return errores;
+        response.put("message", "Contraseña actualizada correctamente");
+        return ResponseEntity.ok(response);
     }
 }

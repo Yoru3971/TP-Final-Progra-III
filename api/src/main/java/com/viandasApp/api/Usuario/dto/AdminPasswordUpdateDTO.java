@@ -1,4 +1,4 @@
-package com.viandasApp.api.Usuario.controller.auth;
+package com.viandasApp.api.Usuario.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
