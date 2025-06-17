@@ -35,12 +35,12 @@ public class Pedido {
     @Enumerated(EnumType.STRING)
     private EstadoPedido estado;
 
-    private LocalDate fecha;
+    private LocalDate fechaEntrega;
 
     @PrePersist
     public void prePersist() {
-        if (this.fecha == null) {
-            this.fecha = LocalDate.now();
+        if (this.fechaEntrega == null) {
+            this.fechaEntrega = LocalDate.now();
         }
         if (this.estado == null) {
             this.estado = EstadoPedido.PENDIENTE;

@@ -5,13 +5,14 @@ import com.viandasApp.api.Pedido.dto.PedidoDTO;
 import com.viandasApp.api.Pedido.dto.PedidoUpdateViandasDTO;
 import com.viandasApp.api.Pedido.dto.UpdatePedidoDTO;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
-import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.service.PedidoService;
+import com.viandasApp.api.Usuario.model.Usuario;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +30,10 @@ public class PedidoController {
     private final PedidoService pedidoService;
 
     @PostMapping
-    public ResponseEntity<?> crearPedido(@Valid @RequestBody PedidoCreateDTO pedidoCreateDTO, BindingResult result) {
+    public ResponseEntity<?> createPedido(@Valid @RequestBody PedidoCreateDTO pedidoCreateDTO, BindingResult result) {
+
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
 
         if (result.hasErrors()) {
             Map<String, String> errores = new HashMap<>();
@@ -39,7 +43,7 @@ public class PedidoController {
             return ResponseEntity.badRequest().body(errores);
         }
 
-        PedidoDTO pedidoDTO = pedidoService.createPedido(pedidoCreateDTO);
+        PedidoDTO pedidoDTO = pedidoService.createPedido(pedidoCreateDTO, autenticado);
         if (pedidoDTO == null) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al crear el pedido. Por favor, intente nuevamente.");
@@ -48,11 +52,13 @@ public class PedidoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> actualizarPedido(@PathVariable Long id, @RequestBody @Valid UpdatePedidoDTO updatePedidoDTO) {
+    public ResponseEntity<Map<String, Object>> updatePedido(@PathVariable Long id, @RequestBody @Valid UpdatePedidoDTO updatePedidoDTO) {
+
         Optional<PedidoDTO> pedidoExistente = pedidoService.getPedidoById(id);
         Map<String, Object> response = new HashMap<>();
+
         if(pedidoExistente.isPresent()){
-            pedidoService.updatePedido(id, updatePedidoDTO);
+            pedidoService.updatePedidoAdmin(id, updatePedidoDTO);
             response.put("message", "Pedido actualizado correctamente");
             return ResponseEntity.ok(response);
         }
@@ -63,7 +69,7 @@ public class PedidoController {
     }
 
     @PutMapping("/{id}/viandas")
-    public ResponseEntity<?> actualizarViandasPedido(@PathVariable Long id, @Valid @RequestBody PedidoUpdateViandasDTO dto, BindingResult result) {
+    public ResponseEntity<?> updateViandasPedido(@PathVariable Long id, @Valid @RequestBody PedidoUpdateViandasDTO dto, BindingResult result) {
 
         if (result.hasErrors()) {
             Map<String, String> errores = new HashMap<>();
@@ -73,7 +79,7 @@ public class PedidoController {
             return ResponseEntity.badRequest().body(errores);
         }
 
-        Optional<PedidoDTO> actualizado = pedidoService.updateViandasPedido(id, dto);
+        Optional<PedidoDTO> actualizado = pedidoService.updateViandasPedidoAdmin(id, dto);
         if (actualizado.isPresent()) {
             return ResponseEntity.ok(actualizado.get());
         } else {
@@ -84,7 +90,7 @@ public class PedidoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>>  eliminarPedido(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>>  deletePedido(@PathVariable Long id) {
 
         Optional<PedidoDTO> pedidoEliminar = pedidoService.getPedidoById(id);
         Map<String, String> response = new HashMap<>();
@@ -101,7 +107,7 @@ public class PedidoController {
     }
 
     @GetMapping
-    public ResponseEntity<?> obtenerPedidos() {
+    public ResponseEntity<?> getPedidos() {
         List<PedidoDTO> pedido = pedidoService.getAllPedidos();
 
         if (!pedido.isEmpty()) {
@@ -114,7 +120,7 @@ public class PedidoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> obtenerPedidoPorId(@PathVariable Long id) {
+    public ResponseEntity<?> getPedidoPorId(@PathVariable Long id) {
         Optional<PedidoDTO> pedido = pedidoService.getPedidoById(id);
         if (!pedido.isEmpty()) {
             return ResponseEntity.ok(pedido);
@@ -127,7 +133,7 @@ public class PedidoController {
     }
 
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<?> listarPedidosDeUsuario(@PathVariable Long usuarioId) {
+    public ResponseEntity<?> getPedidosDeUsuario(@PathVariable Long usuarioId) {
         List<PedidoDTO> pedido = pedidoService.getAllPedidosByUsuarioId(usuarioId);
 
         if (!pedido.isEmpty()) {
@@ -140,7 +146,7 @@ public class PedidoController {
     }
 
     @GetMapping("/estado/{estado}")
-    public ResponseEntity<?> obtenerPorEstado(@PathVariable EstadoPedido estado) {
+    public ResponseEntity<?> getPedidosPorEstado(@PathVariable EstadoPedido estado) {
         List<PedidoDTO> pedido = pedidoService.getAllPedidosByEstado(estado);
 
         if (!pedido.isEmpty()) {
@@ -153,7 +159,7 @@ public class PedidoController {
     }
 
     @GetMapping("/fecha/{fecha}")
-    public ResponseEntity<?> obtenerPorFecha(
+    public ResponseEntity<?> getPedidosPorFecha(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
 
         List<PedidoDTO> pedido = pedidoService.getAllPedidosByFecha(fecha);

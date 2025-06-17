@@ -21,7 +21,7 @@ public class PedidoDTO {
         this.id = pedido.getId();
         this.clienteId = pedido.getUsuario().getId();
         this.estado = pedido.getEstado();
-        this.fecha = pedido.getFecha();
+        this.fecha = pedido.getFechaEntrega();
 
         this.viandas = pedido.getViandas().stream()
                 .map(DetalleViandaDTO::new)
