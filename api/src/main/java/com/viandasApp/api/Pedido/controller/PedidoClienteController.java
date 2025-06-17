@@ -117,7 +117,7 @@ public class PedidoClienteController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllPedidos() {
+    public ResponseEntity<?> getPedidosPropios() {
 
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();

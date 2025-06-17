@@ -43,10 +43,10 @@ public class EmprendimientoClienteController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/nombre/{nombreEmp}")
-    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByNombre(@PathVariable String nombreEmp){
+    @GetMapping("/nombre/{nombreEmprendimiento}")
+    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByNombre(@PathVariable String nombreEmprendimiento){
 
-        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByNombre(nombreEmp);
+        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByNombre(nombreEmprendimiento);
 
         if ( emprendimientos.isEmpty() ) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -59,18 +59,6 @@ public class EmprendimientoClienteController {
     public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByCiudad(@PathVariable String ciudad){
 
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByCiudad(ciudad);
-
-        if ( emprendimientos.isEmpty() ) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
-        return ResponseEntity.ok(emprendimientos);
-    }
-
-    @GetMapping("/id-usuario/{idUsuario}")
-    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByUsuario(@PathVariable Long idUsuario, Usuario usuario){
-
-        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByUsuarioId(idUsuario, usuario);
 
         if ( emprendimientos.isEmpty() ) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

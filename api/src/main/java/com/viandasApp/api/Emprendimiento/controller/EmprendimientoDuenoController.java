@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,10 +33,11 @@ public class EmprendimientoDuenoController {
     @PostMapping
     public ResponseEntity<?> createEmprendimiento(
             @Valid @RequestBody CreateEmprendimientoDTO createEmprendimientoDTO,
-            BindingResult result,
-            Authentication authentication) {
+            BindingResult result
+            ) {
 
-        Usuario usuario = (Usuario) authentication.getPrincipal();
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
         if (result.hasErrors()) {
             Map<String, String> errores = new HashMap<>();
             result.getFieldErrors().forEach(error ->
@@ -56,14 +58,13 @@ public class EmprendimientoDuenoController {
 
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/id/{id}")
     public ResponseEntity<Map<String, Object>> updateEmprendimiento(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateEmprendimientoDTO updateEmprendimientoDTO,
-            Authentication authentication) {
+            @Valid @RequestBody UpdateEmprendimientoDTO updateEmprendimientoDTO) {
 
         Map<String, Object> response = new HashMap<>();
-        Usuario usuario = (Usuario) authentication.getPrincipal();
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         try {
 
@@ -89,13 +90,12 @@ public class EmprendimientoDuenoController {
 
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/id/{id}")
     public ResponseEntity<Map<String, String>> deleteEmprendimiento(
-            @PathVariable Long id,
-            Authentication authentication
+            @PathVariable Long id
     ) {
 
-        Usuario usuario = (Usuario) authentication.getPrincipal();
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Map<String, String> response = new HashMap<>();
         boolean eliminado = emprendimientoService.deleteEmprendimiento(id, usuario);
@@ -112,23 +112,20 @@ public class EmprendimientoDuenoController {
 
     @GetMapping("/id/{id}")
     public ResponseEntity<EmprendimientoDTO> getEmprendimientoById(
-            @PathVariable Long id,
-            Authentication authentication) {
+            @PathVariable Long id) {
 
-        Usuario usuario = (Usuario) authentication.getPrincipal();
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Optional<EmprendimientoDTO> emprendimiento = emprendimientoService.getEmprendimientoById(id, usuario);
 
         return emprendimiento.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/id-usuario/{idUsuario}")
-    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByUsuario(
-            @PathVariable Long idUsuario,
-            Authentication authentication) {
+    @GetMapping
+    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosPropios() {
 
-        Usuario usuario = (Usuario) authentication.getPrincipal();
-        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByUsuarioId(idUsuario, usuario);
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByUsuarioId(usuario.getId(), usuario);
 
         if (emprendimientos.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
