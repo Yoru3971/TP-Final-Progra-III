@@ -13,7 +13,7 @@ public interface ViandaService {
     ViandaDTO createVianda(ViandaCreateDTO viandaDto);
     Optional<ViandaDTO> findViandaById(Long id);
 
-    Optional<Vianda> findEntityViandaById(Long id);
+
 
     Optional<ViandaDTO> updateVianda(Long id, ViandaUpdateDTO viandaDto);
     boolean deleteVianda(Long id);
