@@ -12,6 +12,7 @@ import com.viandasApp.api.Vianda.model.CategoriaVianda;
 import com.viandasApp.api.Vianda.model.Vianda;
 import com.viandasApp.api.Vianda.repository.ViandaRepository;
 import com.viandasApp.api.Vianda.specification.ViandaSpecifications;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -25,27 +26,29 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ViandaServiceImpl implements ViandaService {
 
-    private final ViandaRepository repository;
+    private final ViandaRepository viandaRepository;
     private final EmprendimientoServiceImpl emprendimientoService;
 
     //--------------------------Create--------------------------//
+    @Transactional
     @Override
     public ViandaDTO createVianda(ViandaCreateDTO dto, Usuario usuarioLogueado) {
+
         Emprendimiento emprendimiento = emprendimientoService.findEntityById(dto.getEmprendimientoId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + dto.getEmprendimientoId()));
 
         Long duenioEmprendimientoId = emprendimiento.getUsuario().getId();
 
         boolean esDuenio = usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO);
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
 
-        if (esDuenio && !esDuenioDelEmprendimiento) {
+        if ( esDuenio && !esDuenioDelEmprendimiento ) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para crear esta vianda.");
         }
 
         Vianda vianda = DTOtoEntity(dto);
         vianda.setEmprendimiento(emprendimiento);
-        Vianda nuevaVianda = repository.save(vianda);
+        Vianda nuevaVianda = viandaRepository.save(vianda);
         return new ViandaDTO(nuevaVianda);
     }
 
@@ -53,19 +56,14 @@ public class ViandaServiceImpl implements ViandaService {
     @Override
     public List<ViandaDTO> getViandasByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento, Usuario usuario) {
 
-        Optional<Emprendimiento> emprendimientoOptional = emprendimientoService.findEntityById(idEmprendimiento);
+        Emprendimiento emprendimiento = emprendimientoService.findEntityById(idEmprendimiento)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + idEmprendimiento));
 
-        if (emprendimientoOptional.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + idEmprendimiento);
-        }
-
-        Emprendimiento emprendimiento = emprendimientoOptional.get();
-
-        boolean esAdmin = usuario.getRolUsuario() == RolUsuario.ADMIN;
-        boolean esDuenio = usuario.getRolUsuario() == RolUsuario.DUENO;
+        boolean esAdmin = usuario.getRolUsuario().equals(RolUsuario.ADMIN);
+        boolean esDuenio = usuario.getRolUsuario().equals(RolUsuario.DUENO);
         boolean esDuenioDelEmprendimiento = emprendimiento.getUsuario().getId().equals(usuario.getId());
 
-        if (esDuenio && !esDuenioDelEmprendimiento) {
+        if ( esDuenio && !esDuenioDelEmprendimiento ) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver las viandas de este emprendimiento.");
         }
 
@@ -101,12 +99,20 @@ public class ViandaServiceImpl implements ViandaService {
         if (filtroViandaDTO.getNombreVianda() != null)
             spec = spec.and(ViandaSpecifications.nombreContieneIgnoreCase(filtroViandaDTO.getNombreVianda()));
 
-        List<Vianda> viandas = repository.findAll(spec);
-        return viandas.stream().map(ViandaDTO::new).toList();
+        List<Vianda> viandas = viandaRepository.findAll(spec);
+        if (viandas.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron viandas para el emprendimiento con ID: " + idEmprendimiento);
+        }
+        return viandas.stream()
+                        .map(ViandaDTO::new)
+                        .toList();
     }
 
     @Override
     public List<ViandaDTO> getViandasDisponiblesByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento) {
+
+        Emprendimiento emprendimiento = emprendimientoService.findEntityById(idEmprendimiento)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + idEmprendimiento));
 
         Specification<Vianda> spec = ViandaSpecifications
                 .estaDisponible()
@@ -138,89 +144,84 @@ public class ViandaServiceImpl implements ViandaService {
         if (filtroViandaDTO.getNombreVianda() != null)
             spec = spec.and(ViandaSpecifications.nombreContieneIgnoreCase(filtroViandaDTO.getNombreVianda()));
 
-        List<Vianda> viandas = repository.findAll(spec);
-        return viandas.stream().map(ViandaDTO::new).toList();
+        List<Vianda> viandas = viandaRepository.findAll(spec);
+        if (viandas.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron viandas disponibles para el emprendimiento con ID: " + idEmprendimiento);
+        }
+        return viandas.stream()
+                        .map(ViandaDTO::new)
+                        .toList();
     }
 
     @Override
     public Optional<ViandaDTO> findViandaById(Long id, Usuario usuarioLogueado) {
-        Optional<Vianda> viandaOptional = repository.findById(id);
 
-        if (viandaOptional.isEmpty()) {
-            return Optional.empty();
-        }
+        Vianda vianda = viandaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada para el Id: " + id));
 
-        Vianda vianda = viandaOptional.get();
-        Emprendimiento emprendimiento = emprendimientoService
-                .findEntityById(vianda.getEmprendimiento().getId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Emprendimiento no encontrado para el Id: " + vianda.getEmprendimiento().getId()));
+        Emprendimiento emprendimiento = emprendimientoService.findEntityById(vianda.getEmprendimiento().getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + vianda.getEmprendimiento().getId()));
 
         vianda.setEmprendimiento(emprendimiento);
         Long duenioEmprendimientoId = emprendimiento.getUsuario().getId();
 
-        boolean esDuenio = usuarioLogueado.getRolUsuario() == RolUsuario.DUENO;
+        boolean esDuenio = usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO);
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
 
-        if (esDuenio && !esDuenioDelEmprendimiento) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar esta vianda.");
+        if ( esDuenio && !esDuenioDelEmprendimiento ) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver esta vianda.");
         }
-
         return Optional.of(new ViandaDTO(vianda));
     }
 
     //--------------------------Update--------------------------//
+    @Transactional
     @Override
     public Optional<ViandaDTO> updateVianda(Long id, ViandaUpdateDTO dto, Usuario usuarioLogueado) {
-        Optional<Vianda> optionalVianda = repository.findById(id);
 
-        if (optionalVianda.isEmpty()) return Optional.empty();
+        Vianda vianda = viandaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada para el Id: " + id));
 
-        Vianda viandaActual = optionalVianda.get();
-
-        Long duenioEmprendimientoId = viandaActual.getEmprendimiento().getUsuario().getId();
+        Long duenioEmprendimientoId = vianda.getEmprendimiento().getUsuario().getId();
 
         boolean esDuenio = usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO);
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
 
-        if (esDuenio && !esDuenioDelEmprendimiento) {
+        if ( esDuenio && !esDuenioDelEmprendimiento ) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar esta vianda.");
         }
 
-        if (dto.getNombreVianda() != null) viandaActual.setNombreVianda(dto.getNombreVianda());
-        if (dto.getCategoria() != null) viandaActual.setCategoria(dto.getCategoria());
-        if (dto.getDescripcion() != null) viandaActual.setDescripcion(dto.getDescripcion());
-        if (dto.getPrecio() != null) viandaActual.setPrecio(dto.getPrecio());
-        if (dto.getEsVegano() != null) viandaActual.setEsVegano(dto.getEsVegano());
-        if (dto.getEsVegetariano() != null) viandaActual.setEsVegetariano(dto.getEsVegetariano());
-        if (dto.getEsSinTacc() != null) viandaActual.setEsSinTacc(dto.getEsSinTacc());
-        if (dto.getEstaDisponible() != null) viandaActual.setEstaDisponible(dto.getEstaDisponible());
+        if (dto.getNombreVianda() != null) vianda.setNombreVianda(dto.getNombreVianda());
+        if (dto.getCategoria() != null) vianda.setCategoria(dto.getCategoria());
+        if (dto.getDescripcion() != null) vianda.setDescripcion(dto.getDescripcion());
+        if (dto.getPrecio() != null) vianda.setPrecio(dto.getPrecio());
+        if (dto.getEsVegano() != null) vianda.setEsVegano(dto.getEsVegano());
+        if (dto.getEsVegetariano() != null) vianda.setEsVegetariano(dto.getEsVegetariano());
+        if (dto.getEsSinTacc() != null) vianda.setEsSinTacc(dto.getEsSinTacc());
+        if (dto.getEstaDisponible() != null) vianda.setEstaDisponible(dto.getEstaDisponible());
 
-        Vianda nuevaVianda = repository.save(viandaActual);
+        Vianda nuevaVianda = viandaRepository.save(vianda);
         return Optional.of(new ViandaDTO(nuevaVianda));
     }
 
     //--------------------------Delete--------------------------//
+    @Transactional
     @Override
     public boolean deleteVianda(Long id, Usuario usuarioLogueado) {
-        Optional<Vianda> optionalVianda = repository.findById(id);
 
-        if (optionalVianda.isEmpty()) return false;
-
-        Vianda vianda = optionalVianda.get();
+        Vianda vianda = viandaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada para el Id: " + id));
 
         Long duenioEmprendimientoId = vianda.getEmprendimiento().getUsuario().getId();
 
-        boolean esAdmin = usuarioLogueado.getRolUsuario() == RolUsuario.ADMIN;
-        boolean esDuenio = usuarioLogueado.getRolUsuario() == RolUsuario.DUENO;
+        boolean esAdmin = usuarioLogueado.getRolUsuario().equals(RolUsuario.ADMIN);
+        boolean esDuenio = usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO);
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
 
-        if (esDuenio && !esDuenioDelEmprendimiento || !esAdmin) {
+        if ( esDuenio && !esDuenioDelEmprendimiento ) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para eliminar esta vianda.");
         }
-
-        repository.delete(vianda);
+        viandaRepository.delete(vianda);
         return true;
     }
 
@@ -228,10 +229,11 @@ public class ViandaServiceImpl implements ViandaService {
     @Override
     public Optional<Vianda> findEntityViandaById(Long id) {
 
-        return repository.findById(id);
+        return viandaRepository.findById(id);
     }
 
     private Vianda DTOtoEntity(ViandaCreateDTO viandaDTO) {
+
         Long id = viandaDTO.getEmprendimientoId();
         Emprendimiento emprendimiento = emprendimientoService.findEntityById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + id));
