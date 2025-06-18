@@ -18,14 +18,12 @@ import java.util.List;
 @RequestMapping("/api/dueno/notificaciones")
 @RequiredArgsConstructor
 public class NotificacionDuenoController {
-
     private final NotificacionService notificacionService;
 
+    //--------------------------Read--------------------------//
     @GetMapping
     public ResponseEntity<List<NotificacionDTO>> getAllNotificacionesPropias() {
-
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
         List<NotificacionDTO> notificaciones = notificacionService.getAllByDestinatarioId(autenticado.getId());
         return ResponseEntity.ok(notificaciones);
     }
@@ -35,7 +33,6 @@ public class NotificacionDuenoController {
             @RequestParam("desde") LocalDate desde,
             @RequestParam("hasta") LocalDate hasta) {
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
         List<NotificacionDTO> notificaciones = notificacionService.getAllByFechaEnviadoBetweenAndDestinatarioId(autenticado.getId(), desde, hasta);
         return ResponseEntity.ok(notificaciones);
     }
