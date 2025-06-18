@@ -20,10 +20,10 @@ public class FiltroViandaDTO {
 
     private String categoria;
 
-    @DecimalMin(value = "0.0", message = "El precio minimo no puede ser menor a cero.")
+    @DecimalMin(value = "0.0", message = "El precio mínimo no puede ser menor a cero.")
     private Double precioMin;
 
-    @DecimalMin(value = "0.0", message = "El precio minimo no puede ser menor a cero.")
+    @DecimalMin(value = "0.0", message = "El precio mínimo no puede ser menor a cero.")
     private Double precioMax;
 
     private String nombreVianda;

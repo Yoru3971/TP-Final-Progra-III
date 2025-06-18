@@ -14,13 +14,14 @@ import lombok.NoArgsConstructor;
 @Data
 public class ViandaCreateDTO {
     @NotBlank(message = "El nombre es obligatorio.")
-    @Size(min = 1, max = 100, message = "El nombre debe tener [min, max] caracteres.")
+    @Size(min = 1, max = 255, message = "El nombre debe tener entre {min} y {max} caracteres.")
     private String nombreVianda;
 
-    @NotNull(message = "La categoria es obligatoria.")
+    @NotNull(message = "La categoría es obligatoria.")
     private CategoriaVianda categoria;
 
-    @Size(max = 400, message = "La descripcion debe tener [max] caracteres.")
+    @NotBlank(message = "La descripción es obligatoria.")
+    @Size(max = 400, message = "La descripcion debe tener como máximo {max} caracteres.")
     private String descripcion;
 
     @NotNull(message = "El precio es obligatorio.")

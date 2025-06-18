@@ -30,11 +30,12 @@ public class Vianda {
     @Enumerated(EnumType.STRING)
     private CategoriaVianda categoria;
 
-    @Column
+    @Column(nullable = false)
     @NotBlank
     private String descripcion;
 
     @Column(nullable = false)
+    @NotNull
     private Double precio;
 
     @Column(nullable = false)
