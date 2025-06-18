@@ -21,9 +21,9 @@ import java.util.List;
 @RequestMapping("/api/cliente/notificaciones")
 @RequiredArgsConstructor
 public class NotificacionClienteController {
-
     private final NotificacionService notificacionService;
 
+    //--------------------------Read--------------------------//
     @Operation(
             summary = "Obtener todas las notificaciones propias",
             description = "Devuelve una lista de todas las notificaciones del usuario autenticado",
@@ -37,10 +37,8 @@ public class NotificacionClienteController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping
-    public ResponseEntity<List<NotificacionDTO>> getAllNotificacionesPropias() {
-
+    public ResponseEntity<?> getAllNotificacionesPropias() {
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
         List<NotificacionDTO> notificaciones = notificacionService.getAllByDestinatarioId(autenticado.getId());
         return ResponseEntity.ok(notificaciones);
     }
@@ -59,11 +57,10 @@ public class NotificacionClienteController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping("/entre-fechas")
-    public ResponseEntity<List<NotificacionDTO>> getAllPropiosByFechas(
+    public ResponseEntity<?> getAllPropiosByFechas(
             @RequestParam("desde") LocalDate desde,
             @RequestParam("hasta") LocalDate hasta) {
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
         List<NotificacionDTO> notificaciones = notificacionService.getAllByFechaEnviadoBetweenAndDestinatarioId(autenticado.getId(), desde, hasta);
         return ResponseEntity.ok(notificaciones);
     }

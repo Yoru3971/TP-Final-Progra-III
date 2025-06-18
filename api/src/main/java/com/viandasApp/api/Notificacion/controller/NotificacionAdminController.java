@@ -21,10 +21,10 @@ import java.util.List;
 @RequestMapping("/api/admin/notificaciones")
 @RequiredArgsConstructor
 public class NotificacionAdminController {
-
     private final NotificacionService notificacionService;
 
-    @Operation(
+    //--------------------------Create--------------------------//    
+   @Operation(
             summary = "Crear una nueva notificación",
             description = "Permite al administrador crear una nueva notificación",
             security = @SecurityRequirement(name = "basicAuth")
@@ -42,6 +42,7 @@ public class NotificacionAdminController {
         return ResponseEntity.ok(nueva);
     }
 
+    //--------------------------Read--------------------------//
     @Operation(
             summary = "Obtener todas las notificaciones",
             description = "Devuelve una lista de todas las notificaciones del administrador",
@@ -108,6 +109,7 @@ public class NotificacionAdminController {
         return ResponseEntity.ok(notificaciones);
     }
 
+    //--------------------------Delete--------------------------//
     @Operation(
             summary = "Eliminar una notificación",
             description = "Permite al administrador eliminar una notificación existente",

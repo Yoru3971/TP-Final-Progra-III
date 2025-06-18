@@ -12,9 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,14 +26,12 @@ import java.util.Optional;
 @RestController
 @Tag(name = "Pedidos - Dueño", description = "Controlador para gestionar pedidos desde el rol de dueño")
 @RequestMapping("/api/dueno/pedidos")
-@PreAuthorize("hasAuthority('ROLE_DUENO')")
 @RequiredArgsConstructor
 public class PedidoDuenoController {
-
     private final PedidoService pedidoService;
 
-
-    @Operation(
+    //--------------------------Update--------------------------//
+     @Operation(
             summary = "Actualizar pedido por ID",
             description = "Actualiza la información de un pedido específico por su ID",
             security = @SecurityRequirement(name = "basicAuth")
@@ -53,22 +49,15 @@ public class PedidoDuenoController {
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
 
-        Optional<PedidoDTO> pedidoExistente = pedidoService.getPedidoById(id);
-        Map<String, Object> response = new HashMap<>();
+        Optional<PedidoDTO> pedidoActualizado = pedidoService.updatePedidoDueno(id, updatePedidoDTO, autenticado);
 
-        if(pedidoExistente.isPresent()){
-            pedidoService.updatePedidoDueno(id, updatePedidoDTO, autenticado);
-            response.put("message", "Pedido actualizado correctamente");
-            return ResponseEntity.ok(response);
-        }
-        else{
-            response.put("message", "Pedido no encontrado");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
+        Map<String, Object> response = new HashMap<>();
+        response.put("Pedido actualizado correctamente:", pedidoActualizado);
+        return ResponseEntity.ok(response);
     }
 
-
-    @Operation(
+    //--------------------------Read--------------------------//
+     @Operation(
             summary = "Obtener pedidos por emprendimiento",
             description = "Obtiene todos los pedidos asociados a un emprendimiento específico",
             security = @SecurityRequirement(name = "basicAuth")
@@ -87,14 +76,7 @@ public class PedidoDuenoController {
                 .getAuthentication().getPrincipal();
 
         List<PedidoDTO> pedido = pedidoService.getAllPedidosByEmprendimiento(idEmprendimiento, autenticado);
-
-        if (!pedido.isEmpty()) {
-            return ResponseEntity.ok(pedido);
-        }else{
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "No se encontraron pedidos");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
+        return ResponseEntity.ok(pedido);
     }
 
     @Operation(
@@ -112,19 +94,11 @@ public class PedidoDuenoController {
     @GetMapping("/idEmprendimiento/{idEmprendimiento}/idUsuario/{idUsuario}")
     public ResponseEntity<?> getPedidosPorEmprendimientoYUsuario(@PathVariable Long idEmprendimiento,
                                                                  @PathVariable Long idUsuario) {
-
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
 
         List<PedidoDTO> pedido = pedidoService.getAllPedidosByEmprendimientoAndUsuario(idEmprendimiento, idUsuario, autenticado);
-
-        if (!pedido.isEmpty()) {
-            return ResponseEntity.ok(pedido);
-        } else {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "No se encontraron pedidos");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
+        return ResponseEntity.ok(pedido);
     }
 
     @Operation(
@@ -146,14 +120,7 @@ public class PedidoDuenoController {
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
 
-        List<PedidoDTO> pedido = pedidoService.getAllPedidosByFechaAndEmprendimiento(fecha, idEmprendimiento, autenticado);
-
-        if (!pedido.isEmpty()) {
-            return ResponseEntity.ok(pedido);
-        } else {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "No se encontraron pedidos");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
+        List<PedidoDTO> pedido = pedidoService.getAllPedidosByFechaAndEmprendimientoId(fecha, idEmprendimiento, autenticado);
+        return ResponseEntity.ok(pedido);
     }
 }

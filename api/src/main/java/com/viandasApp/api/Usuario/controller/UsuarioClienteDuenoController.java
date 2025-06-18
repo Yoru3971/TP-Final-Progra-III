@@ -11,9 +11,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,42 +23,12 @@ import java.util.Optional;
 @RestController
 @Tag(name = "Usuarios - Cliente/Dueño", description = "Controlador para gestionar usuarios del cliente y dueño")
 @RequestMapping("/api/usuarios")
-@PreAuthorize("hasAuthority('ROLE_DUENO') or hasAuthority('ROLE_CLIENTE')")
+@RequiredArgsConstructor
 public class UsuarioClienteDuenoController {
     private final UsuarioService usuarioService;
 
-    public UsuarioClienteDuenoController(UsuarioService usuarioService) {
-        this.usuarioService = usuarioService;
-    }
-
-    @Operation(
-            summary = "Obtener perfil del usuario autenticado",
-            description = "Devuelve los datos del usuario autenticado",
-            security = @SecurityRequirement(name = "basicAuth")
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Perfil del usuario obtenido correctamente"),
-            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-    })
-    @GetMapping("/me")
-    public ResponseEntity<?> showProfile() {
-
-        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-
-        Optional<UsuarioDTO> usuario = usuarioService.findById(autenticado.getId());
-
-        if (usuario.isPresent()) {
-            return ResponseEntity.ok(usuario.get());
-        } else {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Usuario no encontrado");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
-    }
-
-    @Operation(
+    //--------------------------Update--------------------------//
+     @Operation(
             summary = "Actualizar perfil del usuario autenticado",
             description = "Permite al usuario autenticado actualizar sus datos",
             security = @SecurityRequirement(name = "basicAuth")
@@ -74,23 +43,16 @@ public class UsuarioClienteDuenoController {
     public ResponseEntity<?> updateUsuario(
             @PathVariable Long id,
             @Valid @RequestBody UsuarioUpdateDTO usuarioUpdateDTO) {
-        Map<String, String> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
 
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
 
-        Optional<UsuarioDTO> usuarioActualizar = usuarioService.findById(id);
-
-        if(usuarioActualizar.isPresent()){
-            response.put("message", "Usuario no encontrado o acceso denegado");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
-
-        Optional<UsuarioDTO> usuarioActualizado = usuarioService.updateUsuario(id, usuarioUpdateDTO, autenticado);
-        response.put("message", "Usuario actualizado correctamente");
-        return ResponseEntity.ok(usuarioActualizado.get());
+        Optional<UsuarioDTO> usuarioActualizar = usuarioService.updateUsuario(id, usuarioUpdateDTO, autenticado);
+        response.put("Usuario actualizado correctamente",usuarioActualizar );
+        return ResponseEntity.ok(usuarioActualizar.get());
     }
-
+    
     @Operation(
             summary = "Cambiar contraseña del usuario autenticado",
             description = "Permite al usuario autenticado cambiar su contraseña",
@@ -109,17 +71,14 @@ public class UsuarioClienteDuenoController {
     ) {
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        boolean ok = usuarioService.cambiarPassword(autenticado.getId(), passwordUpdateDTO.getPasswordActual(), passwordUpdateDTO.getPasswordNueva(), autenticado);
+        usuarioService.cambiarPassword(autenticado.getId(), passwordUpdateDTO.getPasswordActual(), passwordUpdateDTO.getPasswordNueva(), autenticado);
         Map<String, String> response = new HashMap<>();
 
-        if (!ok) {
-            response.put("message", "Contraseña actual incorrecta");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-        }
         response.put("message", "Contraseña actualizada correctamente");
         return ResponseEntity.ok(response);
     }
-
+  
+    //--------------------------Delete--------------------------//
     @Operation(
             summary = "Eliminar usuario",
             description = "Permite al usuario autenticado eliminar su cuenta",
@@ -139,14 +98,30 @@ public class UsuarioClienteDuenoController {
                 .getAuthentication().getPrincipal();
 
         Map<String, String> response = new HashMap<>();
-        boolean fueEliminado = usuarioService.deleteUsuario(id, autenticado);
-
-        if (!fueEliminado) {
-            response.put("message", "Acceso denegado o usuario no encontrado");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-        }
+        usuarioService.deleteUsuario(id, autenticado);
 
         response.put("message", "Usuario eliminado correctamente");
         return ResponseEntity.ok(response);
+    }
+
+    //--------------------------Otros--------------------------//
+    @Operation(
+            summary = "Obtener perfil del usuario autenticado",
+            description = "Devuelve los datos del usuario autenticado",
+            security = @SecurityRequirement(name = "basicAuth")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Perfil del usuario obtenido correctamente"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/me")
+    public ResponseEntity<?> showProfile() {
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Optional<UsuarioDTO> usuario = usuarioService.findById(autenticado.getId());
+
+        return ResponseEntity.ok(usuario.get());
     }
 }

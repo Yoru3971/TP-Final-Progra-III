@@ -38,7 +38,7 @@ public class Usuario implements UserDetails {
     @NotBlank
     private String password;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     @NotBlank
     private String telefono;
 

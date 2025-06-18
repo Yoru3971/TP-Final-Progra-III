@@ -53,4 +53,10 @@ public class Emprendimiento {
         this.usuario = usuario;
     }
 
+    @PrePersist
+    public void prePersist() {
+        if (this.direccion == null) {
+            this.direccion = "Sin dirección";
+        }
+    }
 }

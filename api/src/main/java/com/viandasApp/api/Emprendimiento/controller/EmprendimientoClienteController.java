@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,15 +20,12 @@ import java.util.Optional;
 @RestController
 @Tag(name = "Emprendimientos - Cliente", description = "Controlador para gestionar emprendimientos desde el rol de cliente")
 @RequestMapping("/api/cliente/emprendimientos")
+@RequiredArgsConstructor
 public class EmprendimientoClienteController {
 
     private final EmprendimientoService emprendimientoService;
-
-    public EmprendimientoClienteController(EmprendimientoService emprendimientoService) {
-
-        this.emprendimientoService = emprendimientoService;
-    }
-
+    
+    //--------------------------Read--------------------------//
     @Operation(
             summary = "Obtener todos los emprendimientos",
             description = "Devuelve una lista de todos los emprendimientos disponibles",
@@ -40,13 +38,7 @@ public class EmprendimientoClienteController {
     })
     @GetMapping
     public ResponseEntity<List<EmprendimientoDTO>> getAllEmprendimientos(){
-
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getAllEmprendimientos();
-
-        if ( emprendimientos.isEmpty() ) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
         return ResponseEntity.ok(emprendimientos);
     }
 
@@ -61,12 +53,9 @@ public class EmprendimientoClienteController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping("/id/{id}")
-    public ResponseEntity<EmprendimientoDTO> getEmprendimientoById (@PathVariable Long id, Usuario usuario){
-
+    public ResponseEntity<?> getEmprendimientoById (@PathVariable Long id, Usuario usuario){
         Optional<EmprendimientoDTO> emprendimiento = emprendimientoService.getEmprendimientoById(id, usuario);
-
-        return emprendimiento.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(emprendimiento);
     }
 
     @Operation(
@@ -81,13 +70,7 @@ public class EmprendimientoClienteController {
     })
     @GetMapping("/nombre/{nombreEmprendimiento}")
     public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByNombre(@PathVariable String nombreEmprendimiento){
-
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByNombre(nombreEmprendimiento);
-
-        if ( emprendimientos.isEmpty() ) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
         return ResponseEntity.ok(emprendimientos);
     }
 
@@ -103,13 +86,7 @@ public class EmprendimientoClienteController {
     })
     @GetMapping("/ciudad/{ciudad}")
     public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByCiudad(@PathVariable String ciudad){
-
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByCiudad(ciudad);
-
-        if ( emprendimientos.isEmpty() ) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
         return ResponseEntity.ok(emprendimientos);
     }
 }

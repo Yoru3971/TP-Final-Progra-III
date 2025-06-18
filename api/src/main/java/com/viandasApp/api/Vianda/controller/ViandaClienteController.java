@@ -9,20 +9,21 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/cliente/viandas")
+@RequiredArgsConstructor
 public class ViandaClienteController {
     private final ViandaService viandasService;
 
-    public ViandaClienteController(ViandaService viandasService) {
-        this.viandasService = viandasService;
-    }
-
+    //--------------------------Read--------------------------//
     @Operation(
             summary = "Obtener viandas disponibles por emprendimiento",
             description = "Obtiene la lista de viandas disponibles por emprendimiento para el cliente autenticado",
@@ -34,15 +35,11 @@ public class ViandaClienteController {
             @ApiResponse(responseCode = "403", description = "Acceso denegado, no tenés el rol necesario"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/id-emprendimiento/{idEmprendimiento}")
-    public ResponseEntity<List<ViandaDTO>> getViandasDisponiblesByEmprendimiento(
-            @Valid @ModelAttribute FiltroViandaDTO filtro,
-            @PathVariable Long idEmprendimiento) {
+    @GetMapping("/idEmprendimiento/{idEmprendimiento}")
+    public ResponseEntity<List<ViandaDTO>> getViandasDisponiblesByEmprendimiento(@Valid @ModelAttribute FiltroViandaDTO filtro, @PathVariable Long idEmprendimiento) {
         List<ViandaDTO> resultados = viandasService.getViandasDisponiblesByEmprendimiento(filtro, idEmprendimiento);
         return ResponseEntity.ok(resultados);
     }
-
-    // ---------------------------------------------------------------------------------------
 
     @Operation(
             summary = "Obtener vianda por ID",
@@ -57,10 +54,9 @@ public class ViandaClienteController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping("/id/{id}")
-    public ResponseEntity<ViandaDTO> findById(@PathVariable Long id, Usuario usuario) {
-        return viandasService.findViandaById(id, usuario)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> getById(@PathVariable Long id) {
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<ViandaDTO> vianda = viandasService.findViandaById(id, usuario);
+        return ResponseEntity.ok(vianda);
     }
-
 }

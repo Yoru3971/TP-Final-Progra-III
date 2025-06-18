@@ -25,26 +25,24 @@ import java.util.List;
 @Tag(name = "Notificaciones - Dueño", description = "Controlador para gestionar notificaciones del dueño")
 @RequestMapping("/api/dueno/notificaciones")
 public class NotificacionDuenoController {
-
     private final NotificacionService notificacionService;
 
+    //--------------------------Read--------------------------//
     @Operation(
-            summary = "Obtener todas las notificaciones propias",
-            description = "Devuelve una lista de todas las notificaciones del usuario autenticado",
-            security = @SecurityRequirement(name = "basicAuth")
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista de notificaciones obtenida correctamente"),
-            @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
-            @ApiResponse(responseCode = "403", description = "Acceso denegado, no tenés el rol necesario"),
-            @ApiResponse(responseCode = "404", description = "No se encontraron notificaciones"),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-    })
+              summary = "Obtener todas las notificaciones propias",
+              description = "Devuelve una lista de todas las notificaciones del usuario autenticado",
+              security = @SecurityRequirement(name = "basicAuth")
+      )
+      @ApiResponses(value = {
+              @ApiResponse(responseCode = "200", description = "Lista de notificaciones obtenida correctamente"),
+              @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
+              @ApiResponse(responseCode = "403", description = "Acceso denegado, no tenés el rol necesario"),
+              @ApiResponse(responseCode = "404", description = "No se encontraron notificaciones"),
+              @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+      })
     @GetMapping
     public ResponseEntity<List<NotificacionDTO>> getAllNotificacionesPropias() {
-
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
         List<NotificacionDTO> notificaciones = notificacionService.getAllByDestinatarioId(autenticado.getId());
         return ResponseEntity.ok(notificaciones);
     }
@@ -67,7 +65,6 @@ public class NotificacionDuenoController {
             @RequestParam("desde") LocalDate desde,
             @RequestParam("hasta") LocalDate hasta) {
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
         List<NotificacionDTO> notificaciones = notificacionService.getAllByFechaEnviadoBetweenAndDestinatarioId(autenticado.getId(), desde, hasta);
         return ResponseEntity.ok(notificaciones);
     }
