@@ -11,8 +11,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UsuarioService {
+    //--------------------------Create--------------------------//
     UsuarioDTO createUsuario(UsuarioCreateDTO userDto);
 
+    //--------------------------Read--------------------------//
     List<UsuarioDTO> readUsuarios();
     Optional<UsuarioDTO> findById(Long id);
     Optional<Usuario> findEntityById(Long id);
@@ -20,12 +22,15 @@ public interface UsuarioService {
     Optional<UsuarioDTO> findByEmail(String email);
     List<UsuarioDTO> findByRolUsuario(RolUsuario rolUsuario);
 
+    //--------------------------Update--------------------------//
     Optional<UsuarioDTO> updateUsuarioAdmin(Long id, UsuarioUpdateRolDTO userDto);
     Optional<UsuarioDTO> updateUsuario(Long id, UsuarioUpdateDTO dto, Usuario autenticado);
 
+    //--------------------------Delete--------------------------//
     boolean deleteUsuarioAdmin(Long id);
     boolean deleteUsuario(Long id, Usuario autenticado);
 
+    //--------------------------Otros--------------------------//
     boolean cambiarPasswordAdmin(Long id, String passwordNueva);
     boolean cambiarPassword(Long id, String passwordActual, String passwordNueva, Usuario autenticado);
 }

@@ -15,15 +15,16 @@ import java.util.List;
 @RequestMapping("/api/admin/notificaciones")
 @RequiredArgsConstructor
 public class NotificacionAdminController {
-
     private final NotificacionService notificacionService;
 
+    //--------------------------Create--------------------------//
     @PostMapping
     public ResponseEntity<NotificacionDTO> createNotificacion(@Valid @RequestBody NotificacionCreateDTO dto) {
         NotificacionDTO nueva = notificacionService.createNotificacion(dto);
         return ResponseEntity.ok(nueva);
     }
 
+    //--------------------------Read--------------------------//
     @GetMapping
     public ResponseEntity<List<NotificacionDTO>> getAllNotificaciones() {
         List<NotificacionDTO> notificaciones = notificacionService.getAllNotificaciones();
@@ -50,6 +51,7 @@ public class NotificacionAdminController {
         return ResponseEntity.ok(notificaciones);
     }
 
+    //--------------------------Delete--------------------------//
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNotificacion(@PathVariable Long id) {
         notificacionService.deleteNotificacion(id);

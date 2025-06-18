@@ -25,12 +25,21 @@ public class DetallePedido {
     @JoinColumn(name = "vianda_id")
     private Vianda vianda;
 
+    @Column(nullable = false)
+    @NotNull
+    @PositiveOrZero
     private Integer cantidad;
 
     // Se puede obtener a partir de la vianda, pero se guarda para evitar inconsistencias
     // (ya que si el precio de la vianda cambia después, me modificaría el subtotal y el total del pedido)
+    @Column(nullable = false)
+    @NotNull
+    @PositiveOrZero
     private Double precioUnitario;
 
+    @Column(nullable = false)
+    @NotNull
+    @PositiveOrZero
     private Double subtotal;
 
     public DetallePedido(Pedido pedido, Vianda vianda, @NotNull @Min(value = 1, message = "La cantidad debe ser al menos 1") Integer cantidad) {

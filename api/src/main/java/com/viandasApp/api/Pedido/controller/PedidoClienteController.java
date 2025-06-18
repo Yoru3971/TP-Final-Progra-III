@@ -9,11 +9,8 @@ import com.viandasApp.api.Usuario.model.Usuario;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -24,98 +21,25 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/cliente/pedidos")
-@PreAuthorize("hasAuthority('ROLE_CLIENTE')")
 @RequiredArgsConstructor
 public class PedidoClienteController {
-
     private final PedidoService pedidoService;
 
+    //--------------------------Create--------------------------//
     @PostMapping
-    public ResponseEntity<?> createPedido(@Valid @RequestBody PedidoCreateDTO pedidoCreateDTO, BindingResult result) {
+    public ResponseEntity<?> createPedido(@Valid @RequestBody PedidoCreateDTO pedidoCreateDTO) {
 
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
 
-        if (result.hasErrors()) {
-            Map<String, String> errores = new HashMap<>();
-            result.getFieldErrors().forEach(error ->
-                    errores.put(error.getField(), error.getDefaultMessage())
-            );
-            return ResponseEntity.badRequest().body(errores);
-        }
+        PedidoDTO pedidoCreado = pedidoService.createPedido(pedidoCreateDTO, autenticado);
 
-        PedidoDTO pedidoDTO = pedidoService.createPedido(pedidoCreateDTO, autenticado);
-        if (pedidoDTO == null) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al crear el pedido. Por favor, intente nuevamente.");
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoDTO);
-    }
-
-    @PutMapping("/id/{id}")
-    public ResponseEntity<Map<String, Object>> updatePedido(@PathVariable Long id, @RequestBody @Valid UpdatePedidoDTO updatePedidoDTO) {
-
-        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-
-        Optional<PedidoDTO> pedidoExistente = pedidoService.getPedidoById(id);
         Map<String, Object> response = new HashMap<>();
-
-        if(pedidoExistente.isPresent()){
-            pedidoService.updatePedidoCliente(id, updatePedidoDTO, autenticado);
-            response.put("message", "Pedido actualizado correctamente");
-            return ResponseEntity.ok(response);
-        }
-        else{
-            response.put("message", "Pedido no encontrado");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
+        response.put("Pedido creado correctamente:", pedidoCreado);
+        return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}/viandas")
-    public ResponseEntity<?> updateViandasPedido(@PathVariable Long id, @Valid @RequestBody PedidoUpdateViandasDTO dto, BindingResult result) {
-
-        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-
-        if (result.hasErrors()) {
-            Map<String, String> errores = new HashMap<>();
-            result.getFieldErrors().forEach(error ->
-                    errores.put(error.getField(), error.getDefaultMessage())
-            );
-            return ResponseEntity.badRequest().body(errores);
-        }
-
-        Optional<PedidoDTO> actualizado = pedidoService.updateViandasPedidoCliente(id, dto, autenticado);
-        if (actualizado.isPresent()) {
-            return ResponseEntity.ok(actualizado.get());
-        } else {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Pedido o vianda no encontrada");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
-    }
-
-    @DeleteMapping("/id/{id}")
-    public ResponseEntity<Map<String, String>>  deletePedido(@PathVariable Long id) {
-
-        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-
-        Optional<PedidoDTO> pedidoEliminar = pedidoService.getPedidoById(id);
-        Map<String, String> response = new HashMap<>();
-
-        if(pedidoEliminar.isPresent()){
-            pedidoService.deletePedidoCliente(id, autenticado);
-            response.put("message", "Pedido eliminado correctamente");
-            return ResponseEntity.ok(response);
-        }
-        else{
-            response.put("message", "Pedido no encontrado");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
-    }
-
+    //--------------------------Read--------------------------//
     @GetMapping
     public ResponseEntity<?> getPedidosPropios() {
 
@@ -123,14 +47,7 @@ public class PedidoClienteController {
                 .getAuthentication().getPrincipal();
 
         List<PedidoDTO> pedido = pedidoService.getAllPedidosByUsuarioId(autenticado.getId());
-
-        if (!pedido.isEmpty()) {
-            return ResponseEntity.ok(pedido);
-        }else{
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "No se encontraron pedidos");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
+        return ResponseEntity.ok(pedido);
     }
 
     @GetMapping("/idEmprendimiento/{idEmprendimiento}")
@@ -140,14 +57,7 @@ public class PedidoClienteController {
                 .getAuthentication().getPrincipal();
 
         List<PedidoDTO> pedido = pedidoService.getAllPedidosByEmprendimientoAndUsuario(idEmprendimiento, autenticado.getId(), autenticado);
-
-        if (!pedido.isEmpty()) {
-            return ResponseEntity.ok(pedido);
-        } else {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "No se encontraron pedidos");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
+        return ResponseEntity.ok(pedido);
     }
 
     @GetMapping("/fecha/{fecha}")
@@ -157,14 +67,47 @@ public class PedidoClienteController {
                 .getAuthentication().getPrincipal();
 
         List<PedidoDTO> pedido = pedidoService.getAllPedidosByFechaAndUsuarioId(fecha, autenticado.getId());
-
-        if (!pedido.isEmpty()) {
-            return ResponseEntity.ok(pedido);
-        } else {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "No se encontraron pedidos");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
+        return ResponseEntity.ok(pedido);
     }
 
+    //--------------------------Update--------------------------//
+    @PutMapping("/id/{id}")
+    public ResponseEntity<Map<String, Object>> updatePedido(@PathVariable Long id, @RequestBody @Valid UpdatePedidoDTO updatePedidoDTO) {
+
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Optional<PedidoDTO> pedidoActualizado = pedidoService.updatePedidoCliente(id, updatePedidoDTO, autenticado);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("Pedido actualizado correctamente:", pedidoActualizado);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/viandas")
+    public ResponseEntity<?> updateViandasPedido(@PathVariable Long id, @Valid @RequestBody PedidoUpdateViandasDTO dto) {
+
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Optional<PedidoDTO> pedidoActualizado = pedidoService.updateViandasPedidoCliente(id, dto, autenticado);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("Pedido actualizado correctamente:", pedidoActualizado);
+        return ResponseEntity.ok(response);
+    }
+
+    //--------------------------Delete--------------------------//
+    @DeleteMapping("/id/{id}")
+    public ResponseEntity<Map<String, String>>  deletePedido(@PathVariable Long id) {
+
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Map<String, String> response = new HashMap<>();
+
+        pedidoService.deletePedidoCliente(id, autenticado);
+        response.put("message", "Pedido eliminado correctamente");
+        return ResponseEntity.ok(response);
+    }
 }

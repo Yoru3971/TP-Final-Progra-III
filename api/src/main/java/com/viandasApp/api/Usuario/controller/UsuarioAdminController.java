@@ -7,11 +7,9 @@ import com.viandasApp.api.Usuario.dto.UsuarioUpdateRolDTO;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioService;
-import com.viandasApp.api.Utils.ErrorHandler;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -23,64 +21,29 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/admin/usuarios")
-@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+@RequiredArgsConstructor
 public class UsuarioAdminController {
     private final UsuarioService usuarioService;
 
-    public UsuarioAdminController(UsuarioService usuarioService) {
-        this.usuarioService = usuarioService;
-    }
-
+    //--------------------------Create--------------------------//
     @PostMapping("/register")
     public ResponseEntity<?> registrar(@Valid @RequestBody UsuarioCreateDTO usuarioCreateDTO, BindingResult result) {
-        if (result.hasErrors()) {
-            return ResponseEntity.badRequest().body(ErrorHandler.procesarErrores(result));
-        }
+        Map<String, Object> response = new HashMap<>();
         UsuarioDTO nuevoUsuario = usuarioService.createUsuario(usuarioCreateDTO);
+        response.put("message", "Usuario registrado correctamente");
         return ResponseEntity.ok(nuevoUsuario);
     }
 
+    //--------------------------Read--------------------------//
     @GetMapping
     public ResponseEntity<?> readUsuarios() {
         List<UsuarioDTO> usuarios = usuarioService.readUsuarios();
-
-        if (usuarios.isEmpty()) {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "No hay usuarios registrados");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
-
         return ResponseEntity.ok(usuarios);
-    }
-
-    @GetMapping("/me")
-    public ResponseEntity<?> showProfile() {
-
-        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-
-        Optional<UsuarioDTO> usuario = usuarioService.findById(autenticado.getId());
-
-        if (usuario.isPresent()) {
-            return ResponseEntity.ok(usuario.get());
-        } else {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Usuario no encontrado");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
     }
 
     @GetMapping("/id/{id}")
     public ResponseEntity<?> findById(@PathVariable Long id) {
-        final Optional<UsuarioDTO> usuario = usuarioService.findById(id);
-
-        if (usuario.isEmpty()) {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Usuario no encontrado");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
-
-         // Si el usuario existe, devolvemos el DTO
+        Optional<UsuarioDTO> usuario = usuarioService.findById(id);
         return ResponseEntity.ok(usuario.get());
     }
 
@@ -89,13 +52,6 @@ public class UsuarioAdminController {
             String nombreCompleto
     ) {
         Optional<UsuarioDTO> usuarioEncontrado = usuarioService.findByNombreCompleto(nombreCompleto);
-
-        if (usuarioEncontrado.isEmpty()) {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "No se encontró ningún usuario con ese nombre completo");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
-
         return ResponseEntity.ok(usuarioEncontrado.get());
     }
 
@@ -104,75 +60,59 @@ public class UsuarioAdminController {
             @PathVariable String email
     ) {
         Optional<UsuarioDTO> usuario = usuarioService.findByEmail(email);
-        Map<String, String> response = new HashMap<>();
 
-        if (usuario.isEmpty()) {
-            response.put("message", "No se encontraron usuarios con ese mail");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
-            return ResponseEntity.ok(usuario);
+        return ResponseEntity.ok(usuario);
     }
 
     @GetMapping("/rol/{rolUsuario}")
     public ResponseEntity<?> findByRolUsuario(
             @PathVariable RolUsuario rolUsuario
     ) {
-        List<UsuarioDTO> usuario = usuarioService.findByRolUsuario(rolUsuario);
-        Map<String, String> response = new HashMap<>();
+        List<UsuarioDTO> usuarios = usuarioService.findByRolUsuario(rolUsuario);
 
-        if (usuario.isEmpty()) {
-            response.put("message", "No se encontraron usuarios con el rol especificado");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
-        return ResponseEntity.ok(usuario);
+        return ResponseEntity.ok(usuarios);
     }
 
+    //--------------------------Update--------------------------//
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUsuario(
             @Valid @PathVariable Long id,
             @Valid @RequestBody UsuarioUpdateRolDTO userDto) {
         Optional<UsuarioDTO> usuarioActualizar = usuarioService.updateUsuarioAdmin(id, userDto);
-        Map<String, String> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
 
-        if (usuarioActualizar.isPresent()) {
-            response.put("message", "Usuario actualizado correctamente");
-            return ResponseEntity.ok(usuarioActualizar.get());
-        } else {
-            response.put("message", "Usuario no encontrado");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
+        response.put("Usuario actualizado correctamente", usuarioActualizar);
+        return ResponseEntity.ok(usuarioActualizar.get());
     }
 
+    @PutMapping("/id/{id}/changePassword")
+    public ResponseEntity<?> cambiarPassword(
+            @PathVariable Long id, @RequestBody AdminPasswordUpdateDTO adminPasswordUpdateDTO) {
+        usuarioService.cambiarPasswordAdmin(id, adminPasswordUpdateDTO.getNuevaPassword());
+        Map<String, String> response = new HashMap<>();
+
+        response.put("message", "Contraseña actualizada correctamente");
+        return ResponseEntity.ok(response);
+    }
+
+    //--------------------------Delete--------------------------//
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
         Map<String, String> response = new HashMap<>();
-
-        Optional<UsuarioDTO> usuarioEliminar = usuarioService.findById(id);
-
-        if (usuarioEliminar.isEmpty()) {
-            response.put("message", "Usuario no encontrado");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
 
         usuarioService.deleteUsuarioAdmin(id);
         response.put("message", "Usuario eliminado correctamente");
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/id/{id}/changePassword")
-    public ResponseEntity<?> cambiarPassword(
-            @PathVariable Long id,
-            @RequestBody AdminPasswordUpdateDTO adminPasswordUpdateDTO
-    ) {
-        boolean ok = usuarioService.cambiarPasswordAdmin(id, adminPasswordUpdateDTO.getNuevaPassword());
-        Map<String, String> response = new HashMap<>();
+    //--------------------------Otros--------------------------//
+    @GetMapping("/me")
+    public ResponseEntity<?> showProfile() {
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
 
-        if (!ok) {
-            response.put("message", "Contraseña invalida (no puede ser la misma que la anterior) o usuario no encontrado");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
+        Optional<UsuarioDTO> usuario = usuarioService.findById(autenticado.getId());
 
-        response.put("message", "Contraseña actualizada correctamente");
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(usuario.get());
     }
 }

@@ -2,6 +2,7 @@
 package com.viandasApp.api.Pedido.dto;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -11,6 +12,7 @@ import java.util.List;
 public class PedidoUpdateViandasDTO {
 
     @NotNull(message = "La lista de viandas no puede ser nula")
+    @NotEmpty(message = "La lista de viandas no puede estar vacía")
     private List<ViandaCantidadDTO> viandas;
 
     @Data

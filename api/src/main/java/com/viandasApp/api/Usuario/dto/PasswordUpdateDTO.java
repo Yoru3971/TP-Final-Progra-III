@@ -1,6 +1,7 @@
 package com.viandasApp.api.Usuario.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,10 +15,12 @@ import lombok.Setter;
 public class PasswordUpdateDTO {
 
     @NotBlank(message = "La contraseña actual es obligatoria.")
-    @Size(min = 4, max = 16, message = "La contraseña debe tener [min, max] caracteres.")
         private String passwordActual;
 
     @NotBlank(message = "La nueva contraseña es obligatoria.")
-    @Size(min = 4, max = 16, message = "La contraseña debe tener [min, max] caracteres.")
+    @Pattern(
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).{8,16}$",
+            message = "La contraseña debe tener entre 8 y 16 caracteres, e incluir al menos una mayúscula, una minúscula, un número y un carácter especial."
+    )
         private String passwordNueva;
 }
