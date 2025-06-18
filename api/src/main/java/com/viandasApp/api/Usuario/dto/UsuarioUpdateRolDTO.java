@@ -13,24 +13,18 @@ import lombok.*;
 @Getter
 @NoArgsConstructor
 public class UsuarioUpdateRolDTO {
-    @Id
-    private Long id;
 
-    @NotBlank(message = "El nombre es obligatorio.")
-    @Size(min = 1, max = 255, message = "El nombre debe tener [min, max] caracteres.")
+    @Size(min = 1, max = 255, message = "El nombre debe tener entre {min} y {max} caracteres.")
     private String nombreCompleto;
 
     @Email
-    @NotBlank(message = "El email es obligatorio.")
-    @Size(min = 1, max = 64, message = "El email debe tener [min, max] caracteres.")
+    @Size(min = 1, max = 64, message = "El nombre debe tener entre {min} y {max} caracteres.")
     private String email;
 
     @Enumerated(EnumType.STRING)
     @NotNull(message = "El rol es obligatorio.")
     private RolUsuario rolUsuario;
 
-    @Column(nullable = false)
-    @NotBlank(message = "El telefono es obligatorio.")
     @Pattern(regexp = "\\d{10,15}", message = "El teléfono debe tener entre 10 y 15 dígitos")
     private String telefono;
 }
