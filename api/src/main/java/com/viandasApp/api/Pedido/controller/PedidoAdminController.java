@@ -199,7 +199,7 @@ public class PedidoAdminController {
     @GetMapping("/fecha/{fecha}/idUsuario/{idUsuario}")
     public ResponseEntity<?> getPedidosPorFechaAndUsuarioId(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha,
                                                             @PathVariable Long idUsuario) {
-        List<PedidoDTO> pedido = pedidoService.getAllPedidosByFechaAndUsuarioId(fecha, idUsuario);
+        List<PedidoDTO> pedidos = pedidoService.getAllPedidosByFechaAndUsuarioId(fecha, idUsuario);
         return ResponseEntity.ok(pedidos);
     }
 
