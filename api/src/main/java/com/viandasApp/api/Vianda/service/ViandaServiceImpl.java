@@ -12,6 +12,7 @@ import com.viandasApp.api.Vianda.model.CategoriaVianda;
 import com.viandasApp.api.Vianda.model.Vianda;
 import com.viandasApp.api.Vianda.repository.ViandaRepository;
 import com.viandasApp.api.Vianda.specification.ViandaSpecifications;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,34 +22,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ViandaServiceImpl implements ViandaService {
 
     private final ViandaRepository repository;
-
     private final EmprendimientoServiceImpl emprendimientoService;
 
-    public ViandaServiceImpl(ViandaRepository repository, EmprendimientoServiceImpl emprendimientoService) {
-        this.repository = repository;
-        this.emprendimientoService = emprendimientoService;
-    }
-
-    private Vianda DTOtoEntity(ViandaCreateDTO viandaDTO) {
-        Long id = viandaDTO.getEmprendimientoId();
-        Emprendimiento emprendimiento = emprendimientoService.findEntityById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + id));
-
-        return new Vianda(
-                viandaDTO.getNombreVianda(),
-                viandaDTO.getCategoria(),
-                viandaDTO.getDescripcion(),
-                viandaDTO.getPrecio(),
-                viandaDTO.getEsVegano(),
-                viandaDTO.getEsVegetariano(),
-                viandaDTO.getEsSinTacc(),
-                emprendimiento
-        );
-    }
-
+    //--------------------------Create--------------------------//
     @Override
     public ViandaDTO createVianda(ViandaCreateDTO dto, Usuario usuarioLogueado) {
         Emprendimiento emprendimiento = emprendimientoService.findEntityById(dto.getEmprendimientoId())
@@ -69,94 +49,9 @@ public class ViandaServiceImpl implements ViandaService {
         return new ViandaDTO(nuevaVianda);
     }
 
+    //--------------------------Read--------------------------//
     @Override
-    public Optional<ViandaDTO> findViandaById(Long id, Usuario usuarioLogueado) {
-        Optional<Vianda> viandaOptional = repository.findById(id);
-
-        if (viandaOptional.isEmpty()) {
-            return Optional.empty();
-        }
-
-        Vianda vianda = viandaOptional.get();
-        Emprendimiento emprendimiento = emprendimientoService
-                .findEntityById(vianda.getEmprendimiento().getId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Emprendimiento no encontrado para el Id: " + vianda.getEmprendimiento().getId()));
-
-        vianda.setEmprendimiento(emprendimiento);
-        Long duenioEmprendimientoId = emprendimiento.getUsuario().getId();
-
-        boolean esDuenio = usuarioLogueado.getRolUsuario() == RolUsuario.DUENO;
-        boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
-
-        if (esDuenio && !esDuenioDelEmprendimiento) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar esta vianda.");
-        }
-
-        return Optional.of(new ViandaDTO(vianda));
-    }
-
-    @Override
-    public Optional<ViandaDTO> updateVianda(Long id, ViandaUpdateDTO dto, Usuario usuarioLogueado) {
-        Optional<Vianda> optionalVianda = repository.findById(id);
-
-        if (optionalVianda.isEmpty()) return Optional.empty();
-
-        Vianda viandaActual = optionalVianda.get();
-
-        Long duenioEmprendimientoId = viandaActual.getEmprendimiento().getUsuario().getId();
-
-        boolean esDuenio = usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO);
-        boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
-
-        if (esDuenio && !esDuenioDelEmprendimiento) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar esta vianda.");
-        }
-
-        if (dto.getNombreVianda() != null) viandaActual.setNombreVianda(dto.getNombreVianda());
-        if (dto.getCategoria() != null) viandaActual.setCategoria(dto.getCategoria());
-        if (dto.getDescripcion() != null) viandaActual.setDescripcion(dto.getDescripcion());
-        if (dto.getPrecio() != null) viandaActual.setPrecio(dto.getPrecio());
-        if (dto.getEsVegano() != null) viandaActual.setEsVegano(dto.getEsVegano());
-        if (dto.getEsVegetariano() != null) viandaActual.setEsVegetariano(dto.getEsVegetariano());
-        if (dto.getEsSinTacc() != null) viandaActual.setEsSinTacc(dto.getEsSinTacc());
-        if (dto.getEstaDisponible() != null) viandaActual.setEstaDisponible(dto.getEstaDisponible());
-
-        Vianda nuevaVianda = repository.save(viandaActual);
-        return Optional.of(new ViandaDTO(nuevaVianda));
-    }
-
-
-    @Override
-    public boolean deleteVianda(Long id, Usuario usuarioLogueado) {
-        Optional<Vianda> optionalVianda = repository.findById(id);
-
-        if (optionalVianda.isEmpty()) return false;
-
-        Vianda vianda = optionalVianda.get();
-
-        Long duenioEmprendimientoId = vianda.getEmprendimiento().getUsuario().getId();
-
-        boolean esAdmin = usuarioLogueado.getRolUsuario() == RolUsuario.ADMIN;
-        boolean esDuenio = usuarioLogueado.getRolUsuario() == RolUsuario.DUENO;
-        boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
-
-        if (esDuenio && !esDuenioDelEmprendimiento || !esAdmin) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para eliminar esta vianda.");
-        }
-
-        repository.delete(vianda);
-        return true;
-    }
-
-    //  ---------   listado
-
-    @Override
-    public List<ViandaDTO> getViandasByEmprendimiento(
-            FiltroViandaDTO filtroViandaDTO,
-            Long idEmprendimiento,
-            Usuario usuario) {
+    public List<ViandaDTO> getViandasByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento, Usuario usuario) {
 
         Optional<Emprendimiento> emprendimientoOptional = emprendimientoService.findEntityById(idEmprendimiento);
 
@@ -211,9 +106,7 @@ public class ViandaServiceImpl implements ViandaService {
     }
 
     @Override
-    public List<ViandaDTO> getViandasDisponiblesByEmprendimiento(
-            FiltroViandaDTO filtroViandaDTO,
-            Long idEmprendimiento) {
+    public List<ViandaDTO> getViandasDisponiblesByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento) {
 
         Specification<Vianda> spec = ViandaSpecifications
                 .estaDisponible()
@@ -250,7 +143,108 @@ public class ViandaServiceImpl implements ViandaService {
     }
 
     @Override
+    public Optional<ViandaDTO> findViandaById(Long id, Usuario usuarioLogueado) {
+        Optional<Vianda> viandaOptional = repository.findById(id);
+
+        if (viandaOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Vianda vianda = viandaOptional.get();
+        Emprendimiento emprendimiento = emprendimientoService
+                .findEntityById(vianda.getEmprendimiento().getId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Emprendimiento no encontrado para el Id: " + vianda.getEmprendimiento().getId()));
+
+        vianda.setEmprendimiento(emprendimiento);
+        Long duenioEmprendimientoId = emprendimiento.getUsuario().getId();
+
+        boolean esDuenio = usuarioLogueado.getRolUsuario() == RolUsuario.DUENO;
+        boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
+
+        if (esDuenio && !esDuenioDelEmprendimiento) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar esta vianda.");
+        }
+
+        return Optional.of(new ViandaDTO(vianda));
+    }
+
+    //--------------------------Update--------------------------//
+    @Override
+    public Optional<ViandaDTO> updateVianda(Long id, ViandaUpdateDTO dto, Usuario usuarioLogueado) {
+        Optional<Vianda> optionalVianda = repository.findById(id);
+
+        if (optionalVianda.isEmpty()) return Optional.empty();
+
+        Vianda viandaActual = optionalVianda.get();
+
+        Long duenioEmprendimientoId = viandaActual.getEmprendimiento().getUsuario().getId();
+
+        boolean esDuenio = usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO);
+        boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
+
+        if (esDuenio && !esDuenioDelEmprendimiento) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar esta vianda.");
+        }
+
+        if (dto.getNombreVianda() != null) viandaActual.setNombreVianda(dto.getNombreVianda());
+        if (dto.getCategoria() != null) viandaActual.setCategoria(dto.getCategoria());
+        if (dto.getDescripcion() != null) viandaActual.setDescripcion(dto.getDescripcion());
+        if (dto.getPrecio() != null) viandaActual.setPrecio(dto.getPrecio());
+        if (dto.getEsVegano() != null) viandaActual.setEsVegano(dto.getEsVegano());
+        if (dto.getEsVegetariano() != null) viandaActual.setEsVegetariano(dto.getEsVegetariano());
+        if (dto.getEsSinTacc() != null) viandaActual.setEsSinTacc(dto.getEsSinTacc());
+        if (dto.getEstaDisponible() != null) viandaActual.setEstaDisponible(dto.getEstaDisponible());
+
+        Vianda nuevaVianda = repository.save(viandaActual);
+        return Optional.of(new ViandaDTO(nuevaVianda));
+    }
+
+    //--------------------------Delete--------------------------//
+    @Override
+    public boolean deleteVianda(Long id, Usuario usuarioLogueado) {
+        Optional<Vianda> optionalVianda = repository.findById(id);
+
+        if (optionalVianda.isEmpty()) return false;
+
+        Vianda vianda = optionalVianda.get();
+
+        Long duenioEmprendimientoId = vianda.getEmprendimiento().getUsuario().getId();
+
+        boolean esAdmin = usuarioLogueado.getRolUsuario() == RolUsuario.ADMIN;
+        boolean esDuenio = usuarioLogueado.getRolUsuario() == RolUsuario.DUENO;
+        boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
+
+        if (esDuenio && !esDuenioDelEmprendimiento || !esAdmin) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para eliminar esta vianda.");
+        }
+
+        repository.delete(vianda);
+        return true;
+    }
+
+    //--------------------------Otros--------------------------//
+    @Override
     public Optional<Vianda> findEntityViandaById(Long id) {
+
         return repository.findById(id);
+    }
+
+    private Vianda DTOtoEntity(ViandaCreateDTO viandaDTO) {
+        Long id = viandaDTO.getEmprendimientoId();
+        Emprendimiento emprendimiento = emprendimientoService.findEntityById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + id));
+
+        return new Vianda(
+                viandaDTO.getNombreVianda(),
+                viandaDTO.getCategoria(),
+                viandaDTO.getDescripcion(),
+                viandaDTO.getPrecio(),
+                viandaDTO.getEsVegano(),
+                viandaDTO.getEsVegetariano(),
+                viandaDTO.getEsSinTacc(),
+                emprendimiento
+        );
     }
 }

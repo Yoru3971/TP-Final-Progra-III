@@ -24,7 +24,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     private final EmprendimientoRepository emprendimientoRepository;
     private final UsuarioServiceImpl usuarioService;
 
-
+    //--------------------------Create--------------------------//
     @Override
     public EmprendimientoDTO createEmprendimiento(CreateEmprendimientoDTO createEmprendimientoDTO, Usuario usuario) {
 
@@ -43,6 +43,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         return new EmprendimientoDTO(emprendimientoGuardado);
     }
 
+    //--------------------------Update--------------------------//
     @Override
     public Optional<EmprendimientoDTO> updateEmprendimiento(Long id, UpdateEmprendimientoDTO updateEmprendimientoDTO, Usuario usuarioLogueado) {
         Optional<Emprendimiento> optionalEmprendimiento = emprendimientoRepository.findById(id);
@@ -89,6 +90,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                 });
     }
 
+    //--------------------------Delete--------------------------//
     @Override
     public boolean deleteEmprendimiento(Long id, Usuario usuario) {
 
@@ -113,6 +115,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         return false;
     }
 
+    //--------------------------Read--------------------------//
     @Override
     public List<EmprendimientoDTO> getAllEmprendimientos() {
         return emprendimientoRepository.findAll().stream()
@@ -165,12 +168,12 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                 .toList();
     }
 
+    //--------------------------Otros--------------------------//
     @Override
     public Optional<Emprendimiento> findEntityById(Long id) {
 
         return emprendimientoRepository.findById(id);
     }
-
 
     private Emprendimiento DTOToEntity(CreateEmprendimientoDTO createEmprendimientoDTO){
 
@@ -190,6 +193,4 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                 usuario
         );
     }
-
-
 }
