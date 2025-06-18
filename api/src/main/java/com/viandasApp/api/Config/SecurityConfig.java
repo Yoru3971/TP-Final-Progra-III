@@ -33,6 +33,11 @@ public class SecurityConfig {
                 .csrf(config -> config.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/auth/**",
+                                "/v3/api-docs/**",
+                                "/swaggerui/**",
+                                "swagger-ui.html",
+                                "/proxy/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/dueno/**").hasAnyRole("DUENO", "ADMIN")
                         .requestMatchers("/api/cliente/**").hasAnyRole("CLIENTE", "ADMIN")

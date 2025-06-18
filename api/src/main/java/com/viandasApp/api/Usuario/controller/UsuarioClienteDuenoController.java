@@ -5,6 +5,11 @@ import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioUpdateDTO;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
+@Tag(name = "Usuarios - Cliente/Dueño", description = "Controlador para gestionar usuarios del cliente y dueño")
 @RequestMapping("/api/usuarios")
 @PreAuthorize("hasAuthority('ROLE_DUENO') or hasAuthority('ROLE_CLIENTE')")
 public class UsuarioClienteDuenoController {
@@ -26,6 +32,16 @@ public class UsuarioClienteDuenoController {
         this.usuarioService = usuarioService;
     }
 
+    @Operation(
+            summary = "Obtener perfil del usuario autenticado",
+            description = "Devuelve los datos del usuario autenticado",
+            security = @SecurityRequirement(name = "basicAuth")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Perfil del usuario obtenido correctamente"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @GetMapping("/me")
     public ResponseEntity<?> showProfile() {
 
@@ -43,6 +59,17 @@ public class UsuarioClienteDuenoController {
         }
     }
 
+    @Operation(
+            summary = "Actualizar perfil del usuario autenticado",
+            description = "Permite al usuario autenticado actualizar sus datos",
+            security = @SecurityRequirement(name = "basicAuth")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Perfil del usuario actualizado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud inválida, datos incorrectos"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado o acceso denegado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUsuario(
             @PathVariable Long id,
@@ -64,6 +91,18 @@ public class UsuarioClienteDuenoController {
         return ResponseEntity.ok(usuarioActualizado.get());
     }
 
+    @Operation(
+            summary = "Cambiar contraseña del usuario autenticado",
+            description = "Permite al usuario autenticado cambiar su contraseña",
+            security = @SecurityRequirement(name = "basicAuth")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Contraseña actualizada correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud inválida, datos incorrectos"),
+            @ApiResponse(responseCode = "403", description = "Contraseña actual incorrecta"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado o acceso denegado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @PutMapping("/changePassword/me")
     public ResponseEntity<?> cambiarPassword(
             @RequestBody PasswordUpdateDTO passwordUpdateDTO
@@ -81,6 +120,17 @@ public class UsuarioClienteDuenoController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(
+            summary = "Eliminar usuario",
+            description = "Permite al usuario autenticado eliminar su cuenta",
+            security = @SecurityRequirement(name = "basicAuth")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuario eliminado correctamente"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado o usuario no encontrado"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUsuario(
             @PathVariable Long id) {
