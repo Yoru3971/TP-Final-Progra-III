@@ -2,7 +2,6 @@ package com.viandasApp.api.Vianda.dto;
 
 
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
-import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Vianda.model.CategoriaVianda;
 import com.viandasApp.api.Vianda.model.Vianda;
 import lombok.AllArgsConstructor;

@@ -5,13 +5,10 @@ import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoService;
 import com.viandasApp.api.Usuario.model.Usuario;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -21,116 +18,65 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/dueno/emprendimientos")
+@RequiredArgsConstructor
 public class EmprendimientoDuenoController {
 
     private final EmprendimientoService emprendimientoService;
 
-    public EmprendimientoDuenoController(EmprendimientoService emprendimientoService) {
-
-        this.emprendimientoService = emprendimientoService;
-    }
-
+    //--------------------------Create--------------------------//
     @PostMapping
-    public ResponseEntity<?> createEmprendimiento(
-            @Valid @RequestBody CreateEmprendimientoDTO createEmprendimientoDTO,
-            BindingResult result
-            ) {
+    public ResponseEntity<?> createEmprendimiento(@Valid @RequestBody CreateEmprendimientoDTO createEmprendimientoDTO) {
 
-        Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
 
-        if (result.hasErrors()) {
-            Map<String, String> errores = new HashMap<>();
-            result.getFieldErrors().forEach(error ->
-                    errores.put(error.getField(), error.getDefaultMessage())
-            );
-            return ResponseEntity.badRequest().body(errores);
-        }
-
-        try {
-            EmprendimientoDTO emprendimientoGuardado = emprendimientoService.createEmprendimiento(createEmprendimientoDTO, usuario);
-            return ResponseEntity.status(HttpStatus.CREATED).body(emprendimientoGuardado);
-
-        } catch (EntityNotFoundException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-        } catch (RuntimeException ex) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
-        }
-
-    }
-
-    @PutMapping("/id/{id}")
-    public ResponseEntity<Map<String, Object>> updateEmprendimiento(
-            @PathVariable Long id,
-            @Valid @RequestBody UpdateEmprendimientoDTO updateEmprendimientoDTO) {
+        EmprendimientoDTO emprendimientoGuardado = emprendimientoService.createEmprendimiento(createEmprendimientoDTO, usuario);
 
         Map<String, Object> response = new HashMap<>();
-        Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        try {
-
-            Optional<EmprendimientoDTO> emprendimientoActualizado = emprendimientoService.updateEmprendimiento(id, updateEmprendimientoDTO, usuario);
-
-            if (emprendimientoActualizado.isEmpty()) {
-                response.put("message", "El emprendimiento no se pudo actualizar.");
-                return ResponseEntity.status(HttpStatus.NOT_MODIFIED).body(response);
-            } else {
-                response.put("message", "Emprendimiento actualizado correctamente.");
-                response.put("emprendimiento", emprendimientoActualizado.get());
-                return ResponseEntity.ok(response);
-            }
-
-
-        } catch (EntityNotFoundException ex) {
-            response.put("message", ex.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        } catch (RuntimeException ex) {
-            response.put("message", ex.getMessage());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-        }
-
+        response.put("Emprendimiento creado correctamente:", emprendimientoGuardado);
+        return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/id/{id}")
-    public ResponseEntity<Map<String, String>> deleteEmprendimiento(
-            @PathVariable Long id
-    ) {
-
-        Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        Map<String, String> response = new HashMap<>();
-        boolean eliminado = emprendimientoService.deleteEmprendimiento(id, usuario);
-
-        if (eliminado) {
-            response.put("message", "Emprendimiento eliminado correctamente.");
-            return ResponseEntity.ok(response);
-        } else {
-            response.put("message", "Emprendimiento no encontrado");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
-
-    }
-
+    //--------------------------Read--------------------------//
     @GetMapping("/id/{id}")
-    public ResponseEntity<EmprendimientoDTO> getEmprendimientoById(
-            @PathVariable Long id) {
-
+    public ResponseEntity<?> getEmprendimientoById(@PathVariable Long id) {
         Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Optional<EmprendimientoDTO> emprendimiento = emprendimientoService.getEmprendimientoById(id, usuario);
-
-        return emprendimiento.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(emprendimiento);
     }
 
     @GetMapping
     public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosPropios() {
-
         Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByUsuarioId(usuario.getId(), usuario);
-
-        if (emprendimientos.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
         return ResponseEntity.ok(emprendimientos);
+    }
+
+    //--------------------------Update--------------------------//
+    @PutMapping("/id/{id}")
+    public ResponseEntity<Map<String, Object>> updateEmprendimiento(@PathVariable Long id, @Valid @RequestBody UpdateEmprendimientoDTO updateEmprendimientoDTO) {
+
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Optional<EmprendimientoDTO> emprendimientoActualizado = emprendimientoService.updateEmprendimiento(id, updateEmprendimientoDTO, usuario);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("Emprendimiento actualizado correctamente:", emprendimientoActualizado);
+        return ResponseEntity.ok(response);
+    }
+
+    //--------------------------Delete--------------------------//
+    @DeleteMapping("/id/{id}")
+    public ResponseEntity<Map<String, String>> deleteEmprendimiento(@PathVariable Long id) {
+
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Map<String, String> response = new HashMap<>();
+
+        emprendimientoService.deleteEmprendimiento(id, usuario);
+        response.put("message", "Emprendimiento eliminado correctamente");
+        return ResponseEntity.ok(response);
     }
 }
