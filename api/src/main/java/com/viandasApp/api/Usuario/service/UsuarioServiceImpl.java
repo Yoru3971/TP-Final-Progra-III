@@ -42,7 +42,27 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Transactional
     @Override
     public UsuarioDTO createUsuario(UsuarioCreateDTO usuarioCreateDTO) {
+
         Usuario usuario = DTOToEntity(usuarioCreateDTO);
+
+        // Verifica si ya existe un usuario con el mismo email
+        if (usuarioRepository.findByEmail(usuario.getEmail()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el email: " + usuario.getEmail());
+        }
+
+        String telefonoSinCeros = usuarioCreateDTO.getTelefono().replaceFirst("^0+", "");
+
+        if ( telefonoSinCeros.length()< 7 ){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
+        }
+        usuario.setTelefono(telefonoSinCeros);
+
+
+        // Verifica si ya existe un usuario con el mismo telefono
+        if (usuarioRepository.findByTelefono(usuario.getTelefono()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el telefono: " + usuario.getTelefono());
+        }
+
         Usuario savedUsuario = usuarioRepository.save(usuario);
         return new UsuarioDTO(savedUsuario);
     }
@@ -124,11 +144,26 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         if (usuarioUpdateDTO.getEmail() != null) {
+
+            if ( usuarioRepository.findByEmail(usuarioUpdateDTO.getEmail()).isPresent() ){
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el email: " + usuarioUpdateDTO.getEmail());
+            }
             usuarioExistente.setEmail(usuarioUpdateDTO.getEmail());
         }
 
         if (usuarioUpdateDTO.getTelefono() != null) {
-            usuarioExistente.setTelefono(usuarioUpdateDTO.getTelefono());
+
+            String telefonoSinCeros = usuarioUpdateDTO.getTelefono().replaceFirst("^0+", "");
+
+            if ( telefonoSinCeros.length()< 7 ){
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
+            }
+
+            // Verifica si el nuevo telefono ya está en uso por otro usuario
+            if ( usuarioRepository.findByTelefono(telefonoSinCeros).isPresent() ) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el telefono: " + usuarioUpdateDTO.getTelefono());
+            }
+            usuarioExistente.setTelefono(telefonoSinCeros);
         }
 
         Usuario actualizado = usuarioRepository.save(usuarioExistente);
@@ -146,11 +181,25 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         if (usuarioUpdateRolDTO.getEmail() != null) {
+            if ( usuarioRepository.findByEmail(usuarioUpdateRolDTO.getEmail()).isPresent() ){
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el email: " + usuarioUpdateRolDTO.getEmail());
+            }
+
             usuarioExistente.setEmail(usuarioUpdateRolDTO.getEmail());
         }
 
         if (usuarioUpdateRolDTO.getTelefono() != null) {
-            usuarioExistente.setTelefono(usuarioUpdateRolDTO.getTelefono());
+
+            String telefonoSinCeros = usuarioUpdateRolDTO.getTelefono().replaceFirst("^0+", "");
+
+            if ( telefonoSinCeros.length()< 7 ){
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
+            }
+            if ( usuarioRepository.findByTelefono(telefonoSinCeros).isPresent() ) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el telefono: " + telefonoSinCeros);
+            }
+
+            usuarioExistente.setTelefono(telefonoSinCeros);
         }
 
         if (usuarioUpdateRolDTO.getRolUsuario() != null) {
