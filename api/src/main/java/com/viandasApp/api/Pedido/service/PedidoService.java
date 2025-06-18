@@ -12,14 +12,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PedidoService {
+    //--------------------------Create--------------------------//
     PedidoDTO createPedido(PedidoCreateDTO dto, Usuario usuarioLogueado);
-    Optional<PedidoDTO> updatePedidoAdmin(Long id, UpdatePedidoDTO updatePedidoDTO);
-    Optional<PedidoDTO> updatePedidoDueno(Long id, UpdatePedidoDTO updatePedidoDTO, Usuario usuarioLogueado);
-    Optional<PedidoDTO> updatePedidoCliente(Long id, UpdatePedidoDTO updatePedidoDTO, Usuario usuarioLogueado);
-    Optional<PedidoDTO> updateViandasPedidoAdmin(Long pedidoId, PedidoUpdateViandasDTO dto);
-    Optional<PedidoDTO> updateViandasPedidoCliente(Long pedidoId, PedidoUpdateViandasDTO dto, Usuario usuarioLogueado);
-    boolean deletePedidoAdmin(Long id);
-    boolean deletePedidoCliente(Long id, Usuario usuarioLogueado);
+
+    //--------------------------Read--------------------------//
     List<PedidoDTO> getAllPedidos();
     List<PedidoDTO> getAllPedidosByEmprendimiento(Long idEmprendimiento, Usuario usuarioLogueado);
     List<PedidoDTO> getAllPedidosByEmprendimientoAndUsuario(Long idEmprendimiento,Long idUsuario, Usuario usuarioLogueado);
@@ -28,5 +24,16 @@ public interface PedidoService {
     List<PedidoDTO> getAllPedidosByEstado(EstadoPedido estado);
     List<PedidoDTO> getAllPedidosByFecha(LocalDate fecha);
     List<PedidoDTO> getAllPedidosByFechaAndUsuarioId(LocalDate fecha, Long idUsuario);
-    List<PedidoDTO> getAllPedidosByFechaAndEmprendimiento(LocalDate fecha, Long idEmprendimiento, Usuario usuarioLogueado);
+    List<PedidoDTO> getAllPedidosByFechaAndEmprendimientoId(LocalDate fecha, Long idEmprendimiento, Usuario usuarioLogueado);
+
+    //--------------------------Update--------------------------//
+    Optional<PedidoDTO> updatePedidoAdmin(Long id, UpdatePedidoDTO updatePedidoDTO);
+    Optional<PedidoDTO> updatePedidoDueno(Long id, UpdatePedidoDTO updatePedidoDTO, Usuario usuarioLogueado);
+    Optional<PedidoDTO> updatePedidoCliente(Long id, UpdatePedidoDTO updatePedidoDTO, Usuario usuarioLogueado);
+    Optional<PedidoDTO> updateViandasPedidoAdmin(Long pedidoId, PedidoUpdateViandasDTO dto);
+    Optional<PedidoDTO> updateViandasPedidoCliente(Long pedidoId, PedidoUpdateViandasDTO dto, Usuario usuarioLogueado);
+
+    //--------------------------Delete--------------------------//
+    boolean deletePedidoAdmin(Long id);
+    boolean deletePedidoCliente(Long id, Usuario usuarioLogueado);
 }

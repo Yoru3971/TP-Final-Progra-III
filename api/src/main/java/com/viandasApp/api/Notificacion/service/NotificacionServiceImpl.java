@@ -35,6 +35,17 @@ public class NotificacionServiceImpl implements NotificacionService{
     @Transactional
     @Override
     public NotificacionDTO createNotificacion(NotificacionCreateDTO notificacionCreateDTO) {
+
+        if(notificacionCreateDTO.getDestinatarioId() == null || notificacionCreateDTO.getEmprendimientoId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El destinatario y el emprendimiento son obligatorios");
+        }
+
+        Usuario destinatario = usuarioService.findEntityById(notificacionCreateDTO.getDestinatarioId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+
+        Emprendimiento emprendimiento = emprendimientoService.findEntityById(notificacionCreateDTO.getEmprendimientoId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado"));
+
         Notificacion notificacion = DTOtoEntity(notificacionCreateDTO);
 
         Notificacion guardada = notificacionRepository.save(notificacion);
@@ -43,21 +54,23 @@ public class NotificacionServiceImpl implements NotificacionService{
 
     @Override
     public List<NotificacionDTO> getAllNotificaciones() {
+
         List<Notificacion> notificaciones = notificacionRepository.findAll();
 
         if (notificaciones.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron notificaciones");
         }
-
         return notificaciones.stream().map(NotificacionDTO::new).toList();
     }
 
     @Override
     public List<NotificacionDTO> getAllByDestinatarioId(Long destinatarioId) {
-       Usuario usuario = usuarioService.findEntityById(destinatarioId)
+
+        Usuario usuario = usuarioService.findEntityById(destinatarioId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
 
         List<Notificacion> notificaciones = notificacionRepository.findAllByDestinatarioId(destinatarioId);
+
         if (notificaciones.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron notificaciones para el destinatario");
         }
@@ -66,6 +79,7 @@ public class NotificacionServiceImpl implements NotificacionService{
 
     @Override
     public List<NotificacionDTO> getAllByEmprendimientoId(Long emprendimientoId) {
+
         Emprendimiento emprendimiento = emprendimientoService.findEntityById(emprendimientoId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado"));
 
@@ -78,11 +92,13 @@ public class NotificacionServiceImpl implements NotificacionService{
 
     @Override
     public List<NotificacionDTO> getAllByFechaEnviadoBetween(LocalDate start, LocalDate end) {
+
         if (start == null || end == null || start.isAfter(end)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rango de fechas inválido");
         }
 
         List<Notificacion> notificaciones = notificacionRepository.findAllByFechaEnviadoBetween(start, end);
+
         if (notificaciones.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron notificaciones en el rango de fechas especificado");
         }
@@ -91,6 +107,7 @@ public class NotificacionServiceImpl implements NotificacionService{
 
     @Override
     public List<NotificacionDTO> getAllByFechaEnviadoBetweenAndDestinatarioId(Long destinatarioId, LocalDate start, LocalDate end) {
+
         Usuario usuario = usuarioService.findEntityById(destinatarioId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
 
@@ -109,6 +126,7 @@ public class NotificacionServiceImpl implements NotificacionService{
     @Transactional
     @Override
     public boolean deleteNotificacion(Long id) {
+
         Optional<Notificacion> notificacionEncontrada = notificacionRepository.findById(id);
 
         if (notificacionEncontrada.isEmpty()) {
@@ -120,6 +138,7 @@ public class NotificacionServiceImpl implements NotificacionService{
     }
 
     private Notificacion DTOtoEntity(NotificacionCreateDTO notificacionCreateDTO) {
+
         Notificacion notificacion = new Notificacion();
 
         Usuario usuarioEncontrado = usuarioService.findEntityById(notificacionCreateDTO.getDestinatarioId())
