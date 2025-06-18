@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,13 +24,14 @@ public class ViandaDuenoController {
         this.viandasService = viandasService;
     }
 
-    @GetMapping("/id-emprendimiento/{idEmprendimiento}")
+    @GetMapping("/idEmprendimiento/{idEmprendimiento}")
     public ResponseEntity<List<ViandaDTO>> getViandasByEmprendimiento(
             @Valid @ModelAttribute FiltroViandaDTO filtro,
-            @PathVariable Long idEmprendimiento,
-            Authentication authentication) {
-        Usuario usuario = (Usuario) authentication.getPrincipal();
-        List<ViandaDTO> resultados = viandasService.getViandasByEmprendimiento(filtro, idEmprendimiento, usuario);
+            @PathVariable Long idEmprendimiento) {
+
+        Usuario usuarioLogueado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        List<ViandaDTO> resultados = viandasService.getViandasByEmprendimiento(filtro, idEmprendimiento, usuarioLogueado);
         return ResponseEntity.ok(resultados);
     }
 
@@ -45,10 +47,10 @@ public class ViandaDuenoController {
 
     @PostMapping
     public ResponseEntity<ViandaDTO> createVianda(
-            @Valid @RequestBody ViandaCreateDTO dto,
-            Authentication authentication) {
-        Usuario usuario = (Usuario) authentication.getPrincipal();
-        return new ResponseEntity<>(viandasService.createVianda(dto, usuario), HttpStatus.CREATED);
+            @Valid @RequestBody ViandaCreateDTO dto) {
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        return new ResponseEntity<>(viandasService.createVianda(dto, autenticado), HttpStatus.CREATED);
     }
 
     @PutMapping("/id/{id}")

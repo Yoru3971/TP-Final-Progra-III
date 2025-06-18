@@ -27,9 +27,7 @@ public class PedidoDTO {
                 .map(DetalleViandaDTO::new)
                 .toList();
 
-        this.total = viandas.stream()
-                .mapToDouble(DetalleViandaDTO::getSubtotal)
-                .sum();
+        this.total = pedido.getTotal();
     }
 
 }

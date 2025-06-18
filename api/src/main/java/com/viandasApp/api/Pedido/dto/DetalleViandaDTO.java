@@ -17,8 +17,8 @@ public class DetalleViandaDTO {
     public DetalleViandaDTO(DetallePedido detalle) {
         this.viandaId = detalle.getVianda().getId();
         this.nombreVianda = detalle.getVianda().getNombreVianda();
-        this.precioUnitario = detalle.getVianda().getPrecio();
+        this.precioUnitario = detalle.getPrecioUnitario();
         this.cantidad = detalle.getCantidad();
-        this.subtotal = this.precioUnitario * this.cantidad;
+        this.subtotal = detalle.getSubtotal();
     }
 }
