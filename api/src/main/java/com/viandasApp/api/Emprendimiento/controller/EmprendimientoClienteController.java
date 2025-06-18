@@ -3,7 +3,7 @@ package com.viandasApp.api.Emprendimiento.controller;
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoService;
 import com.viandasApp.api.Usuario.model.Usuario;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,57 +13,33 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/cliente/emprendimientos")
+@RequiredArgsConstructor
 public class EmprendimientoClienteController {
 
     private final EmprendimientoService emprendimientoService;
 
-    public EmprendimientoClienteController(EmprendimientoService emprendimientoService) {
-
-        this.emprendimientoService = emprendimientoService;
-    }
-
+    //--------------------------Read--------------------------//
     @GetMapping
     public ResponseEntity<List<EmprendimientoDTO>> getAllEmprendimientos(){
-
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getAllEmprendimientos();
-
-        if ( emprendimientos.isEmpty() ) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
         return ResponseEntity.ok(emprendimientos);
     }
 
     @GetMapping("/id/{id}")
-    public ResponseEntity<EmprendimientoDTO> getEmprendimientoById (@PathVariable Long id, Usuario usuario){
-
+    public ResponseEntity<?> getEmprendimientoById (@PathVariable Long id, Usuario usuario){
         Optional<EmprendimientoDTO> emprendimiento = emprendimientoService.getEmprendimientoById(id, usuario);
-
-        return emprendimiento.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(emprendimiento);
     }
 
     @GetMapping("/nombre/{nombreEmprendimiento}")
     public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByNombre(@PathVariable String nombreEmprendimiento){
-
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByNombre(nombreEmprendimiento);
-
-        if ( emprendimientos.isEmpty() ) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
         return ResponseEntity.ok(emprendimientos);
     }
 
     @GetMapping("/ciudad/{ciudad}")
     public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByCiudad(@PathVariable String ciudad){
-
         List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByCiudad(ciudad);
-
-        if ( emprendimientos.isEmpty() ) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
         return ResponseEntity.ok(emprendimientos);
     }
 }

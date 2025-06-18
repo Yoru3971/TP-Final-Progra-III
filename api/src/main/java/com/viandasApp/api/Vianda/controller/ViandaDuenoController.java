@@ -7,73 +7,77 @@ import com.viandasApp.api.Vianda.dto.ViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaUpdateDTO;
 import com.viandasApp.api.Vianda.service.ViandaService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/dueno/viandas")
+@RequiredArgsConstructor
 public class ViandaDuenoController {
+
     private final ViandaService viandasService;
 
-    public ViandaDuenoController(ViandaService viandasService) {
-        this.viandasService = viandasService;
+    //--------------------------Create--------------------------//
+    @PostMapping
+    public ResponseEntity<?> createVianda(@Valid @RequestBody ViandaCreateDTO dto) {
+
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        ViandaDTO viandaCreada = viandasService.createVianda(dto, autenticado);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("Vianda creada correctamente:", viandaCreada);
+        return ResponseEntity.ok(response);
     }
 
+    //--------------------------Read--------------------------//
     @GetMapping("/idEmprendimiento/{idEmprendimiento}")
-    public ResponseEntity<List<ViandaDTO>> getViandasByEmprendimiento(
-            @Valid @ModelAttribute FiltroViandaDTO filtro,
-            @PathVariable Long idEmprendimiento) {
-
+    public ResponseEntity<List<ViandaDTO>> getViandasByEmprendimiento(@Valid @ModelAttribute FiltroViandaDTO filtro, @PathVariable Long idEmprendimiento) {
         Usuario usuarioLogueado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
         List<ViandaDTO> resultados = viandasService.getViandasByEmprendimiento(filtro, idEmprendimiento, usuarioLogueado);
         return ResponseEntity.ok(resultados);
     }
 
     @GetMapping("/id/{id}")
-    public ResponseEntity<ViandaDTO> findById(@PathVariable Long id, Authentication authentication) {
-        Usuario usuario = (Usuario) authentication.getPrincipal();
-        return viandasService.findViandaById(id, usuario)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> getById(@PathVariable Long id) {
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<ViandaDTO> vianda = viandasService.findViandaById(id, usuario);
+        return ResponseEntity.ok(vianda);
     }
 
-    // ---------------------------------------------------------------------------------------
-
-    @PostMapping
-    public ResponseEntity<ViandaDTO> createVianda(
-            @Valid @RequestBody ViandaCreateDTO dto) {
-        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-        return new ResponseEntity<>(viandasService.createVianda(dto, autenticado), HttpStatus.CREATED);
-    }
-
+    //--------------------------Update--------------------------//
     @PutMapping("/id/{id}")
-    public ResponseEntity<ViandaDTO> updateVianda(
-            @PathVariable Long id,
-            @Valid @RequestBody ViandaUpdateDTO dto,
-            Authentication authentication
-    ) {
+    public ResponseEntity<Map<String, Object>> updateVianda(@PathVariable Long id, @Valid @RequestBody ViandaUpdateDTO dto) {
 
-        Usuario usuario = (Usuario) authentication.getPrincipal();
-        return viandasService.updateVianda(id, dto, usuario)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Optional<ViandaDTO> viandaActualizado = viandasService.updateVianda(id, dto, usuario);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("Vianda actualizada correctamente:", viandaActualizado);
+        return ResponseEntity.ok(response);
     }
 
+    //--------------------------Delete--------------------------//
     @DeleteMapping("/id/{id}")
-    public ResponseEntity<Void> deleteVianda(
-            @PathVariable Long id,
-            Authentication authentication) {
+    public ResponseEntity<Map<String, String>> deleteVianda(@PathVariable Long id) {
 
-        Usuario usuario = (Usuario) authentication.getPrincipal();
-        return viandasService.deleteVianda(id, usuario)
-                ? new ResponseEntity<>(HttpStatus.NO_CONTENT)
-                : ResponseEntity.notFound().build();
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Map<String, String> response = new HashMap<>();
+
+        viandasService.deleteVianda(id, usuario);
+        response.put("message", "Vianda eliminada correctamente");
+        return ResponseEntity.ok(response);
     }
 }
