@@ -44,11 +44,17 @@ public class PedidoServiceImpl implements PedidoService {
                 .orElseThrow(() -> new RuntimeException("Emprendimiento no encontrado"));
 
         Pedido pedido = new Pedido();
+
+        if (pedidoCreateDTO.getFechaEntrega() != null && pedidoCreateDTO.getFechaEntrega().isBefore(LocalDate.now())) {
+            throw new RuntimeException("La fecha de entrega no puede ser anterior a la fecha de hoy.");
+        }
         pedido.setFechaEntrega(pedidoCreateDTO.getFechaEntrega());
         pedido.setUsuario(cliente);
         pedido.setEmprendimiento(emprendimientoPedido);
 
+        Double total = 0.0;
         for (ViandaCantidadDTO dto : pedidoCreateDTO.getViandas()) {
+
             Vianda vianda = viandaService.findEntityViandaById(dto.getViandaId())
                     .orElseThrow(() -> new RuntimeException("Vianda no encontrada"));
 
@@ -58,9 +64,12 @@ public class PedidoServiceImpl implements PedidoService {
             DetallePedido detalle = new DetallePedido();
             detalle.setVianda(vianda);
             detalle.setCantidad(dto.getCantidad());
-
-            pedido.agregarDetalle(detalle); // Asocia el detalle al pedido
+            detalle.setPrecioUnitario(vianda.getPrecio());
+            detalle.setSubtotal(vianda.getPrecio() * dto.getCantidad());
+            total += detalle.getSubtotal();
+            pedido.agregarDetalle(detalle);
         }
+        pedido.setTotal(total);
 
         Pedido guardado = pedidoRepository.save(pedido);
         return new PedidoDTO(guardado);
@@ -133,24 +142,30 @@ public class PedidoServiceImpl implements PedidoService {
     @Override
     public Optional<PedidoDTO> updateViandasPedidoAdmin(Long pedidoId, PedidoUpdateViandasDTO dto) {
         return pedidoRepository.findById(pedidoId).flatMap(pedido -> {
+
             pedido.getViandas().clear();
             Emprendimiento emprendimientoPedido = pedido.getEmprendimiento();
 
+            Double total = 0.0;
             for (PedidoUpdateViandasDTO.ViandaCantidadDTO vc : dto.getViandas()) {
-                Optional<Vianda> viandaOpt = viandaService.findEntityViandaById(vc.getViandaId());
-                if (viandaOpt.isEmpty()) {
-                    // Si alguna vianda no existe, retorna vacío como señal de error
-                    return Optional.empty();
-                }
-                if ( !viandaOpt.get().getEmprendimiento().equals(emprendimientoPedido) ) {
+
+                Vianda vianda = viandaService.findEntityViandaById(vc.getViandaId())
+                        .orElseThrow(() -> new RuntimeException("Vianda no encontrada"));
+
+                if ( !vianda.getEmprendimiento().equals(emprendimientoPedido) ) {
                     throw new RuntimeException("Las viandas deben pertenecer al mismo emprendimiento del pedido.");
                 }
+
                 DetallePedido detalle = new DetallePedido();
                 detalle.setPedido(pedido);
-                detalle.setVianda(viandaOpt.get());
+                detalle.setVianda(vianda);
                 detalle.setCantidad(vc.getCantidad());
+                detalle.setPrecioUnitario(vianda.getPrecio());
+                detalle.setSubtotal(vianda.getPrecio() * vc.getCantidad());
+                total += detalle.getSubtotal();
                 pedido.agregarDetalle(detalle);
             }
+            pedido.setTotal(total);
 
             Pedido actualizado = pedidoRepository.save(pedido);
             return Optional.of(new PedidoDTO(actualizado));
@@ -162,6 +177,7 @@ public class PedidoServiceImpl implements PedidoService {
         return pedidoRepository.findById(pedidoId).flatMap(pedido -> {
 
             if ( pedido.getEstado().equals(EstadoPedido.PENDIENTE) ){
+
                 if (!(pedido.getUsuario().getId().equals(usuarioLogueado.getId()))){
                     throw new RuntimeException("El pedido que se quiere actualizar no pertenece al usuario logueado.");
                 }
@@ -169,23 +185,26 @@ public class PedidoServiceImpl implements PedidoService {
                 pedido.getViandas().clear();
                 Emprendimiento emprendimientoPedido = pedido.getEmprendimiento();
 
+                Double total = 0.0;
                 for (PedidoUpdateViandasDTO.ViandaCantidadDTO vc : dto.getViandas()) {
-                    Optional<Vianda> viandaOpt = viandaService.findEntityViandaById(vc.getViandaId());
-                    if (viandaOpt.isEmpty()) {
-                        // Si alguna vianda no existe, retorna vacío como señal de error
-                        return Optional.empty();
-                    }
 
-                    if ( !viandaOpt.get().getEmprendimiento().equals(emprendimientoPedido) ) {
+                    Vianda vianda = viandaService.findEntityViandaById(vc.getViandaId())
+                            .orElseThrow(() -> new RuntimeException("Vianda no encontrada"));
+
+                    if ( !vianda.getEmprendimiento().equals(emprendimientoPedido) ) {
                         throw new RuntimeException("Las viandas deben pertenecer al mismo emprendimiento del pedido.");
                     }
 
                     DetallePedido detalle = new DetallePedido();
                     detalle.setPedido(pedido);
-                    detalle.setVianda(viandaOpt.get());
+                    detalle.setVianda(vianda);
                     detalle.setCantidad(vc.getCantidad());
+                    detalle.setPrecioUnitario(vianda.getPrecio());
+                    detalle.setSubtotal(vianda.getPrecio() * vc.getCantidad());
+                    total += detalle.getSubtotal();
                     pedido.agregarDetalle(detalle);
                 }
+                pedido.setTotal(total);
 
                 Pedido actualizado = pedidoRepository.save(pedido);
                 return Optional.of(new PedidoDTO(actualizado));

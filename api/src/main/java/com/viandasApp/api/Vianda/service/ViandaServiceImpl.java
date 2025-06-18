@@ -170,7 +170,7 @@ public class ViandaServiceImpl implements ViandaService {
         boolean esDuenio = usuario.getRolUsuario() == RolUsuario.DUENO;
         boolean esDuenioDelEmprendimiento = emprendimiento.getUsuario().getId().equals(usuario.getId());
 
-        if (esDuenio && !esDuenioDelEmprendimiento || !esAdmin) {
+        if (esDuenio && !esDuenioDelEmprendimiento) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver las viandas de este emprendimiento.");
         }
 

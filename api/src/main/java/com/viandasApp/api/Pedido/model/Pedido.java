@@ -36,6 +36,8 @@ public class Pedido {
 
     private LocalDate fechaEntrega;
 
+    private Double total;
+
     @PrePersist
     public void prePersist() {
         if (this.fechaEntrega == null) {
