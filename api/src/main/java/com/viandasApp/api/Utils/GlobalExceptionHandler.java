@@ -1,5 +1,6 @@
 package com.viandasApp.api.Utils;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -9,7 +10,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Clase que maneja globalmente las excepciones lanzadas por los controladores de la API.
@@ -49,6 +52,30 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Maneja excepciones de constraints no respetadas. Muestra las variables que
+     * no fueron respetadas y su respectivo mensaje.
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleConstraintViolationException(ConstraintViolationException ex) {
+        Map<String, Object> body = new HashMap<>();
+
+        // Obtener el mensaje de las violaciones con el nombre de la variable
+        List<String> errorMessages = ex.getConstraintViolations().stream()
+                .map(violation -> {
+                    String fieldName = violation.getPropertyPath().toString(); // Nombre del campo
+                    String message = violation.getMessage(); // Mensaje de la violación
+                    return fieldName + ": " + message; // Combinamos el campo con el mensaje
+                })
+                .collect(Collectors.toList());
+
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.BAD_REQUEST.value()); // Error de validación, BAD_REQUEST
+        body.put("errors", errorMessages); // Mostrar los mensajes de error con el nombre de la variable
+
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
      * Maneja cualquier otra excepción inesperada que no esté capturada arriba.
      * Esto evita que se muestren trazas internas del servidor al cliente.
      */
@@ -57,9 +84,10 @@ public class GlobalExceptionHandler {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        body.put("error", "Error interno del servidor");
+        body.put("error", "Hubo un error con los datos ingresados o con el servidor.");
 
         // Solo para depuración (podés loguear ex.getMessage() si querés)
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
+
 }

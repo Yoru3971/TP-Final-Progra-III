@@ -40,12 +40,17 @@ public class PedidoServiceImpl implements PedidoService {
     @Transactional
     @Override
     public PedidoDTO createPedido(PedidoCreateDTO pedidoCreateDTO, Usuario usuarioLogueado) {
+
         if (usuarioLogueado.getRolUsuario().equals(RolUsuario.CLIENTE) && !usuarioLogueado.getId().equals(pedidoCreateDTO.getClienteId())){
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El usuario no tiene permiso para crear pedidos para otro cliente");
         }
 
         Usuario cliente = usuarioService.findEntityById(pedidoCreateDTO.getClienteId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+
+        if ( !cliente.getRolUsuario().equals(RolUsuario.CLIENTE) ) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El usuario no es un cliente.");
+        }
 
         Emprendimiento emprendimientoPedido = emprendimientoService.findEntityById(pedidoCreateDTO.getEmprendimientoId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado"));

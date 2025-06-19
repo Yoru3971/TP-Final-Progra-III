@@ -33,7 +33,7 @@ public class Emprendimiento {
     @Column(nullable = false)
     private String direccion;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     @NotBlank
     private String telefono;
 

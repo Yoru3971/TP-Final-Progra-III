@@ -5,6 +5,10 @@ import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
+import com.viandasApp.api.Pedido.dto.PedidoDTO;
+import com.viandasApp.api.Pedido.model.Pedido;
+import com.viandasApp.api.Pedido.repository.PedidoRepository;
+import com.viandasApp.api.Pedido.service.PedidoServiceImpl;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioServiceImpl;
@@ -23,6 +27,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
     private final EmprendimientoRepository emprendimientoRepository;
     private final UsuarioServiceImpl usuarioService;
+    private final PedidoRepository pedidoRepository; //Uso el repository y no el service para evitar dependencias circulares
 
     //--------------------------Create--------------------------//
     @Transactional
@@ -33,6 +38,15 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Usuario no encontrado con ID: " + createEmprendimientoDTO.getIdUsuario()));
 
         Long duenioEmprendimientoId = duenioEmprendimiento.getId();
+
+        if ( createEmprendimientoDTO.getTelefono().replaceFirst("^0+", "").length()< 7 ){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
+        }
+
+        // Verifica si ya existe un usuario con el mismo telefono
+        if (emprendimientoRepository.findByTelefono(createEmprendimientoDTO.getTelefono()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el telefono: " + createEmprendimientoDTO.getTelefono());
+        }
 
         boolean esAdmin = usuario.getRolUsuario() == RolUsuario.ADMIN;
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuario.getId());
@@ -133,6 +147,10 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         Emprendimiento emprendimiento = emprendimientoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado con ID: " + id));
 
+        if ( updateEmprendimientoDTO.getTelefono().replaceFirst("^0+", "").length()< 7 ){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
+        }
+
         Long duenioEmprendimientoId = emprendimiento.getUsuario().getId();
 
         boolean esAdmin = usuarioLogueado.getRolUsuario().equals(RolUsuario.ADMIN);
@@ -154,6 +172,10 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                         emprendimientoExistente.setDireccion(updateEmprendimientoDTO.getDireccion());
                     }
                     if ( updateEmprendimientoDTO.getTelefono() != null ){
+                        // Verifica si ya existe un usuario con el mismo telefono
+                        if (emprendimientoRepository.findByTelefono(updateEmprendimientoDTO.getTelefono()).isPresent()) {
+                            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el telefono: " + updateEmprendimientoDTO.getTelefono());
+                        }
                         emprendimientoExistente.setTelefono(updateEmprendimientoDTO.getTelefono());
                     }
                     if ( updateEmprendimientoDTO.getIdUsuario() != null ){
@@ -180,8 +202,13 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         Emprendimiento emprendimiento = emprendimientoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado con ID: " + id));
 
-        Long duenioEmprendimientoId = emprendimiento.getUsuario().getId();
+        List<Pedido> pedidosConIdEmprendimiento = pedidoRepository.findByEmprendimientoId(id).stream().toList();
 
+        if(pedidosConIdEmprendimiento.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se puede eliminar un emprendimiento que tiene pedidos asociados.");
+        }
+
+        Long duenioEmprendimientoId = emprendimiento.getUsuario().getId();
         boolean esAdmin = usuario.getRolUsuario().equals(RolUsuario.ADMIN);
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuario.getId());
 

@@ -13,6 +13,7 @@ import com.viandasApp.api.Usuario.repository.UsuarioRepository;
 import com.viandasApp.api.Vianda.repository.ViandaRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -39,10 +40,35 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     //--------------------------Create--------------------------//
-    @Transactional
     @Override
+    @Transactional
     public UsuarioDTO createUsuario(UsuarioCreateDTO usuarioCreateDTO) {
         Usuario usuario = DTOToEntity(usuarioCreateDTO);
+
+        Usuario usuarioLogueado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        // Verifica si ya existe un usuario con el mismo email
+        if (usuarioRepository.findByEmail(usuario.getEmail()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el email: " + usuario.getEmail());
+        }
+
+        String telefonoSinCeros = usuarioCreateDTO.getTelefono().replaceFirst("^0+", "");
+        if (telefonoSinCeros.length() < 7) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
+        }
+        usuario.setTelefono(telefonoSinCeros);
+
+        // Verifica si ya existe un usuario con el mismo telefono
+        if (usuarioRepository.findByTelefono(usuario.getTelefono()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el telefono: " + usuario.getTelefono());
+        }
+
+        // Verifica que el rol del usuario logueado sea ADMIN si el nuevo usuario es ADMIN, de esta manera se evita que un usuario
+        // normal pueda registrarse como ADMIN, pero permite que el ADMIN registre nuevos usuarios como ADMIN.
+        if (usuarioCreateDTO.getRolUsuario().equals(RolUsuario.ADMIN) && !usuarioLogueado.getRolUsuario().equals(RolUsuario.ADMIN)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No podes registrarte como ADMIN. Este rol es exclusivo del administrador del sistema.");
+        }
+
         Usuario savedUsuario = usuarioRepository.save(usuario);
         return new UsuarioDTO(savedUsuario);
     }
@@ -124,11 +150,26 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         if (usuarioUpdateDTO.getEmail() != null) {
+
+            if ( usuarioRepository.findByEmail(usuarioUpdateDTO.getEmail()).isPresent() ){
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el email: " + usuarioUpdateDTO.getEmail());
+            }
             usuarioExistente.setEmail(usuarioUpdateDTO.getEmail());
         }
 
         if (usuarioUpdateDTO.getTelefono() != null) {
-            usuarioExistente.setTelefono(usuarioUpdateDTO.getTelefono());
+
+            String telefonoSinCeros = usuarioUpdateDTO.getTelefono().replaceFirst("^0+", "");
+
+            if ( telefonoSinCeros.length()< 7 ){
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
+            }
+
+            // Verifica si el nuevo telefono ya está en uso por otro usuario
+            if ( usuarioRepository.findByTelefono(telefonoSinCeros).isPresent() ) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el telefono: " + usuarioUpdateDTO.getTelefono());
+            }
+            usuarioExistente.setTelefono(telefonoSinCeros);
         }
 
         Usuario actualizado = usuarioRepository.save(usuarioExistente);
@@ -146,11 +187,25 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         if (usuarioUpdateRolDTO.getEmail() != null) {
+            if ( usuarioRepository.findByEmail(usuarioUpdateRolDTO.getEmail()).isPresent() ){
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el email: " + usuarioUpdateRolDTO.getEmail());
+            }
+
             usuarioExistente.setEmail(usuarioUpdateRolDTO.getEmail());
         }
 
         if (usuarioUpdateRolDTO.getTelefono() != null) {
-            usuarioExistente.setTelefono(usuarioUpdateRolDTO.getTelefono());
+
+            String telefonoSinCeros = usuarioUpdateRolDTO.getTelefono().replaceFirst("^0+", "");
+
+            if ( telefonoSinCeros.length()< 7 ){
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
+            }
+            if ( usuarioRepository.findByTelefono(telefonoSinCeros).isPresent() ) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el telefono: " + telefonoSinCeros);
+            }
+
+            usuarioExistente.setTelefono(telefonoSinCeros);
         }
 
         if (usuarioUpdateRolDTO.getRolUsuario() != null) {
