@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
@@ -49,7 +50,7 @@ public class UsuarioAdminController {
         Map<String, Object> response = new HashMap<>();
         UsuarioDTO nuevoUsuario = usuarioService.createUsuario(usuarioCreateDTO);
         response.put("message", "Usuario registrado correctamente");
-        return ResponseEntity.ok(nuevoUsuario);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     //--------------------------Read--------------------------//

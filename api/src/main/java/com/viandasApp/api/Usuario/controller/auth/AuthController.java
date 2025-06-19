@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -39,7 +40,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registrar(@Valid @RequestBody UsuarioCreateDTO usuarioCreateDTO) {
         UsuarioDTO nuevoUsuario = usuarioService.createUsuario(usuarioCreateDTO);
-        return ResponseEntity.ok(nuevoUsuario);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuario);
     }
 
     @Operation(summary = "Iniciar sesión", description = "Autenticación con email y contraseña")
