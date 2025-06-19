@@ -208,19 +208,23 @@ public class ViandaServiceImpl implements ViandaService {
     @Transactional
     @Override
     public boolean deleteVianda(Long id, Usuario usuarioLogueado) {
-
         Vianda vianda = viandaRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada para el Id: " + id));
 
         Long duenioEmprendimientoId = vianda.getEmprendimiento().getUsuario().getId();
 
-        boolean esAdmin = usuarioLogueado.getRolUsuario().equals(RolUsuario.ADMIN);
         boolean esDuenio = usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO);
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
 
-        if ( esDuenio && !esDuenioDelEmprendimiento ) {
+        if (esDuenio && !esDuenioDelEmprendimiento) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para eliminar esta vianda.");
         }
+
+        // Validación para evitar borrar viandas en pedidos
+        if (vianda.getDetalles() != null && !vianda.getDetalles().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se puede eliminar la vianda porque está asociada a uno o más pedidos.");
+        }
+
         viandaRepository.delete(vianda);
         return true;
     }
