@@ -9,5 +9,4 @@ public class ViandasApiApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(ViandasApiApplication.class, args);
 	}
-
 }

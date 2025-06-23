@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@Tag(name = "Emprendimientos - Cliente", description = "Controlador para gestionar emprendimientos desde el rol de cliente")
+@Tag(name = "Emprendimientos - Cliente")
 @RequestMapping("/api/cliente/emprendimientos")
 @RequiredArgsConstructor
 public class EmprendimientoClienteController {

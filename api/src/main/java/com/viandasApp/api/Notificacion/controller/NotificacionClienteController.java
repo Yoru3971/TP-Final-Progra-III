@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@Tag(name = "Notificaciones - Cliente", description = "Controlador para gestionar notificaciones del cliente")
+@Tag(name = "Notificaciones - Cliente")
 @RequestMapping("/api/cliente/notificaciones")
 @RequiredArgsConstructor
 public class NotificacionClienteController {

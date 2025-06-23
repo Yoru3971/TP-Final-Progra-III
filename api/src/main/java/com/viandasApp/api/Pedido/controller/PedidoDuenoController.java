@@ -24,7 +24,7 @@ import java.util.Optional;
 
 
 @RestController
-@Tag(name = "Pedidos - Dueño", description = "Controlador para gestionar pedidos desde el rol de dueño")
+@Tag(name = "Pedidos - Dueño")
 @RequestMapping("/api/dueno/pedidos")
 @RequiredArgsConstructor
 public class PedidoDuenoController {

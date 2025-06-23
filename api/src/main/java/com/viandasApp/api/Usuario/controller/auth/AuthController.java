@@ -25,7 +25,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/public")
-@Tag(name = "Autenticación")
+@Tag(name = "Autenticación - Público")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -39,7 +39,7 @@ public class AuthController {
     })
     @PostMapping("/register")
     public ResponseEntity<?> registrar(@Valid @RequestBody UsuarioCreateDTO usuarioCreateDTO) {
-        UsuarioDTO nuevoUsuario = usuarioService.createUsuario(usuarioCreateDTO);
+        UsuarioDTO nuevoUsuario = usuarioService.registerUsuario(usuarioCreateDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuario);
     }
 

@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@Tag(name = "Emprendimientos - Dueño", description = "Controlador para gestionar emprendimientos desde el rol de dueño")
+@Tag(name = "Emprendimientos - Dueño")
 @RequestMapping("/api/dueno/emprendimientos")
 @RequiredArgsConstructor
 public class EmprendimientoDuenoController {

@@ -23,7 +23,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 
-@Tag(name = "Notificaciones - Dueño", description = "Controlador para gestionar notificaciones del dueño")
+@Tag(name = "Notificaciones - Dueño")
 @RequestMapping("/api/dueno/notificaciones")
 public class NotificacionDuenoController {
     private final NotificacionService notificacionService;

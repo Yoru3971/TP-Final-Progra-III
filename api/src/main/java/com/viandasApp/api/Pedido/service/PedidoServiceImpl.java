@@ -64,9 +64,9 @@ public class PedidoServiceImpl implements PedidoService {
 
         notificarCambio(
                 guardado,
-                "Te hicieron un nuevo pedido para tu emprendimiento \"" + guardado.getEmprendimiento().getNombreEmprendimiento() +
-                        "\" para la fecha \"" + guardado.getFechaEntrega() +
-                        "\", se registró con el ID \"" + guardado.getId() + "\"",
+                "Te hicieron un nuevo pedido para tu emprendimiento '" + guardado.getEmprendimiento().getNombreEmprendimiento() +
+                        "' para la fecha '" + guardado.getFechaEntrega() +
+                        "', se registró con el ID #" + guardado.getId(),
                 idDuenoEmprendimiento
         );
         return new PedidoDTO(guardado);
@@ -251,11 +251,11 @@ public class PedidoServiceImpl implements PedidoService {
 
         String mensaje = "Tu pedido #" + actualizado.getId();
         if (cambioEstado && cambioFecha) {
-            mensaje += " cambió de estado a " + actualizado.getEstado() + " y la fecha de entrega a " + actualizado.getFechaEntrega();
+            mensaje += " cambió de estado a '" + actualizado.getEstado() + "' y la fecha de entrega a '" + actualizado.getFechaEntrega()+"'";
         } else if (cambioEstado) {
-            mensaje += " cambió de estado a " + actualizado.getEstado();
+            mensaje += " cambió de estado a '" + actualizado.getEstado()+"'";
         } else if (cambioFecha) {
-            mensaje += " cambió la fecha de entrega a " + actualizado.getFechaEntrega();
+            mensaje += " cambió la fecha de entrega a '" + actualizado.getFechaEntrega()+"'";
         } else {
             mensaje += " fue actualizado";
         }
@@ -290,7 +290,7 @@ public class PedidoServiceImpl implements PedidoService {
 
         String mensaje = "Tu pedido #" + actualizado.getId();
         if (cambioEstado) {
-            mensaje += " cambió de estado a " + actualizado.getEstado();
+            mensaje += " cambió de estado a '" + actualizado.getEstado()+"'";
         } else{
             mensaje += " fue actualizado";
         }
@@ -324,15 +324,15 @@ public class PedidoServiceImpl implements PedidoService {
         Pedido actualizado = pedidoRepository.save(pedido);
 
 
-        String mensaje = "Te hicieron un nuevo pedido para tu emprendimiento \"" + actualizado.getEmprendimiento().getNombreEmprendimiento() +
-                "\" (ID: " + actualizado.getEmprendimiento().getId() + "), el pedido #" + actualizado.getId();
+        String mensaje = "Te hicieron un nuevo pedido para tu emprendimiento '" + actualizado.getEmprendimiento().getNombreEmprendimiento() +
+                "' (ID: " + actualizado.getEmprendimiento().getId() + "), el pedido #" + actualizado.getId();
 
         if (cambioEstado && cambioFecha) {
-            mensaje += " cambió de estado a " + actualizado.getEstado() + " y la fecha de entrega a " + actualizado.getFechaEntrega();
+            mensaje += " cambió de estado a '" + actualizado.getEstado() + "' y la fecha de entrega a '" + actualizado.getFechaEntrega()+"'";
         } else if (cambioEstado) {
-            mensaje += " cambió de estado a " + actualizado.getEstado();
+            mensaje += " cambió de estado a '" + actualizado.getEstado()+"'";
         } else if (cambioFecha) {
-            mensaje += " cambió la fecha de entrega a " + actualizado.getFechaEntrega();
+            mensaje += " cambió la fecha de entrega a '" + actualizado.getFechaEntrega()+"'";
         } else {
             mensaje += " fue actualizado";
         }

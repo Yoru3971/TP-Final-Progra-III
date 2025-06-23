@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@Tag(name = "Viandas - Dueño", description = "Controlador para gestionar viandas desde el rol de dueño")
+@Tag(name = "Viandas - Dueño")
 @RequestMapping("/api/dueno/viandas")
 @RequiredArgsConstructor
 public class ViandaDuenoController {

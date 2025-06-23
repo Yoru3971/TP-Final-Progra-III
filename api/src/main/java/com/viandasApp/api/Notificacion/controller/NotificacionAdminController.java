@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@Tag(name = "Notificaciones - Admin", description = "Controlador para gestionar notificaciones del administrador")
+@Tag(name = "Notificaciones - Admin")
 @RequestMapping("/api/admin/notificaciones")
 @RequiredArgsConstructor
 public class NotificacionAdminController {

@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@Tag(name = "Usuarios - Cliente/Dueño", description = "Controlador para gestionar usuarios del cliente y dueño")
+@Tag(name = "Usuarios - Cliente/Dueño")
 @RequestMapping("/api/usuarios")
 @RequiredArgsConstructor
 public class UsuarioClienteDuenoController {

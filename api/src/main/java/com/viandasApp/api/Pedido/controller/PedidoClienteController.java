@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@Tag(name = "Pedidos - Cliente", description = "Controlador para gestionar pedidos de clientes")
+@Tag(name = "Pedidos - Cliente")
 @RequestMapping("/api/cliente/pedidos")
 @RequiredArgsConstructor
 public class PedidoClienteController {

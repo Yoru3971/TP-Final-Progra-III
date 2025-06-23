@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@Tag(name = "Emprendimientos - Público", description = "Controlador para gestionar emprendimientos accesibles al público")
+@Tag(name = "Emprendimientos - Público")
 @RequestMapping("/api/public/emprendimientos")
 @RequiredArgsConstructor
 public class EmprendimientoPublicController {

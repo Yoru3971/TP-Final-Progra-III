@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface UsuarioService {
     //--------------------------Create--------------------------//
     UsuarioDTO createUsuario(UsuarioCreateDTO userDto);
+    UsuarioDTO registerUsuario(UsuarioCreateDTO usuarioCreateDTO);
 
     //--------------------------Read--------------------------//
     List<UsuarioDTO> readUsuarios();

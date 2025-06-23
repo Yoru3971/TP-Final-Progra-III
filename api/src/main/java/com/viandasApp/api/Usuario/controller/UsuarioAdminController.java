@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@Tag(name = "Usuarios - Admin", description = "Controlador para gestionar usuarios con rol de administrador")
+@Tag(name = "Usuarios - Admin")
 @RequestMapping("/api/admin/usuarios")
 @RequiredArgsConstructor
 public class UsuarioAdminController {
