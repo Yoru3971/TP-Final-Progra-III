@@ -16,7 +16,7 @@ public class DotenvInitializer implements ApplicationContextInitializer<Configur
     @Override
     public void initialize(ConfigurableApplicationContext applicationContext) {
         Dotenv dotenv = Dotenv.configure()
-                .directory("D:/Kevin/Universidad/Programacion/4to cuatrimestre/Programacion 4/API Mi Viandita/api/") // <-- CAmbiar
+                .directory("D:/Kevin/Universidad/Programacion/4to cuatrimestre/Programacion 4/Mi Viandita/TP-Final-Progra-III/api/.env") // <-- CAmbiar
                 .ignoreIfMalformed()
                 .ignoreIfMissing()
                 .load();
@@ -33,12 +33,12 @@ public class DotenvInitializer implements ApplicationContextInitializer<Configur
             envMap.put("spring.datasource.password", dotenv.get("spring_datasource_password"));
 
         // Cloudinary
-        if (dotenv.get("CLOUDINARY_CLOUD_NAME") != null)   // en .env usás cloudinary.cloud_name
-            envMap.put("cloudinary.cloud_name", dotenv.get("CLOUDINARY_CLOUD_NAME"));
-        if (dotenv.get("CLOUDINARY_API_KEY") != null)
-            envMap.put("cloudinary.api_key", dotenv.get("CLOUDINARY_API_KEY"));
-        if (dotenv.get("CLOUDINARY_API_SECRET") != null)
-            envMap.put("cloudinary.api_secret", dotenv.get("CLOUDINARY_API_SECRET"));
+        if (dotenv.get("cloudinary_cloud_name") != null)   // en .env usás cloudinary.cloud_name
+            envMap.put("cloudinary.cloud_name", dotenv.get("cloudinary_cloud_name"));
+        if (dotenv.get("cloudinary_api_key") != null)
+            envMap.put("cloudinary.api_key", dotenv.get("cloudinary_api_key"));
+        if (dotenv.get("cloudinary_api_secret") != null)
+            envMap.put("cloudinary.api_secret", dotenv.get("cloudinary_api_secret"));
 
         // JWT
         if (dotenv.get("jwt_secret") != null)
@@ -47,7 +47,7 @@ public class DotenvInitializer implements ApplicationContextInitializer<Configur
             envMap.put("jwt.expiration_ms", dotenv.get("jwt_expiration_ms"));
 
         propertySources.addFirst(new MapPropertySource("dotenvProperties", envMap));
-        //System.out.println("Loaded .env variables: " + envMap); // Para debug
+        System.out.println("Loaded .env variables: " + envMap); // Para debug
     }
 }
 
