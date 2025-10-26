@@ -32,6 +32,8 @@ public class ViandaDTO {
 
     private Boolean estaDisponible;
 
+    private String imagenUrl;
+
     public ViandaDTO(Vianda vianda) {
         this.id = vianda.getId();
         this.nombreVianda = vianda.getNombreVianda();
@@ -43,5 +45,6 @@ public class ViandaDTO {
         this.esSinTacc = vianda.getEsSinTacc();
         this.emprendimiento = new EmprendimientoDTO(vianda.getEmprendimiento());
         this.estaDisponible = vianda.getEstaDisponible();
+        this.imagenUrl = vianda.getImagenUrl();
     }
 }

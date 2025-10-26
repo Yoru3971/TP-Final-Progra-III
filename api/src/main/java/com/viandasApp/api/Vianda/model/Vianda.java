@@ -34,6 +34,9 @@ public class Vianda {
     @NotBlank
     private String descripcion;
 
+    @Column(name = "imagen_url", nullable = false)
+    private String imagenUrl;
+
     @Column(nullable = false)
     @NotNull
     private Double precio;
@@ -57,7 +60,8 @@ public class Vianda {
     @OneToMany(mappedBy = "vianda", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetallePedido> detalles = new ArrayList<>();
 
-    public Vianda(String nombreVianda, CategoriaVianda categoria, String descripcion, Double precio, Boolean esVegano, Boolean esVegetariano, Boolean esSinTacc, Emprendimiento emprendimiento) {
+    public Vianda(String nombreVianda, CategoriaVianda categoria, String descripcion, Double precio, Boolean esVegano
+            , Boolean esVegetariano, Boolean esSinTacc, Emprendimiento emprendimiento, String imagenUrl) {
         this.nombreVianda = nombreVianda;
         this.categoria = categoria;
         this.descripcion = descripcion;
@@ -67,5 +71,6 @@ public class Vianda {
         this.esSinTacc = esSinTacc;
         this.emprendimiento = emprendimiento;
         this.estaDisponible = true;
+        this.imagenUrl = imagenUrl;
     }
 }

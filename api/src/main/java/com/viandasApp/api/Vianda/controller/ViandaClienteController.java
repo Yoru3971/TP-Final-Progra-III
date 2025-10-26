@@ -29,7 +29,7 @@ public class ViandaClienteController {
     @Operation(
             summary = "Obtener viandas disponibles por emprendimiento",
             description = "Obtiene la lista de viandas disponibles por emprendimiento para el cliente autenticado",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Respuesta exitosa"),
@@ -46,7 +46,7 @@ public class ViandaClienteController {
     @Operation(
             summary = "Obtener vianda por ID",
             description = "Obtiene la vianda correspondiente al ID proporcionado para el cliente autenticado",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Vianda encontrada"),

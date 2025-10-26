@@ -6,6 +6,7 @@ import com.viandasApp.api.Vianda.dto.ViandaCreateDTO;
 import com.viandasApp.api.Vianda.dto.ViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaUpdateDTO;
 import com.viandasApp.api.Vianda.model.Vianda;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +22,7 @@ public interface ViandaService {
 
     //--------------------------Update--------------------------//
     Optional<ViandaDTO> updateVianda(Long id, ViandaUpdateDTO viandaDto, Usuario usuario);
+    ViandaDTO updateImagenVianda(Long id, MultipartFile image, Usuario usuarioLogueado);
 
     //--------------------------Delete--------------------------//
     boolean deleteVianda(Long id, Usuario usuario);

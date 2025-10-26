@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -35,7 +36,7 @@ public class ViandaDuenoController {
      @Operation(
             summary = "Crear una nueva vianda",
             description = "Crea una nueva vianda asociada al emprendimiento del dueño autenticado",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Vianda creada correctamente"),
@@ -44,8 +45,8 @@ public class ViandaDuenoController {
             @ApiResponse(responseCode = "403", description = "Acceso denegado, no tenés el rol necesario"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PostMapping
-    public ResponseEntity<?> createVianda(@Valid @RequestBody ViandaCreateDTO dto) {
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<?> createVianda(@Valid @ModelAttribute ViandaCreateDTO dto) {
 
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
@@ -56,12 +57,13 @@ public class ViandaDuenoController {
         response.put("Vianda creada correctamente:", viandaCreada);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+    /// Usamos @ModelAttribute en lugar de @RequestBody porque ahora tenemos un archivo junto con datos.
 
     //--------------------------Read--------------------------//
      @Operation(
             summary = "Obtener viandas por emprendimiento",
             description = "Obtiene una lista de viandas filtradas por emprendimiento y otros criterios",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
                     @ApiResponse(responseCode = "200", description = "Viandas obtenidas correctamente"),
@@ -80,7 +82,7 @@ public class ViandaDuenoController {
     @Operation(
             summary = "Obtener vianda por ID",
             description = "Obtiene una vianda específica por su ID",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Vianda encontrada"),
@@ -101,7 +103,7 @@ public class ViandaDuenoController {
    @Operation(
             summary = "Actualizar una vianda",
             description = "Actualiza los detalles de una vianda existente",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Vianda actualizada correctamente"),
@@ -123,11 +125,23 @@ public class ViandaDuenoController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping("/id/{id}/imagen")
+    public ResponseEntity<ViandaDTO> updateImageVianda(
+            @PathVariable Long id,
+            @RequestParam("image") MultipartFile image
+    ) {
+         Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                 .getAuthentication().getPrincipal();
+
+         ViandaDTO viandaActualizada =viandasService.updateImagenVianda(id, image, usuario);
+         return ResponseEntity.ok(viandaActualizada);
+    }
+
     //--------------------------Delete--------------------------//
     @Operation(
             summary = "Eliminar una vianda",
             description = "Elimina una vianda existente por su ID",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Vianda eliminada correctamente"),

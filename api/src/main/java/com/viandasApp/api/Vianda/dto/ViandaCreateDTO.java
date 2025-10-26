@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,6 +24,9 @@ public class ViandaCreateDTO {
     @NotBlank(message = "La descripción es obligatoria.")
     @Size(max = 400, message = "La descripcion debe tener como máximo {max} caracteres.")
     private String descripcion;
+
+    @NotNull(message = "La imagen de la vianda es obligatoria.")
+    private MultipartFile image;
 
     @NotNull(message = "El precio es obligatorio.")
     @DecimalMin(value = "0.0", message = "El precio no puede ser negativo.")

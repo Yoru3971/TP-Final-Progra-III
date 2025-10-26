@@ -1,5 +1,7 @@
 package com.viandasApp.api.Vianda.service;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoServiceImpl;
 import com.viandasApp.api.Usuario.model.RolUsuario;
@@ -14,9 +16,11 @@ import com.viandasApp.api.Vianda.repository.ViandaRepository;
 import com.viandasApp.api.Vianda.specification.ViandaSpecifications;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -28,6 +32,9 @@ public class ViandaServiceImpl implements ViandaService {
 
     private final ViandaRepository viandaRepository;
     private final EmprendimientoServiceImpl emprendimientoService;
+
+    @Autowired
+    private Cloudinary cloudinary; //Inyeccion de Cloudinary
 
     //--------------------------Create--------------------------//
     @Transactional
@@ -46,7 +53,20 @@ public class ViandaServiceImpl implements ViandaService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para crear esta vianda.");
         }
 
-        Vianda vianda = DTOtoEntity(dto);
+        //Subir imagen a Cloudinary
+        String fotoUrl = null;
+        try {
+            var uploadResult = cloudinary.uploader().upload(
+                    dto.getImage().getBytes(),
+                    ObjectUtils.asMap("folder", "viandas")
+            );
+            fotoUrl = (String) uploadResult.get("secure_url");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al subir la imagen: " + e.getMessage());
+        }
+
+        Vianda vianda = DTOtoEntity(dto, fotoUrl);
         vianda.setEmprendimiento(emprendimiento);
         Vianda nuevaVianda = viandaRepository.save(vianda);
         return new ViandaDTO(nuevaVianda);
@@ -203,6 +223,34 @@ public class ViandaServiceImpl implements ViandaService {
         Vianda nuevaVianda = viandaRepository.save(vianda);
         return Optional.of(new ViandaDTO(nuevaVianda));
     }
+    /// La actualizacion de la imagen debemos hacer desde otro end-point pq se comunica directamente con cloudinary
+
+    @Transactional
+    @Override
+    public ViandaDTO updateImagenVianda(Long id, MultipartFile image, Usuario usuarioLogueado) {
+        Vianda vianda = viandaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada."));
+
+        if (usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO) &&
+            !vianda.getEmprendimiento().getUsuario().getId().equals(usuarioLogueado.getId())){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenes permiso para editar esta vianda.");
+        }
+
+        String fotoUrl;
+        try {
+            var uploadResult = cloudinary.uploader().upload(
+                    image.getBytes(),
+                    ObjectUtils.asMap("folder", "viandas")
+            );
+            fotoUrl = (String) uploadResult.get("secure_url");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al subir la imagen: " + e.getMessage());
+        }
+
+        vianda.setImagenUrl(fotoUrl);
+        viandaRepository.save(vianda);
+        return new ViandaDTO(vianda);
+    }
 
     //--------------------------Delete--------------------------//
     @Transactional
@@ -236,7 +284,7 @@ public class ViandaServiceImpl implements ViandaService {
         return viandaRepository.findById(id);
     }
 
-    private Vianda DTOtoEntity(ViandaCreateDTO viandaDTO) {
+    private Vianda DTOtoEntity(ViandaCreateDTO viandaDTO, String fotoUrl) {
 
         Long id = viandaDTO.getEmprendimientoId();
         Emprendimiento emprendimiento = emprendimientoService.findEntityById(id)
@@ -250,7 +298,8 @@ public class ViandaServiceImpl implements ViandaService {
                 viandaDTO.getEsVegano(),
                 viandaDTO.getEsVegetariano(),
                 viandaDTO.getEsSinTacc(),
-                emprendimiento
+                emprendimiento,
+                fotoUrl
         );
     }
 }
