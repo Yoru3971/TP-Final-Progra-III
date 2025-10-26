@@ -37,7 +37,7 @@ public class PedidoAdminController {
     @Operation(
             summary = "Crear un nuevo pedido",
             description = "Permite a un administrador crear un nuevo pedido para cualquier usuario",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Pedido creado correctamente"),
@@ -62,7 +62,7 @@ public class PedidoAdminController {
     @Operation(
             summary = "Obtener todos los pedidos",
             description = "Obtiene una lista de todos los pedidos realizados por los usuarios",
-            security = @SecurityRequirement(name = "basicAuth"))
+            security = @SecurityRequirement(name = "bearer-jwt"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedidos encontrados"),
             @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
@@ -79,7 +79,7 @@ public class PedidoAdminController {
     @Operation(
             summary = "Obtener un pedido por ID",
             description = "Obtiene un pedido específico por su ID",
-            security = @SecurityRequirement(name = "basicAuth"))
+            security = @SecurityRequirement(name = "bearer-jwt"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedido encontrado"),
             @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
@@ -96,7 +96,7 @@ public class PedidoAdminController {
     @Operation(
             summary = "Obtener pedidos por ID de usuario",
             description = "Obtiene todos los pedidos realizados por un usuario específico",
-            security = @SecurityRequirement(name = "basicAuth"))
+            security = @SecurityRequirement(name = "bearer-jwt"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedidos encontrados"),
             @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
@@ -113,7 +113,7 @@ public class PedidoAdminController {
     @Operation(
             summary = "Obtener pedidos por ID de emprendimiento",
             description = "Obtiene todos los pedidos asociados a un emprendimiento específico",
-            security = @SecurityRequirement(name = "basicAuth"))
+            security = @SecurityRequirement(name = "bearer-jwt"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedidos encontrados"),
             @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
@@ -133,7 +133,7 @@ public class PedidoAdminController {
     @Operation(
             summary = "Obtener pedidos por ID de emprendimiento y usuario",
             description = "Obtiene todos los pedidos asociados a un emprendimiento específico y un usuario",
-            security = @SecurityRequirement(name = "basicAuth"))
+            security = @SecurityRequirement(name = "bearer-jwt"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedidos encontrados"),
             @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
@@ -154,7 +154,7 @@ public class PedidoAdminController {
     @Operation(
             summary = "Obtener pedidos por estado",
             description = "Obtiene todos los pedidos con un estado específico",
-            security = @SecurityRequirement(name = "basicAuth"))
+            security = @SecurityRequirement(name = "bearer-jwt"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedidos encontrados"),
             @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
@@ -171,7 +171,7 @@ public class PedidoAdminController {
     @Operation(
             summary = "Obtener pedidos por fecha",
             description = "Obtiene todos los pedidos realizados en una fecha específica",
-            security = @SecurityRequirement(name = "basicAuth"))
+            security = @SecurityRequirement(name = "bearer-jwt"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedidos encontrados"),
             @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
@@ -189,7 +189,7 @@ public class PedidoAdminController {
     @Operation(
             summary = "Obtener pedidos por fecha y usuario",
             description = "Obtiene todos los pedidos realizados en una fecha específica por un usuario",
-            security = @SecurityRequirement(name = "basicAuth"))
+            security = @SecurityRequirement(name = "bearer-jwt"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedidos encontrados"),
             @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
@@ -207,7 +207,7 @@ public class PedidoAdminController {
     @Operation(
             summary = "Obtener pedidos por fecha y emprendimiento",
             description = "Obtiene todos los pedidos realizados en una fecha y emprendimiento específicos",
-            security = @SecurityRequirement(name = "basicAuth"))
+            security = @SecurityRequirement(name = "bearer-jwt"))
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedidos encontrados"),
             @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
@@ -229,7 +229,7 @@ public class PedidoAdminController {
     @Operation(
             summary = "Actualizar un pedido por ID",
             description = "Permite a un administrador actualizar un pedido específico por su ID",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedido actualizado correctamente"),
@@ -253,7 +253,7 @@ public class PedidoAdminController {
     @Operation(
             summary = "Actualizar viandas de un pedido por ID",
             description = "Permite a un administrador actualizar las viandas de un pedido específico por su ID",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Viandas del pedido actualizadas correctamente"),
@@ -276,7 +276,7 @@ public class PedidoAdminController {
     @Operation(
             summary = "Eliminar un pedido por ID",
             description = "Permite a un administrador eliminar un pedido específico por su ID",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedido eliminado correctamente"),

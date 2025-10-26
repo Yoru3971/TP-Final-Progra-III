@@ -36,7 +36,7 @@ public class UsuarioAdminController {
     @Operation(
             summary = "Registrar un nuevo usuario",
             description = "Permite al administrador registrar un nuevo usuario en el sistema",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuario registrado correctamente"),
@@ -57,7 +57,7 @@ public class UsuarioAdminController {
     @Operation(
             summary = "Obtener todos los usuarios",
             description = "Devuelve una lista de todos los usuarios registrados en el sistema",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de usuarios obtenida correctamente"),
@@ -75,7 +75,7 @@ public class UsuarioAdminController {
     @Operation(
             summary = "Obtener usuario por ID",
             description = "Devuelve un usuario específico por su ID",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
@@ -91,7 +91,7 @@ public class UsuarioAdminController {
     @Operation(
             summary = "Obtener usuario por nombre completo",
             description = "Devuelve un usuario específico por su nombre completo",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
@@ -109,7 +109,7 @@ public class UsuarioAdminController {
     @Operation(
             summary = "Obtener usuario por email",
             description = "Devuelve un usuario específico por su email",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
@@ -127,7 +127,7 @@ public class UsuarioAdminController {
     @Operation(
             summary = "Obtener usuarios por rol",
             description = "Devuelve una lista de usuarios que tienen un rol específico",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de usuarios obtenida correctamente"),
@@ -147,7 +147,7 @@ public class UsuarioAdminController {
     @Operation(
             summary = "Actualizar usuario",
             description = "Permite al administrador actualizar los datos de un usuario existente",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuario actualizado correctamente"),
@@ -171,7 +171,7 @@ public class UsuarioAdminController {
     @Operation(
             summary = "Cambiar contraseña de un usuario",
             description = "Permite al administrador cambiar la contraseña de un usuario",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Contraseña actualizada correctamente"),
@@ -195,7 +195,7 @@ public class UsuarioAdminController {
      @Operation(
             summary = "Eliminar usuario",
             description = "Permite al administrador eliminar un usuario del sistema",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuario eliminado correctamente"),
@@ -215,7 +215,7 @@ public class UsuarioAdminController {
     @Operation(
             summary = "Obtener perfil del usuario autenticado",
             description = "Devuelve el perfil del usuario actualmente autenticado",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Perfil del usuario obtenido correctamente"),

@@ -32,7 +32,7 @@ public class NotificacionDuenoController {
     @Operation(
               summary = "Obtener todas las notificaciones propias",
               description = "Devuelve una lista de todas las notificaciones del usuario autenticado",
-              security = @SecurityRequirement(name = "basicAuth")
+              security = @SecurityRequirement(name = "bearer-jwt")
       )
       @ApiResponses(value = {
               @ApiResponse(responseCode = "200", description = "Lista de notificaciones obtenida correctamente"),
@@ -51,7 +51,7 @@ public class NotificacionDuenoController {
     @Operation(
             summary = "Obtener notificaciones propias entre fechas",
             description = "Devuelve una lista de notificaciones del usuario autenticado entre dos fechas",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de notificaciones obtenida correctamente"),

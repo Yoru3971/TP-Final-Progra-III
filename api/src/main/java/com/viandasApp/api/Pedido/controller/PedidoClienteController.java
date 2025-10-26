@@ -36,7 +36,7 @@ public class PedidoClienteController {
     @Operation(
             summary = "Crear un nuevo pedido",
             description = "Permite a un cliente crear un nuevo pedido",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Pedido creado correctamente"),
@@ -62,7 +62,7 @@ public class PedidoClienteController {
     @Operation(
             summary = "Obtener todos los pedidos del cliente autenticado",
             description = "Permite a un cliente obtener todos sus pedidos",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedidos obtenidos correctamente"),
@@ -84,7 +84,7 @@ public class PedidoClienteController {
    @Operation(
             summary = "Obtener pedidos por emprendimiento",
             description = "Permite a un cliente obtener los pedidos de un emprendimiento específico",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedidos obtenidos correctamente"),
@@ -107,7 +107,7 @@ public class PedidoClienteController {
     @Operation(
             summary = "Obtener pedidos por fecha",
             description = "Permite a un cliente obtener sus pedidos de una fecha específica",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedidos obtenidos correctamente"),
@@ -130,7 +130,7 @@ public class PedidoClienteController {
     @Operation(
             summary = "Actualizar un pedido existente",
             description = "Permite a un cliente actualizar un pedido existente",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedido actualizado correctamente"),
@@ -157,7 +157,7 @@ public class PedidoClienteController {
     @Operation(
             summary = "Actualizar viandas de un pedido existente",
             description = "Permite a un cliente actualizar las viandas de un pedido existente",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Viandas del pedido actualizadas correctamente"),
@@ -184,7 +184,7 @@ public class PedidoClienteController {
     @Operation(
             summary = "Eliminar un pedido existente",
             description = "Permite a un cliente eliminar un pedido existente",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedido eliminado correctamente"),

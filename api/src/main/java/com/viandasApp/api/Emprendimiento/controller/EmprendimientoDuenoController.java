@@ -35,7 +35,7 @@ public class EmprendimientoDuenoController {
    @Operation(
             summary = "Crear un nuevo emprendimiento",
             description = "Permite a un dueño crear un nuevo emprendimiento asociado a su usuario.",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Emprendimiento creado correctamente"),
@@ -61,7 +61,7 @@ public class EmprendimientoDuenoController {
     @Operation(
             summary = "Obtener emprendimiento por ID",
             description = "Permite a un dueño obtener un emprendimiento específico por su ID.",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Emprendimiento encontrado"),
@@ -79,7 +79,7 @@ public class EmprendimientoDuenoController {
     @Operation(
             summary = "Obtener emprendimientos propios",
             description = "Permite a un dueño obtener una lista de sus propios emprendimientos.",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Emprendimientos encontrados"),
@@ -98,7 +98,7 @@ public class EmprendimientoDuenoController {
     @Operation(
             summary = "Actualizar un emprendimiento por ID",
             description = "Permite a un dueño actualizar la información de un emprendimiento específico por su ID.",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Emprendimiento actualizado correctamente"),
@@ -124,7 +124,7 @@ public class EmprendimientoDuenoController {
      @Operation(
             summary = "Eliminar un emprendimiento por ID",
             description = "Permite a un dueño eliminar un emprendimiento específico por su ID.",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Emprendimiento eliminado correctamente"),

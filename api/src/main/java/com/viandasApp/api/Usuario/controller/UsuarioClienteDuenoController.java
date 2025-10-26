@@ -31,7 +31,7 @@ public class UsuarioClienteDuenoController {
      @Operation(
             summary = "Actualizar perfil del usuario autenticado",
             description = "Permite al usuario autenticado actualizar sus datos",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Perfil del usuario actualizado correctamente"),
@@ -56,7 +56,7 @@ public class UsuarioClienteDuenoController {
     @Operation(
             summary = "Cambiar contraseña del usuario autenticado",
             description = "Permite al usuario autenticado cambiar su contraseña",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Contraseña actualizada correctamente"),
@@ -82,7 +82,7 @@ public class UsuarioClienteDuenoController {
     @Operation(
             summary = "Eliminar usuario",
             description = "Permite al usuario autenticado eliminar su cuenta",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuario eliminado correctamente"),
@@ -108,7 +108,7 @@ public class UsuarioClienteDuenoController {
     @Operation(
             summary = "Obtener perfil del usuario autenticado",
             description = "Devuelve los datos del usuario autenticado",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Perfil del usuario obtenido correctamente"),

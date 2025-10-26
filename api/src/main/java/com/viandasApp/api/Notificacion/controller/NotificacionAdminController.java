@@ -28,7 +28,7 @@ public class NotificacionAdminController {
    @Operation(
             summary = "Crear una nueva notificación",
             description = "Permite al administrador crear una nueva notificación",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Notificación creada exitosamente"),
@@ -47,7 +47,7 @@ public class NotificacionAdminController {
     @Operation(
             summary = "Obtener todas las notificaciones",
             description = "Devuelve una lista de todas las notificaciones del administrador",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de notificaciones obtenida correctamente"),
@@ -63,7 +63,7 @@ public class NotificacionAdminController {
     @Operation(
             summary = "Obtener notificación por ID",
             description = "Devuelve una notificación específica por su ID",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Notificación encontrada"),
@@ -79,7 +79,7 @@ public class NotificacionAdminController {
     @Operation(
             summary = "Obtener notificaciones por emprendimiento",
             description = "Devuelve una lista de notificaciones asociadas a un emprendimiento específico",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Notificaciones encontradas"),
@@ -95,7 +95,7 @@ public class NotificacionAdminController {
     @Operation(
             summary = "Obtener notificaciones por fecha de envío",
             description = "Devuelve una lista de notificaciones enviadas entre dos fechas",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Notificaciones encontradas"),
@@ -114,7 +114,7 @@ public class NotificacionAdminController {
     @Operation(
             summary = "Eliminar una notificación",
             description = "Permite al administrador eliminar una notificación existente",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Notificación eliminada exitosamente"),
