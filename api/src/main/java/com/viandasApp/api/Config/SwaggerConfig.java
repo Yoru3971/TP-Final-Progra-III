@@ -19,16 +19,18 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("MiViandita API")
-                        .version("1.0")
+                        .version("1.1")
                         .description("MiViandita – Pedí tu vianda online es una plataforma diseñada para facilitar la gestión de pedidos de viandas en emprendimientos alimenticios.\n" +
                                 "A través de esta API, los usuarios pueden registrarse como clientes o dueños de emprendimientos, cargar viandas, gestionar pedidos y recibir notificaciones.\n" +
                                 "El sistema digitaliza el proceso de compra de viandas, brindando una experiencia cómoda, rápida y segura."))
-                .addSecurityItem(new SecurityRequirement().addList("basicAuth"))
-                .components(new Components().addSecuritySchemes("basicAuth",
-                        new SecurityScheme()
-                                .type(SecurityScheme.Type.HTTP)
-                                .scheme("basic")
-                ))
+                .addSecurityItem(new SecurityRequirement().addList("bearer-jwt"))
+                .components(new Components()
+                        .addSecuritySchemes("bearer-jwt",
+                                new SecurityScheme()
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT")
+                        ))
                 .tags(List.of(
                         new Tag().name("Autenticación - Público").description("Controlador para la gestión de autenticación desde el rol de público"),
                         new Tag().name("Usuarios - Cliente/Dueño").description("Controlador para la gestión de usuarios desde el rol de cliente o dueño"),

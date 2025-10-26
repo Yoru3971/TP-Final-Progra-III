@@ -3,6 +3,7 @@ package com.viandasApp.api.Usuario.controller.auth;
 import com.viandasApp.api.Usuario.dto.UsuarioCreateDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioLoginDTO;
+import com.viandasApp.api.Usuario.security.JwtUtil;
 import com.viandasApp.api.Usuario.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -31,6 +32,7 @@ public class AuthController {
 
     private final UsuarioService usuarioService;
     private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
 
     @Operation(summary = "Registrar usuario", description = "Crea un nuevo usuario")
     @ApiResponses(value = {
@@ -50,20 +52,32 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody UsuarioLoginDTO loginDTO) {
+        ///Sque el Optional porque get() en un Optional sin verificar si está presente lanza NoSuchElementException.
 
-        Optional<UsuarioDTO> usuario = usuarioService.findByEmail(loginDTO.getEmail());
-
+        //1.1.1 Autenticacion (valida email+password usando UsuarioDetailsServiceImpl)
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginDTO.getEmail(), loginDTO.getPassword()
+                        loginDTO.getEmail(),
+                        loginDTO.getPassword()
                 )
         );
 
+        //1.1.2 Obtengo el usuario (para agregar id,mail y rol en la respuesta mi rey)
+        UsuarioDTO usuario = usuarioService.findByEmail(loginDTO.getEmail())
+                .orElseThrow( () -> new RuntimeException("Usuario no encontrado"));
+
+        //1.1.3 Genero el token con el/los rol/el
+        String roleName = usuario.getRolUsuario().name();
+        String token = jwtUtil.generateToken(usuario.getEmail(), roleName);
+
+        //1.1.4 Aca te devuelvo el token y un poquito de data del usuario
         return ResponseEntity.ok(Map.of(
                 "mensaje", "Login exitoso",
-                "usuarioId", usuario.get().getId(),
-                "email", usuario.get().getEmail(),
-                "rol", usuario.get().getRolUsuario()
+                "token", token,
+                "expiresInMs", jwtUtil.getExpirationMs(),
+                "usuarioId", usuario.getId(),
+                "email", usuario.getEmail(),
+                "rol", usuario.getRolUsuario()
         ));
     }
 }
