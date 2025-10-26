@@ -1,6 +1,5 @@
 package com.viandasApp.api.Usuario.service;
 
-import com.viandasApp.api.Config.SecurityConfig;
 import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
 import com.viandasApp.api.Usuario.dto.UsuarioCreateDTO;
@@ -10,6 +9,7 @@ import com.viandasApp.api.Usuario.dto.UsuarioUpdateRolDTO;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.repository.UsuarioRepository;
+import com.viandasApp.api.Usuario.security.SecurityConfig;
 import com.viandasApp.api.Vianda.repository.ViandaRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
@@ -30,13 +30,13 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final PasswordEncoder passwordEncoder;
 
     public UsuarioServiceImpl(UsuarioRepository usuarioRepository, EmprendimientoRepository emprendimientoRepository,
-                              ViandaRepository viandaRepository, PedidoRepository pedidoRepository) {
+                              ViandaRepository viandaRepository, PedidoRepository pedidoRepository,PasswordEncoder passwordEncoder) {
         // Inyección de dependencias a través del constructor
         this.usuarioRepository = usuarioRepository;
         this.emprendimientoRepository = emprendimientoRepository;
         this.viandaRepository = viandaRepository;
         this.pedidoRepository = pedidoRepository;
-        this.passwordEncoder = new SecurityConfig().passwordEncoder(); // Obtiene el PasswordEncoder de la configuración de seguridad
+        this.passwordEncoder = passwordEncoder;
     }
 
     //--------------------------Create--------------------------//

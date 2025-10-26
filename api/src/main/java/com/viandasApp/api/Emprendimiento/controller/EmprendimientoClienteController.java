@@ -29,7 +29,7 @@ public class EmprendimientoClienteController {
     @Operation(
             summary = "Obtener todos los emprendimientos",
             description = "Devuelve una lista de todos los emprendimientos disponibles",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de emprendimientos obtenida correctamente"),
@@ -45,7 +45,7 @@ public class EmprendimientoClienteController {
     @Operation(
             summary = "Obtener emprendimientos por ID",
             description = "Devuelve un emprendimiento específico por su ID",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Emprendimiento encontrado"),
@@ -61,7 +61,7 @@ public class EmprendimientoClienteController {
     @Operation(
             summary = "Obtener emprendimientos por nombre",
             description = "Devuelve una lista de emprendimientos que coinciden con el nombre proporcionado",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Emprendimientos encontrados"),
@@ -77,7 +77,7 @@ public class EmprendimientoClienteController {
     @Operation(
             summary = "Obtener emprendimientos por ciudad",
             description = "Devuelve una lista de emprendimientos que operan en la ciudad especificada",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Emprendimientos encontrados"),

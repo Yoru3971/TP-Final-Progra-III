@@ -34,7 +34,7 @@ public class PedidoDuenoController {
      @Operation(
             summary = "Actualizar pedido por ID",
             description = "Actualiza la información de un pedido específico por su ID",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedido actualizado correctamente"),
@@ -60,7 +60,7 @@ public class PedidoDuenoController {
      @Operation(
             summary = "Obtener pedidos por emprendimiento",
             description = "Obtiene todos los pedidos asociados a un emprendimiento específico",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedidos encontrados"),
@@ -82,7 +82,7 @@ public class PedidoDuenoController {
     @Operation(
             summary = "Obtener pedidos por emprendimiento y usuario",
             description = "Obtiene todos los pedidos asociados a un emprendimiento específico y un usuario",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedidos encontrados"),
@@ -104,7 +104,7 @@ public class PedidoDuenoController {
     @Operation(
             summary = "Obtener pedidos por fecha y emprendimiento",
             description = "Obtiene todos los pedidos realizados en una fecha y emprendimiento específicos",
-            security = @SecurityRequirement(name = "basicAuth")
+            security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pedidos encontrados"),
