@@ -1,3 +1,4 @@
 /api/src/main/resources/application-local.properties
 /api/target/
+.env
 
