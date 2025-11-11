@@ -16,7 +16,6 @@ public class DotenvInitializer implements ApplicationContextInitializer<Configur
     @Override
     public void initialize(ConfigurableApplicationContext applicationContext) {
         Dotenv dotenv = Dotenv.configure()
-                .directory("C:/Users/emida/OneDrive/Escritorio/Facultad/Programacion IV/TP Final/TP-Final-Progra-III/api/.env") // <-- Cambiar
                 .ignoreIfMalformed()
                 .ignoreIfMissing()
                 .load();
