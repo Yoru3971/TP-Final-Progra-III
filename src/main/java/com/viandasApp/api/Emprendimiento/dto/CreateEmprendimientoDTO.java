@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @AllArgsConstructor
@@ -12,6 +13,9 @@ public class CreateEmprendimientoDTO {
     @NotBlank(message = "El nombre es obligatorio.")
     @Size(min=1, max=255, message = "El nombre debe tener entre {min} y {max} caracteres.")
     private String nombreEmprendimiento;
+
+    @NotNull(message = "La imagen del emprendimiento es obligatoria.")
+    private MultipartFile image;
 
     @NotBlank(message = "La ciudad es obligatoria.")
     @Size(min=1, max=255, message = "La ciudad debe tener entre {min} y {max} caracteres.")

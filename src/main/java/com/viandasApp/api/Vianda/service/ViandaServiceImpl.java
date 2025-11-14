@@ -33,8 +33,9 @@ public class ViandaServiceImpl implements ViandaService {
     private final ViandaRepository viandaRepository;
     private final EmprendimientoServiceImpl emprendimientoService;
 
+    //Inyeccion de Cloudinary
     @Autowired
-    private Cloudinary cloudinary; //Inyeccion de Cloudinary
+    private Cloudinary cloudinary;
 
     //--------------------------Create--------------------------//
     @Transactional

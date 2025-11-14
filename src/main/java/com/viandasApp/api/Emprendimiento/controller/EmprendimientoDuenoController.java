@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -44,8 +45,9 @@ public class EmprendimientoDuenoController {
             @ApiResponse(responseCode = "404", description = "Entidad no encontrada, por ejemplo, usuario no existe"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PostMapping
-    public ResponseEntity<?> createEmprendimiento(@Valid @RequestBody CreateEmprendimientoDTO createEmprendimientoDTO) {
+    @PostMapping(consumes = "multipart/form-data")
+   /// Usamos @ModelAttribute en lugar de @RequestBody porque ahora tenemos un archivo junto con datos.
+    public ResponseEntity<?> createEmprendimiento(@Valid @ModelAttribute CreateEmprendimientoDTO createEmprendimientoDTO) {
 
         Usuario usuario = (Usuario) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
@@ -118,6 +120,30 @@ public class EmprendimientoDuenoController {
         Map<String, Object> response = new HashMap<>();
         response.put("Emprendimiento actualizado correctamente:", emprendimientoActualizado);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+            summary = "Actualizar la imagen de un emprendimiento por ID",
+            description = "Permite a un dueño actualizar la imagen de un emprendimiento específico por su ID.",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Emprendimiento actualizado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta, datos inválidos"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado, no tenés el rol necesario"),
+            @ApiResponse(responseCode = "404", description = "Emprendimiento no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PutMapping("/id/{id}/imagen")
+    public ResponseEntity<EmprendimientoDTO> updateImagenEmprendimiento(
+            @PathVariable Long id,
+            @RequestParam("image")MultipartFile image
+    ) {
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        EmprendimientoDTO emprendimientoActualizado = emprendimientoService.updateImagenEmprendimiento(id, image, usuario);
+        return ResponseEntity.ok(emprendimientoActualizado);
     }
     
   //--------------------------Delete--------------------------//
