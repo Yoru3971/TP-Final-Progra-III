@@ -1,5 +1,7 @@
 package com.viandasApp.api.Emprendimiento.service;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.viandasApp.api.Emprendimiento.dto.CreateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
@@ -14,8 +16,10 @@ import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioServiceImpl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -28,6 +32,10 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     private final EmprendimientoRepository emprendimientoRepository;
     private final UsuarioServiceImpl usuarioService;
     private final PedidoRepository pedidoRepository; //Uso el repository y no el service para evitar dependencias circulares
+
+    //Inyeccion de Cloudinary
+    @Autowired
+    private Cloudinary cloudinary;
 
     //--------------------------Create--------------------------//
     @Transactional
@@ -55,7 +63,20 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo podés crear emprendimientos a tu nombre.");
         }
 
-        Emprendimiento emprendimiento = DTOToEntity(createEmprendimientoDTO);
+        //Subir imagen a Cloudinary
+        String fotoUrl = null;
+        try {
+            var uploadResult = cloudinary.uploader().upload(
+                    createEmprendimientoDTO.getImage().getBytes(),
+                    ObjectUtils.asMap("folder", "emprendimientos")
+            );
+            fotoUrl = (String) uploadResult.get("secure_url");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al subir la imagen: " + e.getMessage());
+        }
+
+        Emprendimiento emprendimiento = DTOToEntity(createEmprendimientoDTO, fotoUrl);
         Emprendimiento emprendimientoGuardado = emprendimientoRepository.save(emprendimiento);
 
         return new EmprendimientoDTO(emprendimientoGuardado);
@@ -194,6 +215,39 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                 });
     }
 
+    /// La actualizacion de la imagen debemos hacer desde otro end-point pq se comunica directamente con cloudinary
+    @Transactional
+    @Override
+    public EmprendimientoDTO updateImagenEmprendimiento(Long id, MultipartFile image, Usuario usuarioLogueado) {
+        Emprendimiento emprendimiento = emprendimientoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado con ID: " + id));
+
+        Long duenioEmprendimientoId = emprendimiento.getUsuario().getId();
+
+        boolean esAdmin = usuarioLogueado.getRolUsuario().equals(RolUsuario.ADMIN);
+        boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
+
+        if (!esDuenioDelEmprendimiento && !esAdmin) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar este emprendimiento.");
+        }
+
+        String fotoUrl;
+        try {
+            var uploadResult = cloudinary.uploader().upload(
+                    image.getBytes(),
+                    ObjectUtils.asMap("folder", "emprendimientos")
+            );
+            fotoUrl = (String) uploadResult.get("secure_url");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error al subir la imagen: " + e.getMessage());
+        }
+
+        emprendimiento.setImagenUrl(fotoUrl);
+        emprendimientoRepository.save(emprendimiento);
+        return new EmprendimientoDTO(emprendimiento);
+    }
+
     //--------------------------Delete--------------------------//
     @Transactional
     @Override
@@ -230,7 +284,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         return emprendimientoRepository.findById(id);
     }
 
-    private Emprendimiento DTOToEntity(CreateEmprendimientoDTO createEmprendimientoDTO){
+    private Emprendimiento DTOToEntity(CreateEmprendimientoDTO createEmprendimientoDTO, String imageUrl){
 
         Long id = createEmprendimientoDTO.getIdUsuario();
         Usuario usuario = usuarioService.findEntityById(id)
@@ -245,7 +299,8 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                 createEmprendimientoDTO.getCiudad(),
                 createEmprendimientoDTO.getDireccion(),
                 createEmprendimientoDTO.getTelefono(),
-                usuario
+                usuario,
+                imageUrl
         );
     }
 }
