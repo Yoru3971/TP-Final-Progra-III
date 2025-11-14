@@ -46,6 +46,7 @@ public class ViandaDuenoController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping(consumes = "multipart/form-data")
+     /// Usamos @ModelAttribute en lugar de @RequestBody porque ahora tenemos un archivo junto con datos.
     public ResponseEntity<?> createVianda(@Valid @ModelAttribute ViandaCreateDTO dto) {
 
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
@@ -57,7 +58,7 @@ public class ViandaDuenoController {
         response.put("Vianda creada correctamente:", viandaCreada);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-    /// Usamos @ModelAttribute en lugar de @RequestBody porque ahora tenemos un archivo junto con datos.
+
 
     //--------------------------Read--------------------------//
      @Operation(
@@ -125,6 +126,19 @@ public class ViandaDuenoController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(
+            summary = "Actualizar la imagen de una vianda",
+            description = "Actualiza la imagen de una vianda existente",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Vianda actualizada correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta, datos inválidos"),
+            @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado, no tenés el rol necesario"),
+            @ApiResponse(responseCode = "404", description = "Vianda no encontrada"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @PutMapping("/id/{id}/imagen")
     public ResponseEntity<ViandaDTO> updateImageVianda(
             @PathVariable Long id,
@@ -133,7 +147,7 @@ public class ViandaDuenoController {
          Usuario usuario = (Usuario) SecurityContextHolder.getContext()
                  .getAuthentication().getPrincipal();
 
-         ViandaDTO viandaActualizada =viandasService.updateImagenVianda(id, image, usuario);
+         ViandaDTO viandaActualizada = viandasService.updateImagenVianda(id, image, usuario);
          return ResponseEntity.ok(viandaActualizada);
     }
 
