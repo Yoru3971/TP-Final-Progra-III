@@ -26,6 +26,9 @@ public class Emprendimiento {
     @NotBlank
     private String nombreEmprendimiento;
 
+    @Column(name = "imagen_url", nullable = false)
+    private String imagenUrl;
+
     @Column(nullable = false)
     @NotBlank
     private String ciudad;
@@ -45,12 +48,13 @@ public class Emprendimiento {
     private List<Vianda> viandas = new ArrayList<>();
 
 
-    public Emprendimiento(String nombreEmprendimiento, String ciudad, String direccion, String telefono, Usuario usuario) {
+    public Emprendimiento(String nombreEmprendimiento, String ciudad, String direccion, String telefono, Usuario usuario, String imagenUrl) {
         this.nombreEmprendimiento = nombreEmprendimiento;
         this.ciudad = ciudad;
         this.direccion = direccion;
         this.telefono = telefono;
         this.usuario = usuario;
+        this.imagenUrl = imagenUrl;
     }
 
     @PrePersist
