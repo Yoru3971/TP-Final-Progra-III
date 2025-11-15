@@ -83,10 +83,6 @@ public class AuthServiceImpl implements AuthService {
 
         Optional<Usuario> usuario = usuarioRepository.findByEmail(usuarioLoginDTO.getEmail());
 
-        if (!usuarioRepository.findByEmail(usuario.get().getEmail()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "No se encontro ningun usuario con el mail: " + usuario.get().getEmail());
-        }
-
         String roleName = usuario.get().getRolUsuario().name();
         String token = jwtUtil.generateToken(usuario.get().getEmail(), roleName);
 

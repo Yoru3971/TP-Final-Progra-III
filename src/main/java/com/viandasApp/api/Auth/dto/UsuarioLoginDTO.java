@@ -8,7 +8,7 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 public class UsuarioLoginDTO {
-    @Email
+
     @NotBlank(message = "El email es obligatorio.")
     private String email;
 
