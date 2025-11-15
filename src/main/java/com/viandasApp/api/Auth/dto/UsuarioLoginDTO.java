@@ -1,8 +1,7 @@
-package com.viandasApp.api.Usuario.dto;
+package com.viandasApp.api.Auth.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Getter

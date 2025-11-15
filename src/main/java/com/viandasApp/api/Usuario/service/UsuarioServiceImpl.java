@@ -73,37 +73,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         return new UsuarioDTO(savedUsuario);
     }
 
-    @Override
-    @Transactional
-    public UsuarioDTO registerUsuario(UsuarioCreateDTO usuarioCreateDTO) {
-        Usuario usuario = DTOToEntity(usuarioCreateDTO);
-
-        // Verifica si ya existe un usuario con el mismo email
-        if (usuarioRepository.findByEmail(usuario.getEmail()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el email: " + usuario.getEmail());
-        }
-
-        String telefonoSinCeros = usuarioCreateDTO.getTelefono().replaceFirst("^0+", "");
-        if (telefonoSinCeros.length() < 7) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
-        }
-        usuario.setTelefono(telefonoSinCeros);
-
-        // Verifica si ya existe un usuario con el mismo telefono
-        if (usuarioRepository.findByTelefono(usuario.getTelefono()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el telefono: " + usuario.getTelefono());
-        }
-
-        // Verifica que el rol del usuario logueado sea ADMIN si el nuevo usuario es ADMIN, de esta manera se evita que un usuario
-        // normal pueda registrarse como ADMIN, pero permite que el ADMIN registre nuevos usuarios como ADMIN.
-        if (usuarioCreateDTO.getRolUsuario().equals(RolUsuario.ADMIN)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No podes registrarte como ADMIN. Este rol es exclusivo del administrador del sistema.");
-        }
-
-        Usuario savedUsuario = usuarioRepository.save(usuario);
-        return new UsuarioDTO(savedUsuario);
-    }
-
     //--------------------------Read--------------------------//
     @Override
     public List<UsuarioDTO> readUsuarios() {
