@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.*;
-import java.util.function.Function;
 
 @Component
 public class JwtUtil {
@@ -28,17 +27,22 @@ public class JwtUtil {
     }
 
     // GENERAR TOKEN
-    public String generateToken(String subject,String... roles){
-        Map<String, Object> claims = Map.of("roles",Arrays.asList(roles));
+    public String generateToken(String subject, String role){
         long now = System.currentTimeMillis();
+
+        // Siempre meter ROLE_ para que Spring Security lo entienda
+        String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+
+        Map<String, Object> claims =
+                Map.of("role", authority);
 
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(subject)    // subject: quien es el owner (email)
+                .setSubject(subject)
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(now + expirationMs))
                 .signWith(key, SignatureAlgorithm.HS256)
-                .compact();     // String JWT
+                .compact();
     }
     /// Genero el token con subject (el user: email) y sus claims (rles)
     /// String... roles -> varargs (variable arguments)
@@ -54,9 +58,9 @@ public class JwtUtil {
     }
 
     // EXTRAE CLAIM GENERICO
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver){
+    public <T> T extractClaim(String token, java.util.function.Function<Claims, T> resolver){
         Claims claims = parseClaims(token);
-        return claimsResolver.apply(claims);
+        return resolver.apply(claims);
     }
 
     // DEVOLVER EL SUBJECT (email)
@@ -80,19 +84,16 @@ public class JwtUtil {
 
     // VALIDO QUE EL SUBJECT COINCIDA Y NO ESTE EXPIRADO
     public boolean validateToken(String token, String username){
-        final String subject = extractUsername(token);
+        String subject = extractUsername(token);
         return subject.equals(username) && !isTokenExpired(token);
     }
 
     // EXTRAIGO LOS ROLES
     @SuppressWarnings("unchecked")
-    public List<String> extractRoles(String token){
+    public String extractRole(String token){
         Claims claims = parseClaims(token);
-        Object rolesObj = claims.get("roles");
-        if (rolesObj instanceof List) {
-            return (List<String>) rolesObj;
-        }
-        return Collections.emptyList();
+        Object role = claims.get("role");
+        return role != null ? role.toString() : "";
     }
 
     public long getExpirationMs() {
