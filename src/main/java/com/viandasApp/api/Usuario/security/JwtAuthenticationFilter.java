@@ -13,7 +13,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.stream.Collectors;
+import java.util.List;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -47,14 +47,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     var userDetails = userDetailsService.loadUserByUsername(username);
 
                     if (jwtUtil.validateToken(token, userDetails.getUsername())) {
-                        var authorities = jwtUtil.extractRoles(token)
-                                .stream()
-                                //Aseguramos el prefijo ROLE_ para compatibilidad con hasRole(...)
-                                .map(r -> new SimpleGrantedAuthority(r.startsWith("ROLE_") ? r : "ROLE_" + r))
-                                .collect(Collectors.toList());
+
+                        String role = jwtUtil.extractRole(token);
+
+                        var authorities = List.of(
+                                new SimpleGrantedAuthority(
+                                        role.startsWith("ROLE_") ? role : "ROLE_" + role
+                                )
+                        );
 
                         UsernamePasswordAuthenticationToken auth =
                                 new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+
                         auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(auth);
                     }
