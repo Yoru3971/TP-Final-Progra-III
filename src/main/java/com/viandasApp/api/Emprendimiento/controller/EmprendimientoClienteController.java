@@ -43,7 +43,7 @@ public class EmprendimientoClienteController {
     }
 
     @Operation(
-            summary = "Obtener emprendimientos por ID",
+            summary = "Obtener emprendimiento por ID",
             description = "Devuelve un emprendimiento específico por su ID",
             security = @SecurityRequirement(name = "bearer-jwt")
     )
