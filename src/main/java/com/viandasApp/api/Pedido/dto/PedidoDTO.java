@@ -3,6 +3,7 @@ package com.viandasApp.api.Pedido.dto;
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
+import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -13,7 +14,7 @@ import java.util.List;
 public class PedidoDTO {
 
     private Long id;
-    private Long clienteId;
+    private UsuarioDTO cliente;
     private LocalDate fechaEntrega;
     private Double total;
     private EstadoPedido estado;
@@ -22,7 +23,7 @@ public class PedidoDTO {
 
     public PedidoDTO(Pedido pedido) {
         this.id = pedido.getId();
-        this.clienteId = pedido.getUsuario().getId();
+        this.cliente = new UsuarioDTO(pedido.getUsuario());
         this.fechaEntrega = pedido.getFechaEntrega();
         this.total = pedido.getTotal();
         this.estado = pedido.getEstado();
