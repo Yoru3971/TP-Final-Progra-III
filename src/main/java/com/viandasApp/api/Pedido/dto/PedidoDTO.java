@@ -1,4 +1,6 @@
 package com.viandasApp.api.Pedido.dto;
+
+import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
 import lombok.*;
@@ -12,22 +14,24 @@ public class PedidoDTO {
 
     private Long id;
     private Long clienteId;
-    private EstadoPedido estado;
     private LocalDate fechaEntrega;
     private Double total;
+    private EstadoPedido estado;
+    private EmprendimientoDTO emprendimiento;
     private List<DetalleViandaDTO> viandas;
 
     public PedidoDTO(Pedido pedido) {
         this.id = pedido.getId();
         this.clienteId = pedido.getUsuario().getId();
-        this.estado = pedido.getEstado();
         this.fechaEntrega = pedido.getFechaEntrega();
-
-        this.viandas = pedido.getViandas().stream()
+        this.total = pedido.getTotal();
+        this.estado = pedido.getEstado();
+        this.emprendimiento = new EmprendimientoDTO(pedido.getEmprendimiento());
+        this.viandas = pedido.getViandas()
+                .stream()
                 .map(DetalleViandaDTO::new)
                 .toList();
 
-        this.total = pedido.getTotal();
-    }
 
+    }
 }
