@@ -148,6 +148,20 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     @Override
+    public List<PedidoDTO> getAllPedidosDueno(Long idDueno) {
+        List<PedidoDTO> pedidos = pedidoRepository.findByEmprendimientoUsuarioId(idDueno)
+                .stream()
+                .map(PedidoDTO::new)
+                .toList();
+
+        if (pedidos.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No tenés pedidos todavía.");
+        }
+
+        return pedidos;
+    }
+
+    @Override
     public List<PedidoDTO> getAllPedidosByUsuarioId(Long idUsuario) {
 
         Optional<UsuarioDTO> usuario = usuarioService.findById(idUsuario);
@@ -161,7 +175,7 @@ public class PedidoServiceImpl implements PedidoService {
                 .toList();
 
         if (pedidos.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron pedidos para el usuario con ID: " + idUsuario);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No tenés pedidos todavía.");
         }
         return pedidos;
     }
@@ -438,8 +452,8 @@ public class PedidoServiceImpl implements PedidoService {
         if (!pedido.getUsuario().getId().equals(usuarioLogueado.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El pedido que se quiere eliminar no pertenece al usuario logueado.");
         }
-        if (!(pedido.getEstado().equals(EstadoPedido.PENDIENTE) || pedido.getEstado().equals(EstadoPedido.CARRITO))) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Solo se pueden eliminar pedidos que se encuentran PENDIENTES o en CARRITO.");
+        if (!(pedido.getEstado().equals(EstadoPedido.PENDIENTE))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Solo se pueden eliminar pedidos que se encuentran PENDIENTES.");
         }
         pedidoRepository.deleteById(id);
         return true;

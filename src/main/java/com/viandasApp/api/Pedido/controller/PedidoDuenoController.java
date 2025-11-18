@@ -57,6 +57,28 @@ public class PedidoDuenoController {
     }
 
     //--------------------------Read--------------------------//
+    @Operation(
+            summary = "Obtener todos los pedidos del dueño autenticado",
+            description = "Permite a un dueño obtener todos sus pedidos",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pedidos obtenidos correctamente"),
+            @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado, no tenés el rol necesario"),
+            @ApiResponse(responseCode = "404", description = "No se encontraron pedidos"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping
+    public ResponseEntity<?> getPedidosPropios() {
+
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        List<PedidoDTO> pedido = pedidoService.getAllPedidosDueno(autenticado.getId());
+        return ResponseEntity.ok(pedido);
+    }
+
      @Operation(
             summary = "Obtener pedidos por emprendimiento",
             description = "Obtiene todos los pedidos asociados a un emprendimiento específico",

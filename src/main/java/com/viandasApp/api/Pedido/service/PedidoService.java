@@ -20,6 +20,7 @@ public interface PedidoService {
     List<PedidoDTO> getAllPedidosByEmprendimiento(Long idEmprendimiento, Usuario usuarioLogueado);
     List<PedidoDTO> getAllPedidosByEmprendimientoAndUsuario(Long idEmprendimiento,Long idUsuario, Usuario usuarioLogueado);
     Optional<PedidoDTO> getPedidoById(Long id);
+    List<PedidoDTO> getAllPedidosDueno(Long idDueno);
     List<PedidoDTO> getAllPedidosByUsuarioId(Long idUsuario);
     List<PedidoDTO> getAllPedidosByEstado(EstadoPedido estado);
     List<PedidoDTO> getAllPedidosByFecha(LocalDate fecha);
