@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -49,8 +50,8 @@ public class EmprendimientoPublicController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping("/id/{id}")
-    public ResponseEntity<?> getEmprendimientoById (@PathVariable Long id, Usuario usuario){
-        Optional<EmprendimientoDTO> emprendimiento = emprendimientoService.getEmprendimientoById(id, usuario);
+    public ResponseEntity<?> getEmprendimientoById (@PathVariable Long id){
+        Optional<EmprendimientoDTO> emprendimiento = emprendimientoService.getEmprendimientoByIdPublic(id);
         return ResponseEntity.ok(emprendimiento);
     }
 

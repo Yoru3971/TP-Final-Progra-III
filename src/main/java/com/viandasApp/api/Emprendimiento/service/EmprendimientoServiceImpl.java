@@ -113,6 +113,15 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     }
 
     @Override
+    public Optional<EmprendimientoDTO> getEmprendimientoByIdPublic(Long id) {
+
+        Emprendimiento emprendimiento = emprendimientoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado con ID: " + id));
+
+        return Optional.of(new EmprendimientoDTO(emprendimiento));
+    }
+
+    @Override
     public List<EmprendimientoDTO> getEmprendimientosByNombre(String nombreEmprendimiento) {
 
         List<EmprendimientoDTO> emprendimientos = emprendimientoRepository.findByNombreEmprendimientoContaining(nombreEmprendimiento)

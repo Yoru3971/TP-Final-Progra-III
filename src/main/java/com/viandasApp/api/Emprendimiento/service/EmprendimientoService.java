@@ -17,6 +17,7 @@ public interface EmprendimientoService {
     //--------------------------Read--------------------------//
     List<EmprendimientoDTO> getAllEmprendimientos();
     Optional<EmprendimientoDTO> getEmprendimientoById(Long id, Usuario usuario);
+    Optional<EmprendimientoDTO> getEmprendimientoByIdPublic(Long id);
     List<EmprendimientoDTO> getEmprendimientosByNombre(String nombreEmprendimiento);
     List<EmprendimientoDTO> getEmprendimientosByCiudad(String ciudad);
     List<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long id, Usuario usuario);

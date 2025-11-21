@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -53,7 +54,8 @@ public class EmprendimientoClienteController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping("/id/{id}")
-    public ResponseEntity<?> getEmprendimientoById (@PathVariable Long id, Usuario usuario){
+    public ResponseEntity<?> getEmprendimientoById (@PathVariable Long id){
+        Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Optional<EmprendimientoDTO> emprendimiento = emprendimientoService.getEmprendimientoById(id, usuario);
         return ResponseEntity.ok(emprendimiento);
     }
