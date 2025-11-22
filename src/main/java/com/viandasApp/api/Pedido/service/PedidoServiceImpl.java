@@ -41,14 +41,14 @@ public class PedidoServiceImpl implements PedidoService {
     @Override
     public PedidoDTO createPedido(PedidoCreateDTO pedidoCreateDTO, Usuario usuarioLogueado) {
 
-        if (usuarioLogueado.getRolUsuario().equals(RolUsuario.CLIENTE) && !usuarioLogueado.getId().equals(pedidoCreateDTO.getClienteId())){
+        if (usuarioLogueado.getRolUsuario().equals(RolUsuario.CLIENTE) && !usuarioLogueado.getId().equals(pedidoCreateDTO.getClienteId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El usuario no tiene permiso para crear pedidos para otro cliente");
         }
 
         Usuario cliente = usuarioService.findEntityById(pedidoCreateDTO.getClienteId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
 
-        if ( !cliente.getRolUsuario().equals(RolUsuario.CLIENTE) ) {
+        if (!cliente.getRolUsuario().equals(RolUsuario.CLIENTE)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El usuario no es un cliente.");
         }
 
@@ -80,7 +80,7 @@ public class PedidoServiceImpl implements PedidoService {
                 .map(PedidoDTO::new)
                 .toList();
 
-        if (pedidos.isEmpty()){
+        if (pedidos.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron pedidos.");
         }
 
@@ -93,7 +93,7 @@ public class PedidoServiceImpl implements PedidoService {
         Emprendimiento emprendimiento = emprendimientoService.findEntityById(idEmprendimiento)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado."));
 
-        if ( usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO) && !(emprendimiento.getUsuario().getId().equals(usuarioLogueado.getId())) ){
+        if (usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO) && !(emprendimiento.getUsuario().getId().equals(usuarioLogueado.getId()))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El emprendimiento no pertenece al usuario logueado.");
         }
 
@@ -102,7 +102,7 @@ public class PedidoServiceImpl implements PedidoService {
                 .map(PedidoDTO::new)
                 .toList();
 
-        if (pedidos.isEmpty()){
+        if (pedidos.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron pedidos para el emprendimiento con ID: " + idEmprendimiento);
         }
 
@@ -118,7 +118,7 @@ public class PedidoServiceImpl implements PedidoService {
         Usuario usuario = usuarioService.findEntityById(idUsuario)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado."));
 
-        if ( usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO) && !emprendimiento.getUsuario().equals(usuarioLogueado) ){
+        if (usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO) && !emprendimiento.getUsuario().equals(usuarioLogueado)) {
             throw new RuntimeException("El emprendimiento no pertenece al usuario logueado.");
         }
 
@@ -128,7 +128,7 @@ public class PedidoServiceImpl implements PedidoService {
                 .map(PedidoDTO::new)
                 .toList();
 
-        if (pedidos.isEmpty()){
+        if (pedidos.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron pedidos para el emprendimiento con ID: " + idEmprendimiento);
         }
 
@@ -165,7 +165,7 @@ public class PedidoServiceImpl implements PedidoService {
     public List<PedidoDTO> getAllPedidosByUsuarioId(Long idUsuario) {
 
         Optional<UsuarioDTO> usuario = usuarioService.findById(idUsuario);
-        if (usuario.isEmpty()){
+        if (usuario.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con ID: " + idUsuario);
         }
 
@@ -174,7 +174,7 @@ public class PedidoServiceImpl implements PedidoService {
                 .map(PedidoDTO::new)
                 .toList();
 
-        if (pedidos.isEmpty()){
+        if (pedidos.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No tenés pedidos todavía.");
         }
         return pedidos;
@@ -187,7 +187,7 @@ public class PedidoServiceImpl implements PedidoService {
                 .map(PedidoDTO::new)
                 .toList();
 
-        if (pedidos.isEmpty()){
+        if (pedidos.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron pedidos con el estado: " + estado);
         }
         return pedidos;
@@ -200,7 +200,7 @@ public class PedidoServiceImpl implements PedidoService {
                 .map(PedidoDTO::new)
                 .toList();
 
-        if (pedidos.isEmpty()){
+        if (pedidos.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron pedidos con la fecha: " + fecha);
         }
         return pedidos;
@@ -265,11 +265,11 @@ public class PedidoServiceImpl implements PedidoService {
 
         String mensaje = "Tu pedido #" + actualizado.getId();
         if (cambioEstado && cambioFecha) {
-            mensaje += " cambió de estado a '" + actualizado.getEstado() + "' y la fecha de entrega a '" + actualizado.getFechaEntrega()+"'";
+            mensaje += " cambió de estado a '" + actualizado.getEstado() + "' y la fecha de entrega a '" + actualizado.getFechaEntrega() + "'";
         } else if (cambioEstado) {
-            mensaje += " cambió de estado a '" + actualizado.getEstado()+"'";
+            mensaje += " cambió de estado a '" + actualizado.getEstado() + "'";
         } else if (cambioFecha) {
-            mensaje += " cambió la fecha de entrega a '" + actualizado.getFechaEntrega()+"'";
+            mensaje += " cambió la fecha de entrega a '" + actualizado.getFechaEntrega() + "'";
         } else {
             mensaje += " fue actualizado";
         }
@@ -288,7 +288,7 @@ public class PedidoServiceImpl implements PedidoService {
         }
 
         if (!pedido.getEmprendimiento().getUsuario().getId().equals(usuarioLogueado.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El emprendimiento del pedido que se quiere actualizar no pertenece al usuario logueado.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El emprendimiento del pedido no pertenece al usuario logueado.");
         }
 
         boolean cambioEstado = false;
@@ -302,13 +302,16 @@ public class PedidoServiceImpl implements PedidoService {
 
         Pedido actualizado = pedidoRepository.save(pedido);
 
-        String mensaje = "Tu pedido #" + actualizado.getId();
+        // 🔥 mensaje correcto para el CLIENTE
+        String mensaje = "Tu pedido #" + actualizado.getId() + ", del emprendimiento '"+ pedido.getEmprendimiento().getNombreEmprendimiento()+"'";
+
         if (cambioEstado) {
-            mensaje += " cambió de estado a '" + actualizado.getEstado()+"'";
-        } else{
+            mensaje += " cambió de estado a '" + actualizado.getEstado() + "'";
+        } else {
             mensaje += " fue actualizado";
         }
 
+        // notificación al cliente
         notificarCambio(actualizado, mensaje, actualizado.getUsuario().getId());
 
         return Optional.of(new PedidoDTO(actualizado));
@@ -328,29 +331,28 @@ public class PedidoServiceImpl implements PedidoService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El pedido que se quiere actualizar no pertenece al usuario logueado.");
         }
 
-        boolean cambioEstado = false, cambioFecha = false;
+        boolean cambioFecha = false;
+
         if (updatePedidoDTO.getFechaEntrega() != null) {
             if (updatePedidoDTO.getFechaEntrega().isBefore(LocalDate.now())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de entrega no puede ser anterior a la fecha de hoy.");
             }
             pedido.setFechaEntrega(updatePedidoDTO.getFechaEntrega());
+            cambioFecha = true;
         }
+
         Pedido actualizado = pedidoRepository.save(pedido);
 
+        // 🔥 mensaje correcto (antes decía “te hicieron un nuevo pedido…”)
+        String mensaje = "El pedido #" + actualizado.getId();
 
-        String mensaje = "Te hicieron un nuevo pedido para tu emprendimiento '" + actualizado.getEmprendimiento().getNombreEmprendimiento() +
-                "' (ID: " + actualizado.getEmprendimiento().getId() + "), el pedido #" + actualizado.getId();
-
-        if (cambioEstado && cambioFecha) {
-            mensaje += " cambió de estado a '" + actualizado.getEstado() + "' y la fecha de entrega a '" + actualizado.getFechaEntrega()+"'";
-        } else if (cambioEstado) {
-            mensaje += " cambió de estado a '" + actualizado.getEstado()+"'";
-        } else if (cambioFecha) {
-            mensaje += " cambió la fecha de entrega a '" + actualizado.getFechaEntrega()+"'";
+        if (cambioFecha) {
+            mensaje += " cambió la fecha de entrega a '" + actualizado.getFechaEntrega() + "'";
         } else {
             mensaje += " fue actualizado";
         }
 
+        // notificación al dueño
         notificarCambio(actualizado, mensaje, actualizado.getEmprendimiento().getUsuario().getId());
 
         return Optional.of(new PedidoDTO(actualizado));
