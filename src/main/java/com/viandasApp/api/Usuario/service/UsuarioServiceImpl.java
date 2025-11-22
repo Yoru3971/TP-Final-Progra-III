@@ -151,9 +151,13 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         if (usuarioUpdateDTO.getEmail() != null) {
 
-            if ( usuarioRepository.findByEmail(usuarioUpdateDTO.getEmail()).isPresent() ){
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el email: " + usuarioUpdateDTO.getEmail());
-            }
+            usuarioRepository.findByEmail(usuarioUpdateDTO.getEmail())
+                    .filter(usuario -> !usuario.getId().equals(id))  // <- excluye al mismo usuario
+                    .ifPresent(usuario -> {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                "Ya existe un usuario con el email: " + usuarioUpdateDTO.getEmail());
+                    });
+
             usuarioExistente.setEmail(usuarioUpdateDTO.getEmail());
         }
 
@@ -166,9 +170,12 @@ public class UsuarioServiceImpl implements UsuarioService {
             }
 
             // Verifica si el nuevo telefono ya está en uso por otro usuario
-            if ( usuarioRepository.findByTelefono(telefonoSinCeros).isPresent() ) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el telefono: " + usuarioUpdateDTO.getTelefono());
-            }
+            usuarioRepository.findByTelefono(telefonoSinCeros)
+                    .filter(usuario -> !usuario.getId().equals(id))
+                    .ifPresent(usuario -> {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                "Ya existe un usuario con el telefono: " + usuarioUpdateDTO.getTelefono());
+                    });
             usuarioExistente.setTelefono(telefonoSinCeros);
         }
 
