@@ -342,18 +342,17 @@ public class PedidoServiceImpl implements PedidoService {
     @Transactional
     @Override
     public Optional<PedidoDTO> updatePedidoCliente(Long id, UpdatePedidoDTO updatePedidoDTO, Usuario usuarioLogueado) {
-
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "No se encontró el pedido con ID " + id + "."));
 
-        // --- Validar que el pedido pertenece al cliente ---
+        // Validar pertenencia
         if (!pedido.getUsuario().getId().equals(usuarioLogueado.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "El pedido que se quiere actualizar no pertenece al usuario logueado.");
         }
 
-        // --- Solo se puede cancelar o cambiar fecha si está PENDIENTE ---
+        // Validar Estado PENDIENTE
         if (!pedido.getEstado().equals(EstadoPedido.PENDIENTE)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Solo se puede modificar un pedido pendiente.");
@@ -361,22 +360,37 @@ public class PedidoServiceImpl implements PedidoService {
 
         boolean cambioFecha = false;
         boolean cambioEstado = false;
+        LocalDate hoy = LocalDate.now();
 
-        // CAMBIO DE FECHA
+        // Logica para cambiar la fecha
         if (updatePedidoDTO.getFechaEntrega() != null) {
 
-            if (updatePedidoDTO.getFechaEntrega().isBefore(LocalDate.now())) {
+            // REGLA: No se puede cambiar si la entrega es mañana
+            if (pedido.getFechaEntrega().equals(hoy.plusDays(1))) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "La fecha de entrega no puede ser anterior a la fecha de hoy.");
+                        "No se puede cambiar la fecha porque la entrega es mañana. Contactá al emprendimiento.");
+            }
+
+            // REGLA: La nueva fecha no puede ser anterior a HOY
+            if (updatePedidoDTO.getFechaEntrega().isBefore(hoy)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "La nueva fecha no puede ser en el pasado.");
+            }
+
+            // REGLA SOLICITADA: La nueva fecha no puede ser anterior a la fecha ACTUAL del pedido.
+            if (updatePedidoDTO.getFechaEntrega().isBefore(hoy.plusDays(2))) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "El cambio de fecha requiere al menos 48hs de anticipación. La fecha más próxima posible es: " + hoy.plusDays(2));
             }
 
             pedido.setFechaEntrega(updatePedidoDTO.getFechaEntrega());
             cambioFecha = true;
         }
 
-        // CAMBIO DE ESTADO (solo cancelar)
+        // Logica de cancelacion
         if (updatePedidoDTO.getEstado() != null) {
 
+            // El cliente solo puede cancelar
             if (updatePedidoDTO.getEstado() != EstadoPedido.CANCELADO) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "El cliente solo puede cancelar el pedido.");
@@ -388,22 +402,20 @@ public class PedidoServiceImpl implements PedidoService {
 
         Pedido actualizado = pedidoRepository.save(pedido);
 
+        // Construcción del mensaje para notificación
         String mensaje = "El pedido #" + actualizado.getId();
-
         if (cambioEstado) {
             mensaje += " fue cancelado por el cliente.";
         } else if (cambioFecha) {
-            mensaje += " cambió la fecha de entrega a '" + actualizado.getFechaEntrega() + "'.";
+            mensaje += " pospuso su entrega para el '" + actualizado.getFechaEntrega() + "'.";
         } else {
             mensaje += " fue actualizado.";
         }
 
-        // Notificar al dueño
         notificarCambio(actualizado, mensaje, actualizado.getEmprendimiento().getUsuario().getId());
 
         return Optional.of(new PedidoDTO(actualizado));
     }
-
 
     @Transactional
     @Override
