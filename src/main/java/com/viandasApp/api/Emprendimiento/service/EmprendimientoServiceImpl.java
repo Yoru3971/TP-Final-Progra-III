@@ -51,11 +51,6 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
         }
 
-        // Verifica si ya existe un usuario con el mismo telefono
-        if (emprendimientoRepository.findByTelefono(createEmprendimientoDTO.getTelefono()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el telefono: " + createEmprendimientoDTO.getTelefono());
-        }
-
         boolean esAdmin = usuario.getRolUsuario() == RolUsuario.ADMIN;
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuario.getId());
 
@@ -269,7 +264,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
         List<Pedido> pedidosConIdEmprendimiento = pedidoRepository.findByEmprendimientoId(id).stream().toList();
 
-        if(pedidosConIdEmprendimiento.isEmpty()){
+        if(!pedidosConIdEmprendimiento.isEmpty()){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se puede eliminar un emprendimiento que tiene pedidos asociados.");
         }
 
