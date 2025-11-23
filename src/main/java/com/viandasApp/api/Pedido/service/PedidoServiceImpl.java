@@ -279,31 +279,52 @@ public class PedidoServiceImpl implements PedidoService {
         return Optional.of(new PedidoDTO(actualizado));
     }
 
+    @Transactional
+    @Override
     public Optional<PedidoDTO> updatePedidoDueno(Long id, UpdatePedidoDTO updatePedidoDTO, Usuario usuarioLogueado) {
-        Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el pedido con ID " + id + "."));
 
-        if (!pedido.getEstado().equals(EstadoPedido.PENDIENTE)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se puede actualizar un pedido que se encuentra aceptado o rechazado.");
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "No se encontró el pedido con ID " + id + "."));
+
+        // --- Validar que el dueño sea realmente dueño del emprendimiento ---
+        if (!pedido.getEmprendimiento().getUsuario().getId().equals(usuarioLogueado.getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "El emprendimiento del pedido no pertenece al usuario logueado.");
         }
 
-        if (!pedido.getEmprendimiento().getUsuario().getId().equals(usuarioLogueado.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El emprendimiento del pedido no pertenece al usuario logueado.");
+        // --- Solo se puede actualizar si está pendiente ---
+        if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Solo se pueden actualizar pedidos pendientes.");
         }
 
         boolean cambioEstado = false;
 
-        if (updatePedidoDTO.getEstado() == EstadoPedido.ACEPTADO || updatePedidoDTO.getEstado() == EstadoPedido.RECHAZADO) {
+
+        // CAMBIO DE ESTADO (dueño acepta o rechaza)
+
+        if (updatePedidoDTO.getEstado() == EstadoPedido.ACEPTADO ||
+                updatePedidoDTO.getEstado() == EstadoPedido.RECHAZADO) {
             pedido.setEstado(updatePedidoDTO.getEstado());
             cambioEstado = true;
         } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El dueño del emprendimiento solo puede aceptar o rechazar el pedido.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "El dueño del emprendimiento solo puede aceptar o rechazar el pedido.");
+        }
+
+        // DUEÑO NO PUEDE CAMBIAR FECHA
+        if (updatePedidoDTO.getFechaEntrega() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "El dueño no puede modificar la fecha de entrega.");
         }
 
         Pedido actualizado = pedidoRepository.save(pedido);
 
-        // 🔥 mensaje correcto para el CLIENTE
-        String mensaje = "Tu pedido #" + actualizado.getId() + ", del emprendimiento '"+ pedido.getEmprendimiento().getNombreEmprendimiento()+"'";
+
+        // Mensaje para el cliente
+        String mensaje = "Tu pedido #" + actualizado.getId()
+                + ", del emprendimiento '" + pedido.getEmprendimiento().getNombreEmprendimiento() + "'";
 
         if (cambioEstado) {
             mensaje += " cambió de estado a '" + actualizado.getEstado() + "'";
@@ -311,52 +332,78 @@ public class PedidoServiceImpl implements PedidoService {
             mensaje += " fue actualizado";
         }
 
-        // notificación al cliente
+        // Notificar al cliente
         notificarCambio(actualizado, mensaje, actualizado.getUsuario().getId());
 
         return Optional.of(new PedidoDTO(actualizado));
     }
 
+
     @Transactional
     @Override
     public Optional<PedidoDTO> updatePedidoCliente(Long id, UpdatePedidoDTO updatePedidoDTO, Usuario usuarioLogueado) {
-        Pedido pedido = pedidoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el pedido con ID " + id + "."));
 
-        if (!pedido.getEstado().equals(EstadoPedido.PENDIENTE)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se puede actualizar un pedido que se encuentra aceptado o rechazado.");
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "No se encontró el pedido con ID " + id + "."));
+
+        // --- Validar que el pedido pertenece al cliente ---
+        if (!pedido.getUsuario().getId().equals(usuarioLogueado.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "El pedido que se quiere actualizar no pertenece al usuario logueado.");
         }
 
-        if (!pedido.getUsuario().getId().equals(usuarioLogueado.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El pedido que se quiere actualizar no pertenece al usuario logueado.");
+        // --- Solo se puede cancelar o cambiar fecha si está PENDIENTE ---
+        if (!pedido.getEstado().equals(EstadoPedido.PENDIENTE)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Solo se puede modificar un pedido pendiente.");
         }
 
         boolean cambioFecha = false;
+        boolean cambioEstado = false;
 
+        // CAMBIO DE FECHA
         if (updatePedidoDTO.getFechaEntrega() != null) {
+
             if (updatePedidoDTO.getFechaEntrega().isBefore(LocalDate.now())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de entrega no puede ser anterior a la fecha de hoy.");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "La fecha de entrega no puede ser anterior a la fecha de hoy.");
             }
+
             pedido.setFechaEntrega(updatePedidoDTO.getFechaEntrega());
             cambioFecha = true;
         }
 
-        Pedido actualizado = pedidoRepository.save(pedido);
+        // CAMBIO DE ESTADO (solo cancelar)
+        if (updatePedidoDTO.getEstado() != null) {
 
-        // 🔥 mensaje correcto (antes decía “te hicieron un nuevo pedido…”)
-        String mensaje = "El pedido #" + actualizado.getId();
+            if (updatePedidoDTO.getEstado() != EstadoPedido.CANCELADO) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "El cliente solo puede cancelar el pedido.");
+            }
 
-        if (cambioFecha) {
-            mensaje += " cambió la fecha de entrega a '" + actualizado.getFechaEntrega() + "'";
-        } else {
-            mensaje += " fue actualizado";
+            pedido.setEstado(EstadoPedido.CANCELADO);
+            cambioEstado = true;
         }
 
-        // notificación al dueño
+        Pedido actualizado = pedidoRepository.save(pedido);
+
+        String mensaje = "El pedido #" + actualizado.getId();
+
+        if (cambioEstado) {
+            mensaje += " fue cancelado por el cliente.";
+        } else if (cambioFecha) {
+            mensaje += " cambió la fecha de entrega a '" + actualizado.getFechaEntrega() + "'.";
+        } else {
+            mensaje += " fue actualizado.";
+        }
+
+        // Notificar al dueño
         notificarCambio(actualizado, mensaje, actualizado.getEmprendimiento().getUsuario().getId());
 
         return Optional.of(new PedidoDTO(actualizado));
     }
+
 
     @Transactional
     @Override
