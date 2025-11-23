@@ -201,11 +201,13 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                     if ( updateEmprendimientoDTO.getDireccion() != null ){
                         emprendimientoExistente.setDireccion(updateEmprendimientoDTO.getDireccion());
                     }
-                    if ( updateEmprendimientoDTO.getTelefono() != null ){
-                        // Verifica si ya existe un usuario con el mismo telefono
-                        if (emprendimientoRepository.findByTelefono(updateEmprendimientoDTO.getTelefono()).isPresent()) {
-                            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el telefono: " + updateEmprendimientoDTO.getTelefono());
+                    if (updateEmprendimientoDTO.getTelefono() != null) {
+                        Optional<Emprendimiento> emprendimientoConMismoTelefono = emprendimientoRepository.findByTelefono(updateEmprendimientoDTO.getTelefono());
+
+                        if (emprendimientoConMismoTelefono.isPresent() && !emprendimientoConMismoTelefono.get().getId().equals(id)) {
+                            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un emprendimiento con el telefono: " + updateEmprendimientoDTO.getTelefono());
                         }
+
                         emprendimientoExistente.setTelefono(updateEmprendimientoDTO.getTelefono());
                     }
                     if ( updateEmprendimientoDTO.getIdUsuario() != null ){
