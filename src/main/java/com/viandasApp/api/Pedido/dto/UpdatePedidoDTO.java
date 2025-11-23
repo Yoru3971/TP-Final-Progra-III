@@ -11,11 +11,9 @@ import java.time.LocalDate;
 
 @Data
 public class UpdatePedidoDTO {
-    @NotNull
     @Enumerated(EnumType.STRING)
     private EstadoPedido estado;
 
-    @NotNull
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate fechaEntrega;
 }
