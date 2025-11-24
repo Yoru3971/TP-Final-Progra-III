@@ -313,12 +313,6 @@ public class PedidoServiceImpl implements PedidoService {
                     "El dueño del emprendimiento solo puede aceptar o rechazar el pedido.");
         }
 
-        // DUEÑO NO PUEDE CAMBIAR FECHA
-        if (updatePedidoDTO.getFechaEntrega() != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "El dueño no puede modificar la fecha de entrega.");
-        }
-
         Pedido actualizado = pedidoRepository.save(pedido);
 
 
