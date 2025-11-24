@@ -57,8 +57,7 @@ public class ViandaPublicController {
     })
     @GetMapping("/id/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
-        Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Optional<ViandaDTO> vianda = viandasService.findViandaById(id, usuario);
+        Optional<ViandaDTO> vianda = viandasService.findViandaByIdPublic(id);
         return ResponseEntity.ok(vianda);
     }
 }
