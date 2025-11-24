@@ -1,6 +1,8 @@
 package com.viandasApp.api.Usuario.service;
 
 import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
+import com.viandasApp.api.Pedido.model.EstadoPedido;
+import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
 import com.viandasApp.api.Usuario.dto.UsuarioCreateDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
@@ -30,7 +32,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final PasswordEncoder passwordEncoder;
 
     public UsuarioServiceImpl(UsuarioRepository usuarioRepository, EmprendimientoRepository emprendimientoRepository,
-                              ViandaRepository viandaRepository, PedidoRepository pedidoRepository,PasswordEncoder passwordEncoder) {
+                              ViandaRepository viandaRepository, PedidoRepository pedidoRepository, PasswordEncoder passwordEncoder) {
         // Inyección de dependencias a través del constructor
         this.usuarioRepository = usuarioRepository;
         this.emprendimientoRepository = emprendimientoRepository;
@@ -80,7 +82,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .stream()
                 .map(UsuarioDTO::new).toList();
 
-        if (encontrados.isEmpty()){
+        if (encontrados.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron usuarios");
         }
         return encontrados;
@@ -88,10 +90,10 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public Optional<UsuarioDTO> findById(Long id) {
-        Optional <UsuarioDTO> encontrado = usuarioRepository.findById(id)
+        Optional<UsuarioDTO> encontrado = usuarioRepository.findById(id)
                 .map(UsuarioDTO::new);
 
-        if (encontrado.isEmpty()){
+        if (encontrado.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron usuarios con el ID: " + id);
         }
 
@@ -100,10 +102,10 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public Optional<UsuarioDTO> findByNombreCompleto(String nombreCompleto) {
-        Optional <UsuarioDTO> encontrado = usuarioRepository.findByNombreCompletoContaining(nombreCompleto)
+        Optional<UsuarioDTO> encontrado = usuarioRepository.findByNombreCompletoContaining(nombreCompleto)
                 .map(UsuarioDTO::new);
 
-        if (encontrado.isEmpty()){
+        if (encontrado.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron usuarios con el nombre: " + nombreCompleto);
         }
 
@@ -112,10 +114,10 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public Optional<UsuarioDTO> findByEmail(String email) {
-        Optional <UsuarioDTO> encontrado = usuarioRepository.findByEmail(email)
+        Optional<UsuarioDTO> encontrado = usuarioRepository.findByEmail(email)
                 .map(UsuarioDTO::new);
 
-        if (encontrado.isEmpty()){
+        if (encontrado.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron usuarios con el email: " + email);
         }
 
@@ -128,7 +130,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .stream()
                 .map(UsuarioDTO::new).toList();
 
-        if (encontrados.isEmpty()){
+        if (encontrados.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron usuarios con el rol: " + rolUsuario);
         }
         return encontrados;
@@ -165,7 +167,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
             String telefonoSinCeros = usuarioUpdateDTO.getTelefono().replaceFirst("^0+", "");
 
-            if ( telefonoSinCeros.length()< 7 ){
+            if (telefonoSinCeros.length() < 7) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
             }
 
@@ -194,7 +196,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         if (usuarioUpdateRolDTO.getEmail() != null) {
-            if ( usuarioRepository.findByEmail(usuarioUpdateRolDTO.getEmail()).isPresent() ){
+            if (usuarioRepository.findByEmail(usuarioUpdateRolDTO.getEmail()).isPresent()) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el email: " + usuarioUpdateRolDTO.getEmail());
             }
 
@@ -205,10 +207,10 @@ public class UsuarioServiceImpl implements UsuarioService {
 
             String telefonoSinCeros = usuarioUpdateRolDTO.getTelefono().replaceFirst("^0+", "");
 
-            if ( telefonoSinCeros.length()< 7 ){
+            if (telefonoSinCeros.length() < 7) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
             }
-            if ( usuarioRepository.findByTelefono(telefonoSinCeros).isPresent() ) {
+            if (usuarioRepository.findByTelefono(telefonoSinCeros).isPresent()) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el telefono: " + telefonoSinCeros);
             }
 
@@ -247,11 +249,11 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id);
         }
 
-        if (!autenticado.getId().equals(id)){
+        if (!autenticado.getId().equals(id)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acceso denegado para eliminar este usuario");
         }
 
-        Usuario usuario = usuarioExistente.get();
+        verificarSiTienePedidos(id);
 
         usuarioRepository.deleteById(id);
         return true;
@@ -279,13 +281,13 @@ public class UsuarioServiceImpl implements UsuarioService {
     public boolean cambiarPasswordAdmin(Long id, String passwordNueva) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
 
-        if (usuarioOpt.isEmpty()){
+        if (usuarioOpt.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id);
         }
 
         Usuario usuario = usuarioOpt.get();
 
-        if (passwordEncoder.matches(passwordNueva, usuario.getPassword())){
+        if (passwordEncoder.matches(passwordNueva, usuario.getPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La nueva contraseña no puede ser igual a la actual");
         }
 
@@ -298,7 +300,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public boolean cambiarPassword(Long id, String passwordActual, String passwordNueva, Usuario autenticado) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
-        if (usuarioOpt.isEmpty()){
+        if (usuarioOpt.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id);
         }
 
@@ -318,6 +320,30 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         usuario.setPassword(passwordEncoder.encode(passwordNueva));
         usuarioRepository.save(usuario);
+        return true;
+    }
+
+    private boolean verificarSiTienePedidos(Long id) {
+
+        // ----------- Pedidos como cliente ----------- //
+        boolean tienePedidosComoCliente =
+                pedidoRepository.existsByEstadoAndUsuarioId(EstadoPedido.PENDIENTE, id)
+                        || pedidoRepository.existsByEstadoAndUsuarioId(EstadoPedido.ACEPTADO, id);
+
+        if (tienePedidosComoCliente) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "No podés eliminar tu cuenta mientras tengas pedidos pendientes o aceptados.");
+        }
+
+        // ----------- Pedidos como dueño de emprendimientos ----------- //
+        boolean tienePedidosComoDueno =
+                pedidoRepository.existsByEstadoAndEmprendimientoUsuarioId(EstadoPedido.PENDIENTE, id)
+                        || pedidoRepository.existsByEstadoAndEmprendimientoUsuarioId(EstadoPedido.ACEPTADO, id);
+
+        if (tienePedidosComoDueno) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "No podés eliminar tu cuenta mientras tus emprendimientos tengan pedidos pendientes o aceptados.");
+        }
         return true;
     }
 }

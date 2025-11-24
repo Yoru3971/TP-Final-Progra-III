@@ -17,5 +17,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     List<Pedido> findByFechaEntrega(LocalDate fechaEntrega);
     List<Pedido> findByFechaEntregaAndUsuarioId(LocalDate fechaEntrega, Long idUsuario);
     List<Pedido> findByFechaEntregaAndEmprendimientoId(LocalDate fechaEntrega, Long idEmprendimiento);
-    List<Pedido> findByEmprendimientoUsuarioId(Long idDueno); //Busca pedidos donde pedido.emprendimiento.usuario.id coincide con el enviado por parametro”
+    //Busca pedidos donde pedido.emprendimiento.usuario.id coincide con el enviado por parametro
+    List<Pedido> findByEmprendimientoUsuarioId(Long idDueno);
+    boolean existsByEstadoAndUsuarioId(EstadoPedido estado, Long usuarioId);
+    boolean existsByEstadoAndEmprendimientoUsuarioId(EstadoPedido estado, Long duenoId);
 }
