@@ -19,6 +19,7 @@ public interface ViandaService {
     List<ViandaDTO> getViandasByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento, Usuario usuario);
     List<ViandaDTO> getViandasDisponiblesByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento);
     Optional<ViandaDTO> findViandaById(Long id, Usuario usuario);
+    Optional<ViandaDTO> findViandaByIdPublic(Long id);
 
     //--------------------------Update--------------------------//
     Optional<ViandaDTO> updateVianda(Long id, ViandaUpdateDTO viandaDto, Usuario usuario);

@@ -195,6 +195,15 @@ public class ViandaServiceImpl implements ViandaService {
         return Optional.of(new ViandaDTO(vianda));
     }
 
+    @Override
+    public Optional<ViandaDTO> findViandaByIdPublic(Long id) {
+
+        Vianda vianda = viandaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada para el Id: " + id));
+
+        return Optional.of(new ViandaDTO(vianda));
+    }
+
     //--------------------------Update--------------------------//
     @Transactional
     @Override
