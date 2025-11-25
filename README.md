@@ -18,7 +18,8 @@ Cuenta con tres tipos de usuarios:
 - MySQL
 - Maven
 - Swagger
-- Basic Auth
+- Seguridad JWT
+- Cloudinary
 
 ## 🚀 Instalación
 
@@ -30,14 +31,21 @@ Cuenta con tres tipos de usuarios:
 
 2. Crear una base de datos MySQL (en localhost):
    ```sql
-   CREATE DATABASE miViandita_db;
+   CREATE DATABASE miviandita_db;
    ```
 
-3. Configurar el archivo `application.properties` (con tus credenciales de MySQL):
-   ```properties
-   spring.datasource.url=jdbc:mysql://localhost:3306/miViandita_db
-   spring.datasource.username=TU_USUARIO
-   spring.datasource.password=TU_CONTRASEÑA
+3. Crear un archivo `.env` en la carpeta raíz del proyecto, y completarlo con tus credenciales de MySQL, JWT y Cloudinary:
+   ```
+   spring_datasource_url=jdbc:mysql://127.0.0.1:3306/miviandita_db
+   spring_datasource_username=[Tu nombre de usuario de MySQL]
+   spring_datasource_password=[Tu contraseña de MySQL]
+
+   jwt_secret=[Tu secreto de JWT, en formato Base64 que represente al menos 256 bits, string de 44 caracteres, algoritmo HS256]
+   jwt_expiration_ms=[Tiempo de expiración del token en milisegundos]
+
+   cloudinary_cloud_name=[Tu Cloud Name de Cloudinary]
+   cloudinary_api_key=[Tu API Key de Cloudinary]
+   cloudinary_api_secret=[Tu API Secret de Cloudinary]
    ```
 
 4. Ejecutar la aplicación:
@@ -54,7 +62,7 @@ El proyecto incluye Swagger para la documentación interactiva de la API.
 
 ## 🔐 Autenticación
 
-El sistema utiliza Basic Auth para autenticar a los usuarios. Según las credenciales ingresadas, se asigna uno de los siguientes roles:
+El sistema utiliza JWT para autenticar a los usuarios. Según las credenciales ingresadas, se asigna uno de los siguientes roles:
 
 - `CLIENTE`
 - `DUENO`
@@ -90,8 +98,6 @@ Cuando se inicia el sistema por primera vez y no existen usuarios en la base de 
 
 ## 🛠️ Funcionalidades futuras
 
-- Agregar frontend web.
-- Reemplazar Basic Auth por JWT.
 - Integración con APIs externas (ej. Mercado Pago).
 
 ## 🤝 Contribuciones
