@@ -43,11 +43,11 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     public EmprendimientoDTO createEmprendimiento(CreateEmprendimientoDTO createEmprendimientoDTO, Usuario usuario) {
 
         Usuario duenioEmprendimiento = usuarioService.findEntityById(createEmprendimientoDTO.getIdUsuario())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Usuario no encontrado con ID: " + createEmprendimientoDTO.getIdUsuario()));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con ID: " + createEmprendimientoDTO.getIdUsuario()));
 
         Long duenioEmprendimientoId = duenioEmprendimiento.getId();
 
-        if ( createEmprendimientoDTO.getTelefono().replaceFirst("^0+", "").length()< 7 ){
+        if (createEmprendimientoDTO.getTelefono().replaceFirst("^0+", "").length() < 7) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
         }
 
@@ -101,7 +101,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         boolean esDuenio = usuario.getRolUsuario().equals(RolUsuario.DUENO);
         boolean esDuenioDelEmprendimiento = emprendimiento.getUsuario().getId().equals(usuario.getId());
 
-        if ( esDuenio && !esDuenioDelEmprendimiento ) {
+        if (esDuenio && !esDuenioDelEmprendimiento) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver este emprendimiento.");
         }
         return Optional.of(new EmprendimientoDTO(emprendimiento));
@@ -154,7 +154,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         boolean esDuenio = usuario.getRolUsuario().equals(RolUsuario.DUENO);
         boolean esDuenioDelEmprendimiento = idUsuario.equals(usuario.getId());
 
-        if ( esDuenio && !esDuenioDelEmprendimiento ) {
+        if (esDuenio && !esDuenioDelEmprendimiento) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver estos emprendimientos.");
         }
 
@@ -167,12 +167,19 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     //--------------------------Update--------------------------//
     @Transactional
     @Override
-    public Optional<EmprendimientoDTO> updateEmprendimiento(Long id, UpdateEmprendimientoDTO updateEmprendimientoDTO, Usuario usuarioLogueado) {
+    public Optional<EmprendimientoDTO> updateEmprendimiento(
+            Long id,
+            UpdateEmprendimientoDTO updateEmprendimientoDTO,
+            Usuario usuarioLogueado
+    ) {
 
         Emprendimiento emprendimiento = emprendimientoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado con ID: " + id));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Emprendimiento no encontrado con ID: " + id
+                ));
 
-        if ( updateEmprendimientoDTO.getTelefono().replaceFirst("^0+", "").length()< 7 ){
+        if (updateEmprendimientoDTO.getTelefono().replaceFirst("^0+", "").length() < 7) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
         }
 
@@ -187,37 +194,42 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
         return emprendimientoRepository.findById(id)
                 .map(emprendimientoExistente -> {
-                    if ( updateEmprendimientoDTO.getNombreEmprendimiento() != null ){
+
+                    if (updateEmprendimientoDTO.getNombreEmprendimiento() != null) {
                         emprendimientoExistente.setNombreEmprendimiento(updateEmprendimientoDTO.getNombreEmprendimiento());
                     }
-                    if ( updateEmprendimientoDTO.getCiudad() != null ){
+
+                    if (updateEmprendimientoDTO.getCiudad() != null) {
                         emprendimientoExistente.setCiudad(updateEmprendimientoDTO.getCiudad());
                     }
-                    if ( updateEmprendimientoDTO.getDireccion() != null ){
+
+                    if (updateEmprendimientoDTO.getDireccion() != null) {
                         emprendimientoExistente.setDireccion(updateEmprendimientoDTO.getDireccion());
                     }
+
+                    // ✔️ Teléfono editable sin validación de duplicados
                     if (updateEmprendimientoDTO.getTelefono() != null) {
-                        Optional<Emprendimiento> emprendimientoConMismoTelefono = emprendimientoRepository.findByTelefono(updateEmprendimientoDTO.getTelefono());
-
-                        if (emprendimientoConMismoTelefono.isPresent() && !emprendimientoConMismoTelefono.get().getId().equals(id)) {
-                            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un emprendimiento con el telefono: " + updateEmprendimientoDTO.getTelefono());
-                        }
-
                         emprendimientoExistente.setTelefono(updateEmprendimientoDTO.getTelefono());
                     }
-                    if ( updateEmprendimientoDTO.getIdUsuario() != null ){
+
+                    if (updateEmprendimientoDTO.getIdUsuario() != null) {
 
                         Usuario usuario = usuarioService.findEntityById(updateEmprendimientoDTO.getIdUsuario())
-                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con ID: " + id));
+                                .orElseThrow(() -> new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "Usuario no encontrado con ID: " + id
+                                ));
 
-                        if ( !usuario.getRolUsuario().equals(RolUsuario.DUENO) ){
-                            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo los usuarios con rol DUEÑO pueden tener emprendimientos.");
+                        if (!usuario.getRolUsuario().equals(RolUsuario.DUENO)) {
+                            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                                    "Solo los usuarios con rol DUEÑO pueden tener emprendimientos.");
                         }
 
                         emprendimientoExistente.setUsuario(usuario);
                     }
-                    Emprendimiento emprendimientoActualizado = emprendimientoRepository.save(emprendimientoExistente);
-                    return new EmprendimientoDTO(emprendimientoActualizado);
+
+                    Emprendimiento actualizado = emprendimientoRepository.save(emprendimientoExistente);
+                    return new EmprendimientoDTO(actualizado);
                 });
     }
 
@@ -264,7 +276,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
         List<Pedido> pedidosConIdEmprendimiento = pedidoRepository.findByEmprendimientoId(id).stream().toList();
 
-        if(!pedidosConIdEmprendimiento.isEmpty()){
+        if (!pedidosConIdEmprendimiento.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se puede eliminar un emprendimiento que tiene pedidos asociados.");
         }
 
@@ -272,11 +284,11 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         boolean esAdmin = usuario.getRolUsuario().equals(RolUsuario.ADMIN);
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuario.getId());
 
-        if ( !esDuenioDelEmprendimiento && !esAdmin ) {
+        if (!esDuenioDelEmprendimiento && !esAdmin) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para eliminar este emprendimiento.");
         }
 
-        if ( emprendimientoRepository.existsById(id) ){
+        if (emprendimientoRepository.existsById(id)) {
             emprendimientoRepository.deleteById(id);
             return true;
         }
@@ -290,13 +302,13 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         return emprendimientoRepository.findById(id);
     }
 
-    private Emprendimiento DTOToEntity(CreateEmprendimientoDTO createEmprendimientoDTO, String imageUrl){
+    private Emprendimiento DTOToEntity(CreateEmprendimientoDTO createEmprendimientoDTO, String imageUrl) {
 
         Long id = createEmprendimientoDTO.getIdUsuario();
         Usuario usuario = usuarioService.findEntityById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con ID: " + id));
 
-        if ( !usuario.getRolUsuario().equals(RolUsuario.DUENO) && usuario.getRolUsuario().equals(RolUsuario.ADMIN) ) {
+        if (!usuario.getRolUsuario().equals(RolUsuario.DUENO) && usuario.getRolUsuario().equals(RolUsuario.ADMIN)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo los usuarios con rol DUEÑO/ADMIN pueden crear emprendimientos.");
         }
 
