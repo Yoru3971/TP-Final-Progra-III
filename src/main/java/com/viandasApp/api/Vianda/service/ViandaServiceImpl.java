@@ -1,9 +1,9 @@
 package com.viandasApp.api.Vianda.service;
 
-import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoServiceImpl;
+import com.viandasApp.api.ServiceGenerales.CloudinaryService;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Vianda.dto.FiltroViandaDTO;
@@ -16,7 +16,6 @@ import com.viandasApp.api.Vianda.repository.ViandaRepository;
 import com.viandasApp.api.Vianda.specification.ViandaSpecifications;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -32,10 +31,7 @@ public class ViandaServiceImpl implements ViandaService {
 
     private final ViandaRepository viandaRepository;
     private final EmprendimientoServiceImpl emprendimientoService;
-
-    //Inyeccion de Cloudinary
-    @Autowired
-    private Cloudinary cloudinary;
+    private final CloudinaryService cloudinaryService;
 
     //--------------------------Create--------------------------//
     @Transactional
@@ -55,17 +51,7 @@ public class ViandaServiceImpl implements ViandaService {
         }
 
         //Subir imagen a Cloudinary
-        String fotoUrl = null;
-        try {
-            var uploadResult = cloudinary.uploader().upload(
-                    dto.getImage().getBytes(),
-                    ObjectUtils.asMap("folder", "viandas")
-            );
-            fotoUrl = (String) uploadResult.get("secure_url");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Error al subir la imagen: " + e.getMessage());
-        }
+        String fotoUrl = cloudinaryService.subirImagen(dto.getImage(), "viandas");
 
         Vianda vianda = DTOtoEntity(dto, fotoUrl);
         vianda.setEmprendimiento(emprendimiento);
@@ -246,16 +232,7 @@ public class ViandaServiceImpl implements ViandaService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenes permiso para editar esta vianda.");
         }
 
-        String fotoUrl;
-        try {
-            var uploadResult = cloudinary.uploader().upload(
-                    image.getBytes(),
-                    ObjectUtils.asMap("folder", "viandas")
-            );
-            fotoUrl = (String) uploadResult.get("secure_url");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al subir la imagen: " + e.getMessage());
-        }
+        String fotoUrl = cloudinaryService.subirImagen(image, "viandas");
 
         vianda.setImagenUrl(fotoUrl);
         viandaRepository.save(vianda);
