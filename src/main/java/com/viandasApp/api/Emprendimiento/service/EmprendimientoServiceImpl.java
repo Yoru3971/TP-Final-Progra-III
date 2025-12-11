@@ -12,6 +12,7 @@ import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
 import com.viandasApp.api.Pedido.service.PedidoServiceImpl;
 import com.viandasApp.api.ServiceGenerales.CloudinaryService;
+import com.viandasApp.api.ServiceGenerales.ImageValidationService;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioServiceImpl;
@@ -34,6 +35,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     private final UsuarioServiceImpl usuarioService;
     private final PedidoRepository pedidoRepository; //Uso el repository y no el service para evitar dependencias circulares
     private final CloudinaryService cloudinaryService;
+    private final ImageValidationService imageValidationService;
 
     //--------------------------Create--------------------------//
     @Transactional
@@ -56,7 +58,10 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo podés crear emprendimientos a tu nombre.");
         }
 
+        imageValidationService.validarImagen(createEmprendimientoDTO.getImage(), ImageValidationService.TipoValidacion.PERFIL);
+
         String fotoUrl = cloudinaryService.subirImagen(createEmprendimientoDTO.getImage(), "emprendimientos");
+
         Emprendimiento emprendimiento = DTOToEntity(createEmprendimientoDTO, fotoUrl);
         Emprendimiento emprendimientoGuardado = emprendimientoRepository.save(emprendimiento);
 

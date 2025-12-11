@@ -1,9 +1,9 @@
 package com.viandasApp.api.Vianda.service;
 
-import com.cloudinary.utils.ObjectUtils;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoServiceImpl;
 import com.viandasApp.api.ServiceGenerales.CloudinaryService;
+import com.viandasApp.api.ServiceGenerales.ImageValidationService;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Vianda.dto.FiltroViandaDTO;
@@ -32,6 +32,7 @@ public class ViandaServiceImpl implements ViandaService {
     private final ViandaRepository viandaRepository;
     private final EmprendimientoServiceImpl emprendimientoService;
     private final CloudinaryService cloudinaryService;
+    private final ImageValidationService imageValidationService;
 
     //--------------------------Create--------------------------//
     @Transactional
@@ -50,7 +51,8 @@ public class ViandaServiceImpl implements ViandaService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para crear esta vianda.");
         }
 
-        //Subir imagen a Cloudinary
+        imageValidationService.validarImagen(dto.getImage(), ImageValidationService.TipoValidacion.VIANDA);
+
         String fotoUrl = cloudinaryService.subirImagen(dto.getImage(), "viandas");
 
         Vianda vianda = DTOtoEntity(dto, fotoUrl);
@@ -231,6 +233,8 @@ public class ViandaServiceImpl implements ViandaService {
             !vianda.getEmprendimiento().getUsuario().getId().equals(usuarioLogueado.getId())){
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenes permiso para editar esta vianda.");
         }
+
+        imageValidationService.validarImagen(image, ImageValidationService.TipoValidacion.VIANDA);
 
         String fotoUrl = cloudinaryService.subirImagen(image, "viandas");
 
