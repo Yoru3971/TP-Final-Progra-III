@@ -29,6 +29,9 @@ public class Usuario implements UserDetails {
     @NotBlank
     private String nombreCompleto;
 
+    @Column(name = "imagen_url", nullable = false)
+    private String imagenUrl;
+
     @Column(nullable = false, unique = true)
     @Email
     @NotBlank
@@ -53,13 +56,15 @@ public class Usuario implements UserDetails {
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Emprendimiento> emprendimientos = new ArrayList<>();
 
-    public Usuario(Long id, String nombreCompleto, String email, String password, String telefono, RolUsuario rolUsuario) {
+    public Usuario(Long id, String nombreCompleto, String email, String password, String telefono
+            , RolUsuario rolUsuario, String imagenUrl) {
         this.id = id;
         this.nombreCompleto = nombreCompleto;
         this.email = email;
         this.password = password;
         this.telefono = telefono;
         this.rolUsuario = rolUsuario;
+        this.imagenUrl = imagenUrl;
     }
 
     // === MÉTODOS DE UserDetails ===
