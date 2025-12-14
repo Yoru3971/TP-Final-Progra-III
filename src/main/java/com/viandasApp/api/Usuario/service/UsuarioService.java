@@ -6,6 +6,7 @@ import com.viandasApp.api.Usuario.dto.UsuarioUpdateDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioUpdateRolDTO;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +26,7 @@ public interface UsuarioService {
     //--------------------------Update--------------------------//
     Optional<UsuarioDTO> updateUsuarioAdmin(Long id, UsuarioUpdateRolDTO userDto);
     Optional<UsuarioDTO> updateUsuario(Long id, UsuarioUpdateDTO dto, Usuario autenticado);
+    UsuarioDTO updateImagenUsuario(Long id, MultipartFile image, Usuario autenticado);
 
     //--------------------------Delete--------------------------//
     boolean deleteUsuarioAdmin(Long id);

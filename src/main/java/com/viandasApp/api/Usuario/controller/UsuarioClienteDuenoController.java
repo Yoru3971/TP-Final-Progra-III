@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,7 +53,33 @@ public class UsuarioClienteDuenoController {
         response.put("Usuario actualizado correctamente",usuarioActualizar );
         return ResponseEntity.ok(usuarioActualizar.get());
     }
-    
+
+    @Operation(
+            summary = "Actualizar foto de perfil",
+            description = "Actualiza la imagen de perfil del usuario autenticado. Solo el propio usuario puede modificar su foto.",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Imagen actualizada correctamente"),
+            @ApiResponse(responseCode = "400", description = "Archivo inválido o formato no permitido"),
+            @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
+            @ApiResponse(responseCode = "403", description = "No tenés permiso para editar este perfil"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PutMapping(value = "/{id}/imagen", consumes = "multipart/form-data")
+    public ResponseEntity<UsuarioDTO> updateImagenUsuario(
+            @PathVariable Long id,
+            @RequestParam("image") MultipartFile image
+    ) {
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        UsuarioDTO usuarioActualizado = usuarioService.updateImagenUsuario(id, image, autenticado);
+
+        return ResponseEntity.ok(usuarioActualizado);
+    }
+
     @Operation(
             summary = "Cambiar contraseña del usuario autenticado",
             description = "Permite al usuario autenticado cambiar su contraseña",
