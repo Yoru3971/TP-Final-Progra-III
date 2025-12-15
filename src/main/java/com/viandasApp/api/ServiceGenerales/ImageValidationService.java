@@ -33,9 +33,11 @@ public class ImageValidationService {
     // LISTA DE PALABRAS CLAVE A BLOQUEAR
     private static final List<String> PALABRAS_PROHIBIDAS = Arrays.asList(
             "weapon", "gun", "pistol", "rifle", "firearm", "knife", "sword",
-            "blood", "gore", "injury",
+            "blood", "gore", "injury", "danger",
             "drugs", "cannabis", "cocaine", "pills", "syringe",
-            "nude", "naked", "erotic", "porn"
+            "addiction", "habit", "substance", "powder", "smoke",
+            "nude", "naked", "erotic", "porn",
+            "empty"
     );
 
     private static final String CLARIFAI_URL = "https://api.clarifai.com/v2/models/";

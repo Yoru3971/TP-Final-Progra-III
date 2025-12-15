@@ -240,6 +240,8 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar este emprendimiento.");
         }
 
+        imageValidationService.validarImagen(image, ImageValidationService.TipoValidacion.PERFIL);
+
         String fotoUrl = cloudinaryService.subirImagen(image, "emprendimientos");
         emprendimiento.setImagenUrl(fotoUrl);
         emprendimientoRepository.save(emprendimiento);
