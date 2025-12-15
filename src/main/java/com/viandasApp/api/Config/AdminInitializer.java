@@ -21,7 +21,8 @@ public class AdminInitializer {
                         "admin@viandas.com",
                         passwordEncoder.encode("admin123"),
                         "12345678",
-                        RolUsuario.ADMIN
+                        RolUsuario.ADMIN,
+                        "https://res.cloudinary.com/dsgqbotzi/image/upload/v1765495736/descarga_rtbq8s.jpg"
                 );
                 usuarioRepository.save(admin);
                 System.out.println("Usuario admin por defecto creado.");

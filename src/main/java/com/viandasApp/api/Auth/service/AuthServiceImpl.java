@@ -91,13 +91,16 @@ public class AuthServiceImpl implements AuthService {
 
     private Usuario DTOToEntity(UsuarioRegisterDTO dto) {
 
+        String imagenPorDefecto = "https://res.cloudinary.com/dsgqbotzi/image/upload/v1765496442/usuario_por_defecto_dtac7c.jpg";
+
         return new Usuario(
                 null, // id será generado por JPA
                 dto.getNombreCompleto(),
                 dto.getEmail(),
                 passwordEncoder.encode(dto.getPassword()),
                 dto.getTelefono(),
-                dto.getRolUsuario()
+                dto.getRolUsuario(),
+                imagenPorDefecto
         );
     }
 

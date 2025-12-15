@@ -4,6 +4,8 @@ import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
+import com.viandasApp.api.ServiceGenerales.CloudinaryService;
+import com.viandasApp.api.ServiceGenerales.ImageValidationService;
 import com.viandasApp.api.Usuario.dto.UsuarioCreateDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Usuario.dto.UsuarioUpdateDTO;
@@ -18,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -30,22 +33,32 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final ViandaRepository viandaRepository;
     private final PedidoRepository pedidoRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CloudinaryService cloudinaryService;
+    private final ImageValidationService imageValidationService;
 
     public UsuarioServiceImpl(UsuarioRepository usuarioRepository, EmprendimientoRepository emprendimientoRepository,
-                              ViandaRepository viandaRepository, PedidoRepository pedidoRepository, PasswordEncoder passwordEncoder) {
+                              ViandaRepository viandaRepository, PedidoRepository pedidoRepository, PasswordEncoder passwordEncoder,
+                              CloudinaryService cloudinaryService, ImageValidationService imageValidationService) {
         // Inyección de dependencias a través del constructor
         this.usuarioRepository = usuarioRepository;
         this.emprendimientoRepository = emprendimientoRepository;
         this.viandaRepository = viandaRepository;
         this.pedidoRepository = pedidoRepository;
         this.passwordEncoder = passwordEncoder;
+        this.cloudinaryService = cloudinaryService;
+        this.imageValidationService = imageValidationService;
     }
 
     //--------------------------Create--------------------------//
     @Override
     @Transactional
     public UsuarioDTO createUsuario(UsuarioCreateDTO usuarioCreateDTO) {
-        Usuario usuario = DTOToEntity(usuarioCreateDTO);
+
+        imageValidationService.validarImagen(usuarioCreateDTO.getImage(), ImageValidationService.TipoValidacion.PERFIL);
+
+        String fotoUrl = cloudinaryService.subirImagen(usuarioCreateDTO.getImage(), "usuarios");
+
+        Usuario usuario = DTOToEntity(usuarioCreateDTO, fotoUrl);
 
         Usuario usuarioLogueado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -187,6 +200,27 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Transactional
     @Override
+    public UsuarioDTO updateImagenUsuario(Long id, MultipartFile image, Usuario autenticado) {
+        if (!autenticado.getId().equals(id)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar la imagen de este perfil.");
+        }
+
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado."));
+
+        imageValidationService.validarImagen(image, ImageValidationService.TipoValidacion.PERFIL);
+
+        String fotoUrl = cloudinaryService.subirImagen(image, "usuarios");
+
+        usuario.setImagenUrl(fotoUrl);
+
+        usuarioRepository.save(usuario);
+        return new UsuarioDTO(usuario);
+    }
+
+
+    @Transactional
+    @Override
     public Optional<UsuarioDTO> updateUsuarioAdmin(Long id, UsuarioUpdateRolDTO usuarioUpdateRolDTO) {
         Usuario usuarioExistente = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id));
@@ -196,9 +230,11 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         if (usuarioUpdateRolDTO.getEmail() != null) {
-            if (usuarioRepository.findByEmail(usuarioUpdateRolDTO.getEmail()).isPresent()) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el email: " + usuarioUpdateRolDTO.getEmail());
-            }
+            usuarioRepository.findByEmail(usuarioUpdateRolDTO.getEmail())
+                    .filter(u -> !u.getId().equals(id))
+                    .ifPresent(u -> {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el email: " + usuarioUpdateRolDTO.getEmail());
+                    });
 
             usuarioExistente.setEmail(usuarioUpdateRolDTO.getEmail());
         }
@@ -210,9 +246,12 @@ public class UsuarioServiceImpl implements UsuarioService {
             if (telefonoSinCeros.length() < 7) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
             }
-            if (usuarioRepository.findByTelefono(telefonoSinCeros).isPresent()) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el telefono: " + telefonoSinCeros);
-            }
+
+            usuarioRepository.findByTelefono(telefonoSinCeros)
+                    .filter(u -> !u.getId().equals(id))
+                    .ifPresent(u -> {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el telefono: " + telefonoSinCeros);
+                    });
 
             usuarioExistente.setTelefono(telefonoSinCeros);
         }
@@ -260,14 +299,15 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     //--------------------------Otros--------------------------//
-    private Usuario DTOToEntity(UsuarioCreateDTO dto) {
+    private Usuario DTOToEntity(UsuarioCreateDTO dto, String imagenUrl) {
         return new Usuario(
                 null, // id será generado por JPA
                 dto.getNombreCompleto(),
                 dto.getEmail(),
                 passwordEncoder.encode(dto.getPassword()),
                 dto.getTelefono(),
-                dto.getRolUsuario()
+                dto.getRolUsuario(),
+                imagenUrl
         );
     }
 

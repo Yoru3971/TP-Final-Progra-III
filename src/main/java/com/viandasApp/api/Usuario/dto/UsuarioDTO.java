@@ -13,6 +13,8 @@ public class UsuarioDTO {
 
     private String nombreCompleto;
 
+    private String imagenUrl;
+
     private String email;
 
     private RolUsuario rolUsuario;
@@ -25,5 +27,6 @@ public class UsuarioDTO {
         this.email = usuario.getEmail();
         this.rolUsuario = usuario.getRolUsuario();
         this.telefono = usuario.getTelefono();
+        this.imagenUrl = usuario.getImagenUrl();
     }
 }

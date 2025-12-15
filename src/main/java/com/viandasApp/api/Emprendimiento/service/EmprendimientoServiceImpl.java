@@ -11,6 +11,8 @@ import com.viandasApp.api.Pedido.dto.PedidoDTO;
 import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
 import com.viandasApp.api.Pedido.service.PedidoServiceImpl;
+import com.viandasApp.api.ServiceGenerales.CloudinaryService;
+import com.viandasApp.api.ServiceGenerales.ImageValidationService;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioServiceImpl;
@@ -32,10 +34,8 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     private final EmprendimientoRepository emprendimientoRepository;
     private final UsuarioServiceImpl usuarioService;
     private final PedidoRepository pedidoRepository; //Uso el repository y no el service para evitar dependencias circulares
-
-    //Inyeccion de Cloudinary
-    @Autowired
-    private Cloudinary cloudinary;
+    private final CloudinaryService cloudinaryService;
+    private final ImageValidationService imageValidationService;
 
     //--------------------------Create--------------------------//
     @Transactional
@@ -58,18 +58,9 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo podés crear emprendimientos a tu nombre.");
         }
 
-        //Subir imagen a Cloudinary
-        String fotoUrl = null;
-        try {
-            var uploadResult = cloudinary.uploader().upload(
-                    createEmprendimientoDTO.getImage().getBytes(),
-                    ObjectUtils.asMap("folder", "emprendimientos")
-            );
-            fotoUrl = (String) uploadResult.get("secure_url");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Error al subir la imagen: " + e.getMessage());
-        }
+        imageValidationService.validarImagen(createEmprendimientoDTO.getImage(), ImageValidationService.TipoValidacion.PERFIL);
+
+        String fotoUrl = cloudinaryService.subirImagen(createEmprendimientoDTO.getImage(), "emprendimientos");
 
         Emprendimiento emprendimiento = DTOToEntity(createEmprendimientoDTO, fotoUrl);
         Emprendimiento emprendimientoGuardado = emprendimientoRepository.save(emprendimiento);
@@ -249,18 +240,9 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar este emprendimiento.");
         }
 
-        String fotoUrl;
-        try {
-            var uploadResult = cloudinary.uploader().upload(
-                    image.getBytes(),
-                    ObjectUtils.asMap("folder", "emprendimientos")
-            );
-            fotoUrl = (String) uploadResult.get("secure_url");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Error al subir la imagen: " + e.getMessage());
-        }
+        imageValidationService.validarImagen(image, ImageValidationService.TipoValidacion.PERFIL);
 
+        String fotoUrl = cloudinaryService.subirImagen(image, "emprendimientos");
         emprendimiento.setImagenUrl(fotoUrl);
         emprendimientoRepository.save(emprendimiento);
         return new EmprendimientoDTO(emprendimiento);
