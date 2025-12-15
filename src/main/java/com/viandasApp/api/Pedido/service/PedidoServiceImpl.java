@@ -18,6 +18,7 @@ import com.viandasApp.api.Vianda.model.Vianda;
 import com.viandasApp.api.Vianda.service.ViandaServiceImpl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cglib.core.Local;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -50,6 +51,22 @@ public class PedidoServiceImpl implements PedidoService {
 
         if (!cliente.getRolUsuario().equals(RolUsuario.CLIENTE)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El usuario no es un cliente.");
+        }
+
+        LocalDate hoy = LocalDate.now();
+        LocalDate fechaEntrega = pedidoCreateDTO.getFechaEntrega();
+
+        if (fechaEntrega == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de entrega es obligatoria.");
+        }
+
+        if (fechaEntrega.isBefore(hoy)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de entrega no puede ser en el pasado.");
+        }
+
+        if (fechaEntrega.isBefore(hoy.plusDays(2))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "El pedido requiere 48hs de anticipación. La fecha más próxima posible es: " + hoy.plusDays(2));
         }
 
         Emprendimiento emprendimientoPedido = emprendimientoService.findEntityById(pedidoCreateDTO.getEmprendimientoId())
