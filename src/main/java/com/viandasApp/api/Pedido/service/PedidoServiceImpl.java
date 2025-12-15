@@ -304,36 +304,43 @@ public class PedidoServiceImpl implements PedidoService {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "No se encontró el pedido con ID " + id + "."));
 
-        // --- Validar que el dueño sea realmente dueño del emprendimiento ---
         if (!pedido.getEmprendimiento().getUsuario().getId().equals(usuarioLogueado.getId())) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN, "El emprendimiento del pedido no pertenece al usuario logueado.");
         }
 
-        // --- Solo se puede actualizar si está pendiente ---
-        if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Solo se pueden actualizar pedidos pendientes.");
-        }
-
         boolean cambioEstado = false;
 
+        if (updatePedidoDTO.getEstado() != null) {
+            EstadoPedido estadoActual = pedido.getEstado();
+            EstadoPedido nuevoEstado = updatePedidoDTO.getEstado();
 
-        // CAMBIO DE ESTADO (dueño acepta o rechaza)
-
-        if (updatePedidoDTO.getEstado() == EstadoPedido.ACEPTADO ||
-                updatePedidoDTO.getEstado() == EstadoPedido.RECHAZADO) {
-            pedido.setEstado(updatePedidoDTO.getEstado());
-            cambioEstado = true;
-        } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "El dueño del emprendimiento solo puede aceptar o rechazar el pedido.");
+            if (estadoActual == EstadoPedido.PENDIENTE) {
+                if (nuevoEstado == EstadoPedido.ACEPTADO || nuevoEstado == EstadoPedido.RECHAZADO) {
+                    pedido.setEstado(nuevoEstado);
+                    cambioEstado = true;
+                } else {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Un pedido pendiente solo puede ser aceptado o rechazado.");
+                }
+            }
+            else if (estadoActual == EstadoPedido.ACEPTADO) {
+                if (nuevoEstado == EstadoPedido.ENTREGADO) {
+                    pedido.setEstado(nuevoEstado);
+                    cambioEstado = true;
+                } else {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Un pedido aceptado solo puede pasar a entregado.");
+                }
+            }
+            else {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "No se puede modificar el estado de un pedido que ya está " + estadoActual);
+            }
         }
 
         Pedido actualizado = pedidoRepository.save(pedido);
 
-
-        // Mensaje para el cliente
         String mensaje = "Tu pedido #" + actualizado.getId()
                 + ", del emprendimiento '" + pedido.getEmprendimiento().getNombreEmprendimiento() + "'";
 
@@ -343,7 +350,6 @@ public class PedidoServiceImpl implements PedidoService {
             mensaje += " fue actualizado";
         }
 
-        // Notificar al cliente
         notificarCambio(actualizado, mensaje, actualizado.getUsuario().getId());
 
         return Optional.of(new PedidoDTO(actualizado));
