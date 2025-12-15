@@ -16,7 +16,7 @@ public class ViandaUpdateDTO {
 
     private CategoriaVianda categoria;
 
-    @Size(max = 400, message = "La descripcion debe tener como máximo {max} caracteres.")
+    @Size(max = 250, message = "La descripcion debe tener como máximo {max} caracteres.")
     private String descripcion;
 
     @DecimalMin(value = "0.0", message = "El precio no puede ser negativo.")
