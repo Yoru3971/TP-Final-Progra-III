@@ -26,6 +26,8 @@ public class UpdateEmprendimientoDTO {
     @Pattern(regexp = "\\d+", message = "El teléfono debe contener solo números.")
     private String telefono;
 
+    private Boolean estaDisponible;
+
     @Min(value = 1, message = "El ID del usuario debe ser mayor o igual a 1.")
     private Long idUsuario;
 
