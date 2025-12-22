@@ -198,9 +198,12 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                         emprendimientoExistente.setDireccion(updateEmprendimientoDTO.getDireccion());
                     }
 
-                    // ✔️ Teléfono editable sin validación de duplicados
                     if (updateEmprendimientoDTO.getTelefono() != null) {
                         emprendimientoExistente.setTelefono(updateEmprendimientoDTO.getTelefono());
+                    }
+
+                    if (updateEmprendimientoDTO.getEstaDisponible() != null) {
+                        emprendimientoExistente.setEstaDisponible(updateEmprendimientoDTO.getEstaDisponible());
                     }
 
                     if (updateEmprendimientoDTO.getIdUsuario() != null) {
