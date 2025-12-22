@@ -40,6 +40,9 @@ public class Emprendimiento {
     @NotBlank
     private String telefono;
 
+    @Column(nullable = false)
+    private Boolean estaDisponible;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
@@ -53,6 +56,7 @@ public class Emprendimiento {
         this.ciudad = ciudad;
         this.direccion = direccion;
         this.telefono = telefono;
+        this.estaDisponible = true;
         this.usuario = usuario;
         this.imagenUrl = imagenUrl;
     }
