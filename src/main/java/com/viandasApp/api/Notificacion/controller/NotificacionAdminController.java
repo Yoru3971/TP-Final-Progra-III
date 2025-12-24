@@ -61,8 +61,8 @@ public class NotificacionAdminController {
     }
 
     @Operation(
-            summary = "Obtener notificación por ID",
-            description = "Devuelve una notificación específica por su ID",
+            summary = "Obtener notificación por ID de destinatario",
+            description = "Devuelve las notificaciones de un usuario específico",
             security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
@@ -72,7 +72,7 @@ public class NotificacionAdminController {
     })
     @GetMapping("/destinatario/{id}")
     public ResponseEntity<List<NotificacionDTO>> getByDestinatario(@PathVariable Long id) {
-        List<NotificacionDTO> notificaciones = notificacionService.getAllByDestinatarioId(id);
+        List<NotificacionDTO> notificaciones = notificacionService.getAllByDestinatarioId(id, null);
         return ResponseEntity.ok(notificaciones);
     }
 

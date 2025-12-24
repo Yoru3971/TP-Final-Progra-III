@@ -12,10 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,10 +27,10 @@ public class NotificacionDuenoController {
 
     //--------------------------Read--------------------------//
     @Operation(
-              summary = "Obtener todas las notificaciones propias",
-              description = "Devuelve una lista de todas las notificaciones del usuario autenticado",
-              security = @SecurityRequirement(name = "bearer-jwt")
-      )
+            summary = "Obtener notificaciones (Filtro opcional)",
+            description = "Devuelve notificaciones. Usa ?leida=false para ver solo las nuevas.",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
       @ApiResponses(value = {
               @ApiResponse(responseCode = "200", description = "Lista de notificaciones obtenida correctamente"),
               @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
@@ -42,10 +39,12 @@ public class NotificacionDuenoController {
               @ApiResponse(responseCode = "500", description = "Error interno del servidor")
       })
     @GetMapping
-    public ResponseEntity<List<NotificacionDTO>> getAllNotificacionesPropias() {
+    public ResponseEntity<List<NotificacionDTO>> getAllNotificacionesPropias(
+            @RequestParam(required = false) Boolean leida
+    ) {
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<NotificacionDTO> notificaciones = notificacionService.getAllByDestinatarioId(autenticado.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(notificaciones);
+        List<NotificacionDTO> notificaciones = notificacionService.getAllByDestinatarioId(autenticado.getId(), leida);
+        return ResponseEntity.ok(notificaciones);
     }
 
     @Operation(
@@ -68,5 +67,15 @@ public class NotificacionDuenoController {
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         List<NotificacionDTO> notificaciones = notificacionService.getAllByFechaEnviadoBetweenAndDestinatarioId(autenticado.getId(), desde, hasta);
         return ResponseEntity.ok(notificaciones);
+    }
+
+    @Operation(
+            summary = "Marcar notificación como leída",
+            security = @SecurityRequirement(name = "bearer-jwt"))
+    @PatchMapping("/{id}/leida")
+    public ResponseEntity<NotificacionDTO> marcarComoLeida(@PathVariable Long id) {
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        NotificacionDTO notificacion = notificacionService.marcarComoLeida(id, autenticado.getId());
+        return ResponseEntity.ok(notificacion);
     }
 }
