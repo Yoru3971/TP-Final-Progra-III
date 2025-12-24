@@ -84,6 +84,20 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     }
 
     @Override
+    public List<EmprendimientoDTO> getAllEmprendimientosDisponibles() {
+
+        List<EmprendimientoDTO> emprendimientos = emprendimientoRepository.findByEstaDisponibleTrue().stream()
+                .map(EmprendimientoDTO::new)
+                .toList();
+
+        if (emprendimientos.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay emprendimientos disponibles registrados.");
+        }
+
+        return emprendimientos;
+    }
+
+    @Override
     public Optional<EmprendimientoDTO> getEmprendimientoById(Long id, Usuario usuario) {
 
         Emprendimiento emprendimiento = emprendimientoRepository.findById(id)
@@ -122,6 +136,20 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     }
 
     @Override
+    public List<EmprendimientoDTO> getEmprendimientosDisponiblesByNombre(String nombreEmprendimiento) {
+
+        List<EmprendimientoDTO> emprendimientos = emprendimientoRepository.findByNombreEmprendimientoContainingAndEstaDisponibleTrue(nombreEmprendimiento)
+                .stream()
+                .map(EmprendimientoDTO::new)
+                .toList();
+        if (emprendimientos.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron emprendimientos disponibles con el nombre: " + nombreEmprendimiento);
+        }
+
+        return emprendimientos;
+    }
+
+    @Override
     public List<EmprendimientoDTO> getEmprendimientosByCiudad(String ciudad) {
         List<EmprendimientoDTO> emprendimientos = emprendimientoRepository.findByCiudad(ciudad)
                 .stream()
@@ -129,6 +157,19 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                 .toList();
         if (emprendimientos.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron emprendimientos en la ciudad: " + ciudad);
+        }
+
+        return emprendimientos;
+    }
+
+    @Override
+    public List<EmprendimientoDTO> getEmprendimientosDisponiblesByCiudad(String ciudad) {
+        List<EmprendimientoDTO> emprendimientos = emprendimientoRepository.findByCiudadAndEstaDisponibleTrue(ciudad)
+                .stream()
+                .map(EmprendimientoDTO::new)
+                .toList();
+        if (emprendimientos.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron emprendimientos disponibles en la ciudad: " + ciudad);
         }
 
         return emprendimientos;
@@ -198,9 +239,12 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                         emprendimientoExistente.setDireccion(updateEmprendimientoDTO.getDireccion());
                     }
 
-                    // ✔️ Teléfono editable sin validación de duplicados
                     if (updateEmprendimientoDTO.getTelefono() != null) {
                         emprendimientoExistente.setTelefono(updateEmprendimientoDTO.getTelefono());
+                    }
+
+                    if (updateEmprendimientoDTO.getEstaDisponible() != null) {
+                        emprendimientoExistente.setEstaDisponible(updateEmprendimientoDTO.getEstaDisponible());
                     }
 
                     if (updateEmprendimientoDTO.getIdUsuario() != null) {

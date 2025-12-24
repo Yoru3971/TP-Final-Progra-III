@@ -16,10 +16,13 @@ public interface EmprendimientoService {
 
     //--------------------------Read--------------------------//
     List<EmprendimientoDTO> getAllEmprendimientos();
+    List<EmprendimientoDTO> getAllEmprendimientosDisponibles();
     Optional<EmprendimientoDTO> getEmprendimientoById(Long id, Usuario usuario);
     Optional<EmprendimientoDTO> getEmprendimientoByIdPublic(Long id);
     List<EmprendimientoDTO> getEmprendimientosByNombre(String nombreEmprendimiento);
+    List<EmprendimientoDTO> getEmprendimientosDisponiblesByNombre(String nombreEmprendimiento);
     List<EmprendimientoDTO> getEmprendimientosByCiudad(String ciudad);
+    List<EmprendimientoDTO> getEmprendimientosDisponiblesByCiudad(String ciudad);
     List<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long id, Usuario usuario);
 
     //--------------------------Update--------------------------//

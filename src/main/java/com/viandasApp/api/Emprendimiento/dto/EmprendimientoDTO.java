@@ -23,6 +23,8 @@ public class EmprendimientoDTO {
 
     private String telefono;
 
+    private Boolean estaDisponible;
+
     private UsuarioDTO dueno;
 
     public EmprendimientoDTO(Emprendimiento emprendimiento){
@@ -31,6 +33,7 @@ public class EmprendimientoDTO {
         this.ciudad = emprendimiento.getCiudad();
         this.direccion = emprendimiento.getDireccion();
         this.telefono = emprendimiento.getTelefono();
+        this.estaDisponible = emprendimiento.getEstaDisponible();
         this.dueno = new UsuarioDTO(emprendimiento.getUsuario());
         this.imagenUrl = emprendimiento.getImagenUrl();
     }
