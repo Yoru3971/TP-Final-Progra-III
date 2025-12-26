@@ -32,10 +32,14 @@ public class Notificacion {
     @JoinColumn(name = "emprendimiento_id")
     private Emprendimiento emprendimiento;
 
+    @Column(nullable = false)
+    private boolean leida = false;
+
     private LocalDate fechaEnviado;
 
     @PrePersist
     public void prePersist() {
         this.fechaEnviado = LocalDate.now();
+        this.leida = false;
     }
 }

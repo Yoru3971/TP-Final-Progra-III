@@ -26,8 +26,8 @@ public class NotificacionClienteController {
 
     //--------------------------Read--------------------------//
     @Operation(
-            summary = "Obtener todas las notificaciones propias",
-            description = "Devuelve una lista de todas las notificaciones del usuario autenticado",
+            summary = "Obtener notificaciones (Filtro opcional)",
+            description = "Devuelve notificaciones. Usa ?leida=false para ver solo las nuevas.",
             security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
@@ -38,10 +38,13 @@ public class NotificacionClienteController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping
-    public ResponseEntity<?> getAllNotificacionesPropias() {
+    public ResponseEntity<?> getAllNotificacionesPropias(
+            @RequestParam(required = false) Boolean leida
+    ) {
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<NotificacionDTO> notificaciones = notificacionService.getAllByDestinatarioId(autenticado.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(notificaciones);
+        // Pasamos el filtro al servicio
+        List<NotificacionDTO> notificaciones = notificacionService.getAllByDestinatarioId(autenticado.getId(), leida);
+        return ResponseEntity.ok(notificaciones);
     }
 
     @Operation(
@@ -64,5 +67,16 @@ public class NotificacionClienteController {
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         List<NotificacionDTO> notificaciones = notificacionService.getAllByFechaEnviadoBetweenAndDestinatarioId(autenticado.getId(), desde, hasta);
         return ResponseEntity.ok(notificaciones);
+    }
+
+    @Operation(
+            summary = "Marcar notificación como leída",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @PatchMapping("/{id}/leida")
+    public ResponseEntity<NotificacionDTO> marcarComoLeida(@PathVariable Long id) {
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        NotificacionDTO notificacion = notificacionService.marcarComoLeida(id, autenticado.getId());
+        return ResponseEntity.ok(notificacion);
     }
 }

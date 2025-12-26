@@ -64,16 +64,23 @@ public class NotificacionServiceImpl implements NotificacionService{
     }
 
     @Override
-    public List<NotificacionDTO> getAllByDestinatarioId(Long destinatarioId) {
+    public List<NotificacionDTO> getAllByDestinatarioId(Long destinatarioId, Boolean leida) {
 
         Usuario usuario = usuarioService.findEntityById(destinatarioId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
 
-        List<Notificacion> notificaciones = notificacionRepository.findAllByDestinatarioId(destinatarioId);
+        List<Notificacion> notificaciones;
+
+        if (leida == null) {
+            notificaciones = notificacionRepository.findAllByDestinatarioId(destinatarioId);
+        } else {
+            notificaciones = notificacionRepository.findAllByDestinatarioIdAndLeida(destinatarioId, leida);
+        }
 
         if (notificaciones.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron notificaciones para el destinatario");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron notificaciones");
         }
+
         return notificaciones.stream().map(NotificacionDTO::new).toList();
     }
 
@@ -135,6 +142,21 @@ public class NotificacionServiceImpl implements NotificacionService{
 
         notificacionRepository.deleteById(id);
         return true;
+    }
+
+    @Transactional
+    @Override
+    public NotificacionDTO marcarComoLeida(Long notificacionId, Long destinatarioId) {
+        Notificacion notificacion = notificacionRepository.findById(notificacionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notificación no encontrada"));
+
+        if (!notificacion.getDestinatario().getId().equals(destinatarioId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para modificar esta notificación");
+        }
+
+        notificacion.setLeida(true);
+        Notificacion guardada = notificacionRepository.save(notificacion);
+        return new NotificacionDTO(guardada);
     }
 
     private Notificacion DTOtoEntity(NotificacionCreateDTO notificacionCreateDTO) {

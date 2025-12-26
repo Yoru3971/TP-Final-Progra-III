@@ -18,6 +18,7 @@ public class NotificacionDTO {
     private Long destinatarioId;
     private Long emprendimientoId;
     private LocalDate fechaEnviado;
+    private boolean leida;
 
     public NotificacionDTO(Notificacion notificacion) {
         this.id = notificacion.getId();
@@ -25,5 +26,6 @@ public class NotificacionDTO {
         this.destinatarioId = notificacion.getDestinatario().getId();
         this.emprendimientoId = notificacion.getEmprendimiento().getId();
         this.fechaEnviado = notificacion.getFechaEnviado();
+        this.leida = notificacion.isLeida();
     }
 }
