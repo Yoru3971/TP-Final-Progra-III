@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface NotificacionService {
-    List<NotificacionDTO> getAllByDestinatarioId(Long destinatarioId);
+    List<NotificacionDTO> getAllByDestinatarioId(Long destinatarioId, Boolean leida);//null = todas, true = leidas, false = no leidas
     List<NotificacionDTO> getAllByEmprendimientoId(Long emprendimientoId);
     List<NotificacionDTO> getAllByFechaEnviadoBetween(LocalDate start, LocalDate end);
     List<NotificacionDTO> getAllNotificaciones();
@@ -15,4 +15,5 @@ public interface NotificacionService {
 
     NotificacionDTO createNotificacion(NotificacionCreateDTO notificacionCreateDTO);
     boolean deleteNotificacion(Long id);
+    NotificacionDTO marcarComoLeida(Long notificacionId, Long destinatarioId);
 }

@@ -11,6 +11,7 @@ import java.util.List;
 @Repository
 public interface NotificacionRepository extends JpaRepository<Notificacion, Long> {
     List<Notificacion> findAllByDestinatarioId(Long destinatarioId);
+    List<Notificacion> findAllByDestinatarioIdAndLeida(Long destinatarioId, boolean leida);
     List<Notificacion> findAllByEmprendimientoId(Long emprendimientoId);
     List<Notificacion> findAllByFechaEnviadoBetween(LocalDate start, LocalDate end);
     List<Notificacion> findAllByDestinatarioIdAndFechaEnviadoBetween(Long destinatarioId, LocalDate start, LocalDate end);
