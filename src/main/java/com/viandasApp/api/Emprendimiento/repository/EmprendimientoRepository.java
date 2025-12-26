@@ -11,7 +11,10 @@ import java.util.Optional;
 public interface EmprendimientoRepository extends JpaRepository<Emprendimiento, Long> {
 
     List<Emprendimiento> findByNombreEmprendimientoContaining(String nombreEmprendimiento);
+    List<Emprendimiento> findByNombreEmprendimientoContainingAndEstaDisponibleTrue(String nombreEmprendimiento);
     List<Emprendimiento> findByCiudad(String ciudad);
+    List<Emprendimiento> findByCiudadAndEstaDisponibleTrue(String ciudad);
+    List<Emprendimiento> findByEstaDisponibleTrue();
     List<Emprendimiento> findByUsuarioId(Long id);
     List<Emprendimiento> findByTelefono(String telefono);
 }
