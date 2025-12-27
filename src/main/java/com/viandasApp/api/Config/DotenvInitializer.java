@@ -49,6 +49,25 @@ public class DotenvInitializer implements ApplicationContextInitializer<Configur
         if (dotenv.get("clarifai.api_key") != null)
             envMap.put("clarifai.api_key", dotenv.get("clarifai.api_key"));
 
+        // Mail
+        if (dotenv.get("spring.mail.host") != null)
+            envMap.put("spring.mail.host", dotenv.get("spring.mail.host"));
+
+        if (dotenv.get("spring.mail.port") != null)
+            envMap.put("spring.mail.port", dotenv.get("spring.mail.port"));
+
+        if (dotenv.get("spring.mail.username") != null)
+            envMap.put("spring.mail.username", dotenv.get("spring.mail.username"));
+
+        if (dotenv.get("spring.mail.password") != null)
+            envMap.put("spring.mail.password", dotenv.get("spring.mail.password"));
+
+        if (dotenv.get("spring.mail.properties.mail.smtp.auth") != null)
+            envMap.put("spring.mail.properties.mail.smtp.auth", dotenv.get("spring.mail.properties.mail.smtp.auth"));
+
+        if (dotenv.get("spring.mail.properties.mail.smtp.starttls.enable") != null)
+            envMap.put("spring.mail.properties.mail.smtp.starttls.enable", dotenv.get("spring.mail.properties.mail.smtp.starttls.enable"));
+
         propertySources.addFirst(new MapPropertySource("dotenvProperties", envMap));
         System.out.println("Loaded .env variables: " + envMap); // Para debug
     }
