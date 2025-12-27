@@ -9,4 +9,6 @@ import org.springframework.http.ResponseEntity;
 public interface AuthService {
     UsuarioDTO registerUsuario(UsuarioRegisterDTO usuarioRegisterDTO);
     UsuarioLogedResponseDTO loginUsuario(UsuarioLoginDTO usuarioLoginDTO);
+    String confirmToken(String token);
+    String resendToken(String email);
 }

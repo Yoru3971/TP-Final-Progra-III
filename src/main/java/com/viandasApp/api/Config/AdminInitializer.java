@@ -24,8 +24,11 @@ public class AdminInitializer {
                         RolUsuario.ADMIN,
                         "https://res.cloudinary.com/dsgqbotzi/image/upload/v1765495736/descarga_rtbq8s.jpg"
                 );
+
+                admin.setEnabled(true);
+
                 usuarioRepository.save(admin);
-                System.out.println("Usuario admin por defecto creado.");
+                System.out.println("Usuario admin por defecto creado y habilitado.");
             }
         };
     }

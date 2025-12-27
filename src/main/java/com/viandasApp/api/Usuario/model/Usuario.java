@@ -9,6 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -50,11 +51,20 @@ public class Usuario implements UserDetails {
     @NotNull
     private RolUsuario rolUsuario;
 
+    @Column(nullable = false)
+    private boolean enabled = false;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pedido> pedidos = new ArrayList<>();
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Emprendimiento> emprendimientos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ConfirmacionToken> tokens = new ArrayList<>();
 
     public Usuario(Long id, String nombreCompleto, String email, String password, String telefono
             , RolUsuario rolUsuario, String imagenUrl) {
@@ -65,6 +75,8 @@ public class Usuario implements UserDetails {
         this.telefono = telefono;
         this.rolUsuario = rolUsuario;
         this.imagenUrl = imagenUrl;
+        this.enabled = false;
+        this.createdAt = LocalDateTime.now();
     }
 
     // === MÉTODOS DE UserDetails ===
@@ -96,6 +108,6 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return this.enabled;
     }
 }

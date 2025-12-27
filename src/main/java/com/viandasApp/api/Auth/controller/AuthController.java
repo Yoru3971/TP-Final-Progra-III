@@ -3,6 +3,7 @@ package com.viandasApp.api.Auth.controller;
 import com.viandasApp.api.Auth.dto.UsuarioLogedResponseDTO;
 import com.viandasApp.api.Auth.dto.UsuarioRegisterDTO;
 import com.viandasApp.api.Auth.service.AuthService;
+import com.viandasApp.api.Auth.service.AuthServiceImpl;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Auth.dto.UsuarioLoginDTO;
 import com.viandasApp.api.Usuario.security.JwtUtil;
@@ -15,10 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -50,5 +48,19 @@ public class AuthController {
     public ResponseEntity<?> login(@Valid @RequestBody UsuarioLoginDTO usuarioLoginDTO) {
         UsuarioLogedResponseDTO usuarioLogeado = authService.loginUsuario(usuarioLoginDTO);
         return ResponseEntity.status(HttpStatus.OK).body(usuarioLogeado);
+    }
+
+    @Operation(summary = "Confirmar cuenta", description = "Valida el token enviado por email y habilita al usuario")
+    @GetMapping("/confirm")
+    public ResponseEntity<String> confirm(@RequestParam("token") String token) {
+        String result = authService.confirmToken(token);
+        return ResponseEntity.ok(result);
+    }
+
+    @Operation(summary = "Reenviar token", description = "Genera un nuevo token de validación si la cuenta no está activa")
+    @PostMapping("/resend-token")
+    public ResponseEntity<String> resendToken(@RequestParam("email") String email) {
+        String result = authService.resendToken(email);
+        return ResponseEntity.ok(result);
     }
 }
