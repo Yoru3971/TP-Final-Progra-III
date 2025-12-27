@@ -56,4 +56,11 @@ public class AuthController {
         String result = authService.confirmToken(token);
         return ResponseEntity.ok(result);
     }
+
+    @Operation(summary = "Reenviar token", description = "Genera un nuevo token de validación si la cuenta no está activa")
+    @PostMapping("/resend-token")
+    public ResponseEntity<String> resendToken(@RequestParam("email") String email) {
+        String result = authService.resendToken(email);
+        return ResponseEntity.ok(result);
+    }
 }

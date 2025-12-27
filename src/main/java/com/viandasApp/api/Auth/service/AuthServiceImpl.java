@@ -87,7 +87,7 @@ public class AuthServiceImpl implements AuthService {
         confirmacionTokenRepository.save(confirmationToken);
 
         //enviar mail
-        String link = "http://localhost:8080/api/public/confirm?token=" + token;
+        String link = "http://localhost:4200/confirmar-cuenta?token=" + token;
         emailService.send(
                 usuarioRegisterDTO.getEmail(),
                 buildEmail(usuarioRegisterDTO.getNombreCompleto(), link)
@@ -143,6 +143,34 @@ public class AuthServiceImpl implements AuthService {
         String token = jwtUtil.generateToken(usuario.get().getEmail(), roleName);
 
         return new UsuarioLogedResponseDTO(usuario.get().getId(), token);
+    }
+    // === REENVIAR TOKEN VALIDACION ===
+    @Override
+    @Transactional
+    public String resendToken(String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "El usuario no existe"));
+
+        if (usuario.isEnabled()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Esta cuenta ya está verificada. Puedes iniciar sesión.");
+        }
+
+        String token = UUID.randomUUID().toString();
+        ConfirmacionToken confirmationToken = new ConfirmacionToken(
+                token,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusMinutes(15),
+                usuario
+        );
+        confirmacionTokenRepository.save(confirmationToken);
+
+        String link = "http://localhost:4200/confirmar-cuenta?token=" + token;
+        emailService.send(
+                usuario.getEmail(),
+                buildEmail(usuario.getNombreCompleto(), link)
+        );
+
+        return "Nuevo código de verificación enviado.";
     }
 
     private Usuario DTOToEntity(UsuarioRegisterDTO dto) {
