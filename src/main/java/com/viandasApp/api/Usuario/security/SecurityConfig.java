@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -32,6 +33,11 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager() {
         return authentication -> {
             var user = usuarioDetailsServiceImpl.loadUserByUsername(authentication.getName());
+
+            if (!user.isEnabled()) {
+                throw new DisabledException("La cuenta no está activada");
+            }
+
             if (!passwordEncoder().matches(authentication.getCredentials().toString(), user.getPassword())) {
                 throw new BadCredentialsException("Contraseña inválida");
             }
