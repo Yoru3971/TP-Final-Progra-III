@@ -88,7 +88,7 @@ public class AuthServiceImpl implements AuthService {
 
         //enviar mail
         String link = "http://localhost:4200/confirmar-cuenta?token=" + token;
-        emailService.send(
+        emailService.sendValidacionCuenta(
                 usuarioRegisterDTO.getEmail(),
                 buildEmail(usuarioRegisterDTO.getNombreCompleto(), link)
         );
@@ -165,7 +165,7 @@ public class AuthServiceImpl implements AuthService {
         confirmacionTokenRepository.save(confirmationToken);
 
         String link = "http://localhost:4200/confirmar-cuenta?token=" + token;
-        emailService.send(
+        emailService.sendValidacionCuenta(
                 usuario.getEmail(),
                 buildEmail(usuario.getNombreCompleto(), link)
         );
