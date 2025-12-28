@@ -105,7 +105,7 @@ public class EmailService {
                         </div>
                         
                         <p class="text">Si necesitamos más información, te contactaremos a este mismo correo.</p>
-                        <p class="text" style="margin-top: 30px;">Atte.<br><strong style="color: #eb8334;">Equipo ViandasApp</strong></p>
+                        <p class="text" style="margin-top: 30px;">Atte.<br><strong style="color: #eb8334;">Equipo MiViandita</strong></p>
                     </div>
                     
                     <div class="footer">
