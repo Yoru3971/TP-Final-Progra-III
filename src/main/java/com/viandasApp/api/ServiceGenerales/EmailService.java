@@ -109,7 +109,7 @@ public class EmailService {
                     </div>
                     
                     <div class="footer">
-                        &copy; 2025 ViandasApp - Tu comida favorita
+                        &copy; 2025 MiViandita - Tus viandas favoritas
                     </div>
                 </div>
             </body>
@@ -170,7 +170,7 @@ public class EmailService {
                         </div>
                     </div>
                     <div class="footer">
-                        Sistema de Reportes - ViandasApp
+                        Sistema de Reportes - MiViandita
                     </div>
                 </div>
             </body>
