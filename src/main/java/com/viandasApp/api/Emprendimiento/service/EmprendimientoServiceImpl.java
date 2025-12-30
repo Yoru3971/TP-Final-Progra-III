@@ -19,6 +19,8 @@ import com.viandasApp.api.Usuario.service.UsuarioServiceImpl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -68,6 +70,42 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         return new EmprendimientoDTO(emprendimientoGuardado);
     }
 
+    //--------------------------Read (Paginación)--------------------------//
+    @Override
+    public Page<EmprendimientoDTO> getAllEmprendimientosDisponibles(Pageable pageable) {
+        Page<EmprendimientoDTO> emprendimientos = emprendimientoRepository.findByEstaDisponibleTrue(pageable)
+                .map(EmprendimientoDTO::new);
+
+        if (emprendimientos.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay emprendimientos disponibles registrados.");
+        }
+
+        return emprendimientos;
+    }
+
+    @Override
+    public Page<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long idUsuario, Usuario usuario, Pageable pageable) {
+
+        Usuario usuarioEncontrado = usuarioService.findEntityById(idUsuario)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con ID: " + idUsuario));
+
+        boolean esDuenio = usuario.getRolUsuario().equals(RolUsuario.DUENO);
+        boolean esDuenioDelEmprendimiento = idUsuario.equals(usuario.getId());
+
+        if (esDuenio && !esDuenioDelEmprendimiento) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver estos emprendimientos.");
+        }
+
+        Page<EmprendimientoDTO> emprendimientos = emprendimientoRepository.findByUsuarioId(idUsuario, pageable)
+                .map(EmprendimientoDTO::new);
+
+        if (emprendimientos.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron emprendimientos.");
+        }
+
+        return emprendimientos;
+    }
+
     //--------------------------Read--------------------------//
     @Override
     public List<EmprendimientoDTO> getAllEmprendimientos() {
@@ -78,20 +116,6 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
         if (emprendimientos.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay emprendimientos registrados.");
-        }
-
-        return emprendimientos;
-    }
-
-    @Override
-    public List<EmprendimientoDTO> getAllEmprendimientosDisponibles() {
-
-        List<EmprendimientoDTO> emprendimientos = emprendimientoRepository.findByEstaDisponibleTrue().stream()
-                .map(EmprendimientoDTO::new)
-                .toList();
-
-        if (emprendimientos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay emprendimientos disponibles registrados.");
         }
 
         return emprendimientos;
@@ -173,27 +197,6 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         }
 
         return emprendimientos;
-    }
-
-    @Override
-    public List<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long idUsuario, Usuario usuario) {
-
-        Usuario usuarioEncontrado = usuarioService.findEntityById(idUsuario)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con ID: " + idUsuario));
-
-        List<Emprendimiento> emprendimientos = emprendimientoRepository.findByUsuarioId(idUsuario);
-
-        boolean esDuenio = usuario.getRolUsuario().equals(RolUsuario.DUENO);
-        boolean esDuenioDelEmprendimiento = idUsuario.equals(usuario.getId());
-
-        if (esDuenio && !esDuenioDelEmprendimiento) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver estos emprendimientos.");
-        }
-
-        return emprendimientos
-                .stream()
-                .map(EmprendimientoDTO::new)
-                .toList();
     }
 
     //--------------------------Update--------------------------//
