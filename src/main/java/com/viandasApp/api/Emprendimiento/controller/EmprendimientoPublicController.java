@@ -8,6 +8,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,17 +23,20 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
 @RestController
 @Tag(name = "Emprendimientos - Público")
 @RequestMapping("/api/public/emprendimientos")
 @RequiredArgsConstructor
 public class EmprendimientoPublicController {
     private final EmprendimientoService emprendimientoService;
+    private final PagedResourcesAssembler<EmprendimientoDTO> pagedResourcesAssembler;
  
     //--------------------------Read--------------------------//
      @Operation(
-            summary = "Obtener todos los emprendimientos disponibles",
-            description = "Devuelve una lista de todos los emprendimientos disponibles"
+            summary = "Obtener todos los emprendimientos disponibles (con paginación)",
+            description = "Devuelve una lista de todos los emprendimientos disponibles con enlaces HATEOAS"
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de emprendimientos obtenida correctamente"),
@@ -35,9 +44,17 @@ public class EmprendimientoPublicController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })  
     @GetMapping
-    public ResponseEntity<List<EmprendimientoDTO>> getAllEmprendimientos(){
-        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getAllEmprendimientosDisponibles();
-        return ResponseEntity.ok(emprendimientos);
+    public ResponseEntity<PagedModel<EntityModel<EmprendimientoDTO>>> getAllEmprendimientos(
+            @PageableDefault(size = 10, page = 0) Pageable pageable
+     ){
+         Page<EmprendimientoDTO> emprendimientosPage = emprendimientoService.getAllEmprendimientosDisponibles(pageable);
+
+         PagedModel<EntityModel<EmprendimientoDTO>> pagedModel = pagedResourcesAssembler.toModel(emprendimientosPage, emprendimiento -> {
+             emprendimiento.add(linkTo(methodOn(EmprendimientoPublicController.class).getEmprendimientoById(emprendimiento.getId())).withSelfRel());
+             return EntityModel.of(emprendimiento);
+         });
+
+         return ResponseEntity.ok(pagedModel);
     }
 
     @Operation(
@@ -50,8 +67,11 @@ public class EmprendimientoPublicController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping("/id/{id}")
-    public ResponseEntity<?> getEmprendimientoById (@PathVariable Long id){
-        Optional<EmprendimientoDTO> emprendimiento = emprendimientoService.getEmprendimientoByIdPublic(id);
+    public ResponseEntity<EmprendimientoDTO> getEmprendimientoById (@PathVariable Long id){
+        EmprendimientoDTO emprendimiento = emprendimientoService.getEmprendimientoByIdPublic(id).get();
+
+        emprendimiento.add(linkTo(methodOn(EmprendimientoPublicController.class).getEmprendimientoById(id)).withSelfRel());
+
         return ResponseEntity.ok(emprendimiento);
     }
 
