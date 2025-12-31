@@ -18,7 +18,8 @@ public interface EmprendimientoService {
 
     //--------------------------Read (Paginación)--------------------------//
     Page<EmprendimientoDTO> getAllEmprendimientosDisponibles(Pageable pageable);
-    Page<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long id, Usuario usuario, Pageable pageable);
+    Page<EmprendimientoDTO> getEmprendimientosDisponiblesByCiudad(String ciudad, Pageable pageable);
+    Page<EmprendimientoDTO> getEmprendimientosByUsuario(Long idUsuario, Usuario usuario, String ciudad, Pageable pageable);
 
     //--------------------------Read--------------------------//
     List<EmprendimientoDTO> getAllEmprendimientos();

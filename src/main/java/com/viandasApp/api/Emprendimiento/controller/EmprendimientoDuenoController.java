@@ -95,7 +95,7 @@ public class EmprendimientoDuenoController {
     }
   
     @Operation(
-            summary = "Obtener emprendimientos propios (con paginación)",
+            summary = "Obtener emprendimientos propios (con paginación y filtro opcional de ciudad)",
             description = "Permite a un dueño obtener una página de sus propios emprendimientos.",
             security = @SecurityRequirement(name = "bearer-jwt")
     )
@@ -107,17 +107,19 @@ public class EmprendimientoDuenoController {
     })
     @GetMapping
     public ResponseEntity<PagedModel<EntityModel<EmprendimientoDTO>>> getEmprendimientosPropios(
+            @RequestParam(required = false) String ciudad,
             @PageableDefault(size = 10, page = 0) Pageable pageable
     ) {
         Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Page<EmprendimientoDTO> emprendimientosPage = emprendimientoService.getEmprendimientosByUsuarioId(usuario.getId(), usuario, pageable);
+        // Pasamos la ciudad (puede ser null) al servicio
+        Page<EmprendimientoDTO> page = emprendimientoService.getEmprendimientosByUsuario(usuario.getId(), usuario, ciudad, pageable);
 
-        PagedModel<EntityModel<EmprendimientoDTO>> pagedModel = pagedResourcesAssembler.toModel(emprendimientosPage, emprendimiento -> {
-            emprendimiento.add(linkTo(methodOn(EmprendimientoDuenoController.class).getEmprendimientoById(emprendimiento.getId())).withSelfRel());
-            emprendimiento.add(linkTo(methodOn(EmprendimientoDuenoController.class).updateEmprendimiento(emprendimiento.getId(), null)).withRel("update"));
-            emprendimiento.add(linkTo(methodOn(EmprendimientoDuenoController.class).deleteEmprendimiento(emprendimiento.getId())).withRel("delete"));
-            return EntityModel.of(emprendimiento);
+        PagedModel<EntityModel<EmprendimientoDTO>> pagedModel = pagedResourcesAssembler.toModel(page, e -> {
+            e.add(linkTo(methodOn(EmprendimientoDuenoController.class).getEmprendimientoById(e.getId())).withSelfRel());
+            e.add(linkTo(methodOn(EmprendimientoDuenoController.class).updateEmprendimiento(e.getId(), null)).withRel("update"));
+            e.add(linkTo(methodOn(EmprendimientoDuenoController.class).deleteEmprendimiento(e.getId())).withRel("delete"));
+            return EntityModel.of(e);
         });
 
         return ResponseEntity.ok(pagedModel);

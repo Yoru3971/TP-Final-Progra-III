@@ -61,6 +61,30 @@ public class EmprendimientoClienteController {
     }
 
     @Operation(
+            summary = "Obtener emprendimientos disponibles por ciudad (con paginación)",
+            description = "Devuelve una lista de emprendimientos que operan en la ciudad especificada con enlaces HATEOAS",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Emprendimientos encontrados"),
+            @ApiResponse(responseCode = "404", description = "No se encontraron emprendimientos disponibles en esa ciudad"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/ciudad/{ciudad}")
+    public ResponseEntity<PagedModel<EntityModel<EmprendimientoDTO>>> getEmprendimientosByCiudad(
+            @PathVariable String ciudad,
+            @PageableDefault(size = 10, page = 0) Pageable pageable
+    ){
+        Page<EmprendimientoDTO> page = emprendimientoService.getEmprendimientosDisponiblesByCiudad(ciudad, pageable);
+
+        PagedModel<EntityModel<EmprendimientoDTO>> pagedModel = pagedResourcesAssembler.toModel(page, e -> {
+            e.add(linkTo(methodOn(EmprendimientoClienteController.class).getEmprendimientoById(e.getId())).withSelfRel());
+            return EntityModel.of(e);
+        });
+        return ResponseEntity.ok(pagedModel);
+    }
+
+    @Operation(
             summary = "Obtener emprendimiento por ID",
             description = "Devuelve un emprendimiento específico por su ID",
             security = @SecurityRequirement(name = "bearer-jwt")
@@ -96,19 +120,4 @@ public class EmprendimientoClienteController {
         return ResponseEntity.ok(emprendimientos);
     }
 
-    @Operation(
-            summary = "Obtener emprendimientos disponibles por ciudad",
-            description = "Devuelve una lista de emprendimientos que operan en la ciudad especificada",
-            security = @SecurityRequirement(name = "bearer-jwt")
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Emprendimientos encontrados"),
-            @ApiResponse(responseCode = "404", description = "No se encontraron emprendimientos disponibles en esa ciudad"),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-    })
-    @GetMapping("/ciudad/{ciudad}")
-    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosByCiudad(@PathVariable String ciudad){
-        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosDisponiblesByCiudad(ciudad);
-        return ResponseEntity.ok(emprendimientos);
-    }
 }

@@ -22,7 +22,9 @@ public interface EmprendimientoRepository extends JpaRepository<Emprendimiento, 
 
     //  Paginación para Public/Cliente
     Page<Emprendimiento> findByEstaDisponibleTrue(Pageable pageable);
+    Page<Emprendimiento> findByCiudadAndEstaDisponibleTrue(String ciudad, Pageable pageable);
 
     //  Paginación para Dueño
     Page<Emprendimiento> findByUsuarioId(Long id, Pageable pageable);
+    Page<Emprendimiento> findByUsuarioIdAndCiudad(Long usuarioId, String ciudad, Pageable pageable);
 }

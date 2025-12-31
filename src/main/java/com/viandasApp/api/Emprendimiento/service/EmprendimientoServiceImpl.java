@@ -84,8 +84,18 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     }
 
     @Override
-    public Page<EmprendimientoDTO> getEmprendimientosByUsuarioId(Long idUsuario, Usuario usuario, Pageable pageable) {
+    public Page<EmprendimientoDTO> getEmprendimientosDisponiblesByCiudad(String ciudad, Pageable pageable) {
+        Page<EmprendimientoDTO> page = emprendimientoRepository.findByCiudadAndEstaDisponibleTrue(ciudad, pageable)
+                .map(EmprendimientoDTO::new);
 
+        if (page.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron emprendimientos disponibles en: " + ciudad);
+        }
+        return page;
+    }
+
+    @Override
+    public Page<EmprendimientoDTO> getEmprendimientosByUsuario(Long idUsuario, Usuario usuario, String ciudad, Pageable pageable) {
         Usuario usuarioEncontrado = usuarioService.findEntityById(idUsuario)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con ID: " + idUsuario));
 
@@ -96,14 +106,19 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver estos emprendimientos.");
         }
 
-        Page<EmprendimientoDTO> emprendimientos = emprendimientoRepository.findByUsuarioId(idUsuario, pageable)
-                .map(EmprendimientoDTO::new);
+        Page<Emprendimiento> resultados;
 
-        if (emprendimientos.isEmpty()) {
+        if (ciudad != null && !ciudad.isBlank()) {
+            resultados = emprendimientoRepository.findByUsuarioIdAndCiudad(idUsuario, ciudad, pageable);
+        } else {
+            resultados = emprendimientoRepository.findByUsuarioId(idUsuario, pageable);
+        }
+
+        if (resultados.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron emprendimientos.");
         }
 
-        return emprendimientos;
+        return resultados.map(EmprendimientoDTO::new);
     }
 
     //--------------------------Read--------------------------//
