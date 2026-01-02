@@ -6,11 +6,12 @@ import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.hateoas.RepresentationModel;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class EmprendimientoDTO {
+public class EmprendimientoDTO extends RepresentationModel<EmprendimientoDTO> {
     private Long id;
 
     private String nombreEmprendimiento;
