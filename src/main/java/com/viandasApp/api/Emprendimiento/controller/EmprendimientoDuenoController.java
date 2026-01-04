@@ -14,6 +14,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,12 +31,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
 @RestController
 @Tag(name = "Emprendimientos - Dueño")
 @RequestMapping("/api/dueno/emprendimientos")
 @RequiredArgsConstructor
 public class EmprendimientoDuenoController {
     private final EmprendimientoService emprendimientoService;
+    private final PagedResourcesAssembler<EmprendimientoDTO> pagedResourcesAssembler;
    
     //--------------------------Create--------------------------//
    @Operation(
@@ -54,6 +63,8 @@ public class EmprendimientoDuenoController {
 
         EmprendimientoDTO emprendimientoGuardado = emprendimientoService.createEmprendimiento(createEmprendimientoDTO, usuario);
 
+       emprendimientoGuardado.add(linkTo(methodOn(EmprendimientoDuenoController.class).getEmprendimientoById(emprendimientoGuardado.getId())).withSelfRel());
+
         Map<String, Object> response = new HashMap<>();
         response.put("Emprendimiento creado correctamente:", emprendimientoGuardado);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -72,15 +83,20 @@ public class EmprendimientoDuenoController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping("/id/{id}")
-    public ResponseEntity<?> getEmprendimientoById(@PathVariable Long id) {
+    public ResponseEntity<EmprendimientoDTO> getEmprendimientoById(@PathVariable Long id) {
         Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Optional<EmprendimientoDTO> emprendimiento = emprendimientoService.getEmprendimientoById(id, usuario);
+        EmprendimientoDTO emprendimiento = emprendimientoService.getEmprendimientoById(id, usuario).get();
+
+        emprendimiento.add(linkTo(methodOn(EmprendimientoDuenoController.class).getEmprendimientoById(id)).withSelfRel());
+        emprendimiento.add(linkTo(methodOn(EmprendimientoDuenoController.class).updateEmprendimiento(id, null)).withRel("update"));
+        emprendimiento.add(linkTo(methodOn(EmprendimientoDuenoController.class).deleteEmprendimiento(id)).withRel("delete"));
+
         return ResponseEntity.ok(emprendimiento);
     }
   
     @Operation(
-            summary = "Obtener emprendimientos propios",
-            description = "Permite a un dueño obtener una lista de sus propios emprendimientos.",
+            summary = "Obtener emprendimientos propios (con paginación y filtro opcional de ciudad)",
+            description = "Permite a un dueño obtener una página de sus propios emprendimientos.",
             security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
@@ -90,10 +106,23 @@ public class EmprendimientoDuenoController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping
-    public ResponseEntity<List<EmprendimientoDTO>> getEmprendimientosPropios() {
+    public ResponseEntity<PagedModel<EntityModel<EmprendimientoDTO>>> getEmprendimientosPropios(
+            @RequestParam(required = false) String ciudad,
+            @PageableDefault(size = 10, page = 0) Pageable pageable
+    ) {
         Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<EmprendimientoDTO> emprendimientos = emprendimientoService.getEmprendimientosByUsuarioId(usuario.getId(), usuario);
-        return ResponseEntity.ok(emprendimientos);
+
+        // Pasamos la ciudad (puede ser null) al servicio
+        Page<EmprendimientoDTO> page = emprendimientoService.getEmprendimientosByUsuario(usuario.getId(), usuario, ciudad, pageable);
+
+        PagedModel<EntityModel<EmprendimientoDTO>> pagedModel = pagedResourcesAssembler.toModel(page, e -> {
+            e.add(linkTo(methodOn(EmprendimientoDuenoController.class).getEmprendimientoById(e.getId())).withSelfRel());
+            e.add(linkTo(methodOn(EmprendimientoDuenoController.class).updateEmprendimiento(e.getId(), null)).withRel("update"));
+            e.add(linkTo(methodOn(EmprendimientoDuenoController.class).deleteEmprendimiento(e.getId())).withRel("delete"));
+            return EntityModel.of(e);
+        });
+
+        return ResponseEntity.ok(pagedModel);
     }
 
     //--------------------------Update--------------------------//
@@ -116,6 +145,10 @@ public class EmprendimientoDuenoController {
                 .getAuthentication().getPrincipal();
 
         Optional<EmprendimientoDTO> emprendimientoActualizado = emprendimientoService.updateEmprendimiento(id, updateEmprendimientoDTO, usuario);
+
+        if (emprendimientoActualizado.isPresent()) {
+            emprendimientoActualizado.get().add(linkTo(methodOn(EmprendimientoDuenoController.class).getEmprendimientoById(id)).withSelfRel());
+        }
 
         Map<String, Object> response = new HashMap<>();
         response.put("Emprendimiento actualizado correctamente:", emprendimientoActualizado);
@@ -143,6 +176,9 @@ public class EmprendimientoDuenoController {
                 .getAuthentication().getPrincipal();
 
         EmprendimientoDTO emprendimientoActualizado = emprendimientoService.updateImagenEmprendimiento(id, image, usuario);
+
+        emprendimientoActualizado.add(linkTo(methodOn(EmprendimientoDuenoController.class).getEmprendimientoById(id)).withSelfRel());
+
         return ResponseEntity.ok(emprendimientoActualizado);
     }
     

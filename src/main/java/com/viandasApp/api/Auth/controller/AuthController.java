@@ -1,9 +1,11 @@
 package com.viandasApp.api.Auth.controller;
 
+import com.viandasApp.api.Auth.dto.GoogleTokenDto;
 import com.viandasApp.api.Auth.dto.UsuarioLogedResponseDTO;
 import com.viandasApp.api.Auth.dto.UsuarioRegisterDTO;
 import com.viandasApp.api.Auth.service.AuthService;
 import com.viandasApp.api.Auth.service.AuthServiceImpl;
+import com.viandasApp.api.Auth.service.GoogleAuthService;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Auth.dto.UsuarioLoginDTO;
 import com.viandasApp.api.Usuario.security.JwtUtil;
@@ -27,6 +29,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final GoogleAuthService googleAuthService;
 
     @Operation(summary = "Registrar usuario", description = "Crea un nuevo usuario")
     @ApiResponses(value = {
@@ -39,6 +42,8 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuario);
     }
 
+    //=== LOGIN ===
+    //--- CREDENCIALES ---
     @Operation(summary = "Iniciar sesión", description = "Autenticación con email y contraseña")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Login exitoso"),
@@ -48,6 +53,20 @@ public class AuthController {
     public ResponseEntity<?> login(@Valid @RequestBody UsuarioLoginDTO usuarioLoginDTO) {
         UsuarioLogedResponseDTO usuarioLogeado = authService.loginUsuario(usuarioLoginDTO);
         return ResponseEntity.status(HttpStatus.OK).body(usuarioLogeado);
+    }
+
+    //--- GMAIL ---
+    @Operation(summary = "Login con Google", description = "Verifica token de Google y loguea si el usuario existe")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Login exitoso, devuelve JWT"),
+            @ApiResponse(responseCode = "403", description = "Usuario no registrado (Debe registrarse)"),
+            @ApiResponse(responseCode = "401", description = "Cuenta deshabilitada"),
+            @ApiResponse(responseCode = "400", description = "Token de Google inválido")
+    })
+    @PostMapping("/google")
+    public ResponseEntity<?> googleLogin(@RequestBody GoogleTokenDto googleTokenDto) {
+        Map<String, Object> respuesta = googleAuthService.loginWithGoogle(googleTokenDto.getToken());
+        return ResponseEntity.ok(respuesta);
     }
 
     @Operation(summary = "Confirmar cuenta", description = "Valida el token enviado por email y habilita al usuario")

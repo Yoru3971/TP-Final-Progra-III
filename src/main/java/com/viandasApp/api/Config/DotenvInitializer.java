@@ -68,6 +68,11 @@ public class DotenvInitializer implements ApplicationContextInitializer<Configur
         if (dotenv.get("spring.mail.properties.mail.smtp.starttls.enable") != null)
             envMap.put("spring.mail.properties.mail.smtp.starttls.enable", dotenv.get("spring.mail.properties.mail.smtp.starttls.enable"));
 
+        // Login con gmail
+        if (dotenv.get("google.client.id") != null) {
+            envMap.put("google.client.id", dotenv.get("google.client.id"));
+        }
+
         propertySources.addFirst(new MapPropertySource("dotenvProperties", envMap));
         System.out.println("Loaded .env variables: " + envMap); // Para debug
     }
