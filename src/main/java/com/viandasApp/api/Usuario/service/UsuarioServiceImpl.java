@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -282,20 +283,22 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Transactional
     @Override
     public boolean deleteUsuario(Long id, Usuario autenticado) {
-
-        Optional<Usuario> usuarioExistente = usuarioRepository.findById(id);
-        if (usuarioExistente.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id);
-        }
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id));
 
         if (!autenticado.getId().equals(id)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acceso denegado para eliminar este usuario");
         }
 
-        verificarSiTienePedidos(id);
+        verificarSiTienePedidosActivos(id);
 
-        usuarioRepository.deleteById(id);
-        return true;
+        if (tieneDatosHistoricos(usuario)) {
+            realizarBajaLogica(usuario);
+            return true;
+        } else {
+            usuarioRepository.deleteById(id);
+            return true;
+        }
     }
 
     //--------------------------Otros--------------------------//
@@ -385,5 +388,42 @@ public class UsuarioServiceImpl implements UsuarioService {
                     "No podés eliminar tu cuenta mientras tus emprendimientos tengan pedidos pendientes o aceptados.");
         }
         return true;
+    }
+
+    private void verificarSiTienePedidosActivos(Long id) {
+        boolean tienePedidosActivos = pedidoRepository.existsByEstadoAndUsuarioId(EstadoPedido.PENDIENTE, id)
+                || pedidoRepository.existsByEstadoAndUsuarioId(EstadoPedido.ACEPTADO, id);
+
+        boolean tienePedidosActivosComoDueno = pedidoRepository.existsByEstadoAndEmprendimientoUsuarioId(EstadoPedido.PENDIENTE, id)
+                || pedidoRepository.existsByEstadoAndEmprendimientoUsuarioId(EstadoPedido.ACEPTADO, id);
+
+        if (tienePedidosActivos || tienePedidosActivosComoDueno) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "No podés eliminar tu cuenta mientras tengas pedidos en curso (Pendientes o Aceptados).");
+        }
+    }
+
+    private boolean tieneDatosHistoricos(Usuario usuario) {
+        boolean tienePedidosHistoricos = !usuario.getPedidos().isEmpty();
+        boolean tieneEmprendimientos = !usuario.getEmprendimientos().isEmpty();
+
+        return tienePedidosHistoricos || tieneEmprendimientos;
+    }
+
+    private void realizarBajaLogica(Usuario usuario) {
+        String timestamp = String.valueOf(System.currentTimeMillis());
+
+        usuario.setNombreCompleto("usuario_borrado_" + timestamp + "_" + usuario.getNombreCompleto());
+
+        usuario.setEmail("usuario_borrado_" + timestamp + "_" + usuario.getEmail());
+
+        usuario.setTelefono("borrado_" + timestamp + "_" + usuario.getTelefono());
+
+        usuario.setImagenUrl("https://res.cloudinary.com/dsgqbotzi/image/upload/v1767728942/usuario_deleted_gi1u0v.webp");
+        usuario.setPassword(passwordEncoder.encode("deleted_user_" + timestamp));
+        usuario.setEnabled(false);
+        usuario.setDeletedAt(LocalDateTime.now());
+
+        usuarioRepository.save(usuario);
     }
 }
