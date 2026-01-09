@@ -395,9 +395,17 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         emprendimiento.setEstaDisponible(false);
 
         if (emprendimiento.getViandas() != null) {
-            List<Vianda> viandas = new ArrayList<>(emprendimiento.getViandas());
-            for (Vianda vianda : viandas) {
+            List<Vianda> viandasCopia = new ArrayList<>(emprendimiento.getViandas());
+
+            for (Vianda vianda : viandasCopia) {
+
+                boolean seraBorradoFisico = vianda.getDetalles().isEmpty();
+
                 viandaService.deleteVianda(vianda.getId(), usuario);
+
+                if (seraBorradoFisico) {
+                    emprendimiento.getViandas().remove(vianda);
+                }
             }
         }
     }
