@@ -2,14 +2,12 @@ package com.viandasApp.api.Vianda.service;
 
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoServiceImpl;
+import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.ServiceGenerales.CloudinaryService;
 import com.viandasApp.api.ServiceGenerales.ImageValidationService;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
-import com.viandasApp.api.Vianda.dto.FiltroViandaDTO;
-import com.viandasApp.api.Vianda.dto.ViandaCreateDTO;
-import com.viandasApp.api.Vianda.dto.ViandaDTO;
-import com.viandasApp.api.Vianda.dto.ViandaUpdateDTO;
+import com.viandasApp.api.Vianda.dto.*;
 import com.viandasApp.api.Vianda.model.CategoriaVianda;
 import com.viandasApp.api.Vianda.model.Vianda;
 import com.viandasApp.api.Vianda.repository.ViandaRepository;
@@ -17,11 +15,14 @@ import com.viandasApp.api.Vianda.specification.ViandaSpecifications;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -185,11 +186,16 @@ public class ViandaServiceImpl implements ViandaService {
 
     @Override
     public Optional<ViandaDTO> findViandaByIdPublic(Long id) {
-
         Vianda vianda = viandaRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada para el Id: " + id));
 
         return Optional.of(new ViandaDTO(vianda));
+    }
+
+    @Override
+    public Page<ViandaAdminDTO> getAllViandasForAdmin(Pageable pageable) {
+        return viandaRepository.findAll(pageable)
+                .map(ViandaAdminDTO::new);
     }
 
     //--------------------------Update--------------------------//
@@ -252,20 +258,31 @@ public class ViandaServiceImpl implements ViandaService {
 
         Long duenioEmprendimientoId = vianda.getEmprendimiento().getUsuario().getId();
 
-        boolean esDuenio = usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO);
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
+        boolean esAdmin = usuarioLogueado.getRolUsuario().equals(RolUsuario.ADMIN);
 
-        if (esDuenio && !esDuenioDelEmprendimiento) {
+        if (!esDuenioDelEmprendimiento && !esAdmin) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para eliminar esta vianda.");
         }
 
-        // Validación para evitar borrar viandas en pedidos
-        if (vianda.getDetalles() != null && !vianda.getDetalles().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se puede eliminar la vianda porque está asociada a uno o más pedidos.");
+        boolean tienePedidosActivos = vianda.getDetalles().stream()
+                .anyMatch(detalle -> {
+                    EstadoPedido estado = detalle.getPedido().getEstado();
+                    return estado == EstadoPedido.PENDIENTE || estado == EstadoPedido.ACEPTADO;
+                });
+
+        if (tienePedidosActivos) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "No se puede eliminar la vianda porque está en un pedido en curso (Pendiente o Aceptado).");
         }
 
-        viandaRepository.delete(vianda);
-        return true;
+        if (vianda.getDetalles().isEmpty()) {
+            viandaRepository.delete(vianda);
+            return true;
+        } else {
+            realizarBajaLogica(vianda);
+            return true;
+        }
     }
 
     //--------------------------Otros--------------------------//
@@ -273,6 +290,21 @@ public class ViandaServiceImpl implements ViandaService {
     public Optional<Vianda> findEntityViandaById(Long id) {
 
         return viandaRepository.findById(id);
+    }
+
+    private void realizarBajaLogica(Vianda vianda) {
+        String timestamp = String.valueOf(System.currentTimeMillis());
+
+        vianda.setNombreVianda("Vianda Eliminada_" + timestamp + "_" + vianda.getNombreVianda());
+        vianda.setDescripcion("Vianda Eliminada_" + timestamp + "_" + vianda.getDescripcion());
+        vianda.setPrecio(0.0);
+
+        vianda.setImagenUrl("https://res.cloudinary.com/dsgqbotzi/image/upload/v1767926581/default_vianda_rb2ila.png");
+
+        vianda.setDeletedAt(LocalDateTime.now());
+        vianda.setEstaDisponible(false);
+
+        viandaRepository.save(vianda);
     }
 
     private Vianda DTOtoEntity(ViandaCreateDTO viandaDTO, String fotoUrl) {
