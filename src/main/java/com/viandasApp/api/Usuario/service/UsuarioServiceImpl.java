@@ -299,6 +299,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         if (tieneDatosHistoricos(usuario)) {
             realizarBajaLogica(usuario);
+            usuarioRepository.save(usuario);
             return true;
         } else {
             usuarioRepository.deleteById(id);
@@ -416,10 +417,16 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     private void realizarBajaLogica(Usuario usuario) {
-        List<Emprendimiento> emprendimientos = new ArrayList<>(usuario.getEmprendimientos());
+        List<Emprendimiento> emprendimientosCopia = new ArrayList<>(usuario.getEmprendimientos());
 
-        for (Emprendimiento emp : emprendimientos) {
+        for (Emprendimiento emp : emprendimientosCopia) {
+            boolean tieneHistorialPedidos = pedidoRepository.existsByEmprendimientoId(emp.getId());
+
             emprendimientoService.deleteEmprendimiento(emp.getId(), usuario);
+
+            if (!tieneHistorialPedidos) {
+                usuario.getEmprendimientos().remove(emp);
+            }
         }
 
         String timestamp = String.valueOf(System.currentTimeMillis());
@@ -432,8 +439,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuario.setPassword(passwordEncoder.encode("deleted_user_" + timestamp));
         usuario.setEnabled(false);
         usuario.setDeletedAt(LocalDateTime.now());
-
-        usuarioRepository.save(usuario);
     }
 
 
