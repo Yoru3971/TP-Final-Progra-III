@@ -13,9 +13,11 @@ import com.viandasApp.api.ServiceGenerales.CloudinaryService;
 import com.viandasApp.api.ServiceGenerales.ImageValidationService;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
-import com.viandasApp.api.Usuario.service.UsuarioServiceImpl;
+import com.viandasApp.api.Usuario.service.UsuarioService;
+import com.viandasApp.api.Vianda.model.Vianda;
+import com.viandasApp.api.Vianda.service.ViandaService;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -24,24 +26,38 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class EmprendimientoServiceImpl implements EmprendimientoService {
 
     private final EmprendimientoRepository emprendimientoRepository;
-    private final UsuarioServiceImpl usuarioService;
+    private final UsuarioService usuarioService;
     private final PedidoRepository pedidoRepository; //Uso el repository y no el service para evitar dependencias circulares
     private final CloudinaryService cloudinaryService;
     private final ImageValidationService imageValidationService;
+    private final ViandaService viandaService;
+
+    public EmprendimientoServiceImpl(EmprendimientoRepository emprendimientoRepository,
+                                     @Lazy UsuarioService usuarioService, // <--- Interfaz aquí
+                                     PedidoRepository pedidoRepository,
+                                     CloudinaryService cloudinaryService,
+                                     ImageValidationService imageValidationService,
+                                     @Lazy ViandaService viandaService) {
+        this.emprendimientoRepository = emprendimientoRepository;
+        this.usuarioService = usuarioService;
+        this.pedidoRepository = pedidoRepository;
+        this.cloudinaryService = cloudinaryService;
+        this.imageValidationService = imageValidationService;
+        this.viandaService = viandaService;
+    }
 
     //--------------------------Create--------------------------//
     @Transactional
     @Override
     public EmprendimientoDTO createEmprendimiento(CreateEmprendimientoDTO createEmprendimientoDTO, Usuario usuario) {
-
         Usuario duenioEmprendimiento = usuarioService.findEntityById(createEmprendimientoDTO.getIdUsuario())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con ID: " + createEmprendimientoDTO.getIdUsuario()));
 
@@ -318,7 +334,6 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     @Transactional
     @Override
     public boolean deleteEmprendimiento(Long id, Usuario usuario) {
-
         Emprendimiento emprendimiento = emprendimientoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado con ID: " + id));
 
@@ -330,9 +345,26 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para eliminar este emprendimiento.");
         }
 
-        List<Pedido> pedidosConIdEmprendimiento = pedidoRepository.findByEmprendimientoId(id).stream().toList();
+        procesarEliminacionEmprendimiento(emprendimiento, usuario);
 
-        boolean tienePedidosEnCurso = pedidosConIdEmprendimiento.stream()
+        return true;
+    }
+
+    private void procesarEliminacionEmprendimiento(Emprendimiento emprendimiento, Usuario usuario) {
+        List<Pedido> pedidosConIdEmprendimiento = pedidoRepository.findByEmprendimientoId(emprendimiento.getId());
+
+        verificarSiTienePedidosActivos(pedidosConIdEmprendimiento);
+
+        if (pedidosConIdEmprendimiento.isEmpty()) {
+            emprendimientoRepository.deleteById(emprendimiento.getId());
+        } else {
+            realizarBajaLogica(emprendimiento, usuario);
+            emprendimientoRepository.save(emprendimiento);
+        }
+    }
+
+    private void verificarSiTienePedidosActivos(List<Pedido> pedidos) {
+        boolean tienePedidosEnCurso = pedidos.stream()
                 .anyMatch(pedido ->
                         pedido.getEstado() == EstadoPedido.PENDIENTE ||
                                 pedido.getEstado() == EstadoPedido.ACEPTADO);
@@ -340,15 +372,6 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         if (tienePedidosEnCurso) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "No se puede eliminar el emprendimiento porque tiene pedidos en curso. Finalizalos o cancelalos antes.");
-        }
-
-        if (pedidosConIdEmprendimiento.isEmpty()) {
-            emprendimientoRepository.deleteById(id);
-            return true;
-        } else {
-            realizarBajaLogica(emprendimiento);
-            emprendimientoRepository.save(emprendimiento);
-            return true;
         }
     }
 
@@ -359,11 +382,10 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         return emprendimientoRepository.findById(id);
     }
 
-    private void realizarBajaLogica(Emprendimiento emprendimiento) {
+    private void realizarBajaLogica(Emprendimiento emprendimiento, Usuario usuario) {
         String timestamp = String.valueOf(System.currentTimeMillis());
 
         emprendimiento.setNombreEmprendimiento("Emprendimiento Eliminado_" + timestamp + "_" + emprendimiento.getNombreEmprendimiento());
-
         emprendimiento.setDireccion("Emprendimiento Eliminado_" + timestamp + "_" + emprendimiento.getDireccion());
         emprendimiento.setCiudad("Emprendimiento Eliminado_" + timestamp + "_" + emprendimiento.getCiudad());
         emprendimiento.setTelefono("Emprendimiento Eliminado_" + timestamp + "_" + emprendimiento.getTelefono());
@@ -373,7 +395,10 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         emprendimiento.setEstaDisponible(false);
 
         if (emprendimiento.getViandas() != null) {
-            emprendimiento.getViandas().forEach(vianda -> vianda.setEstaDisponible(false));
+            List<Vianda> viandas = new ArrayList<>(emprendimiento.getViandas());
+            for (Vianda vianda : viandas) {
+                viandaService.deleteVianda(vianda.getId(), usuario);
+            }
         }
     }
 
