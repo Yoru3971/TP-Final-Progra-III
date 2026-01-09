@@ -257,7 +257,6 @@ public class ViandaServiceImpl implements ViandaService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada para el Id: " + id));
 
         Long duenioEmprendimientoId = vianda.getEmprendimiento().getUsuario().getId();
-
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
         boolean esAdmin = usuarioLogueado.getRolUsuario().equals(RolUsuario.ADMIN);
 
@@ -265,6 +264,23 @@ public class ViandaServiceImpl implements ViandaService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para eliminar esta vianda.");
         }
 
+        procesarEliminacionVianda(vianda);
+
+        return true;
+    }
+
+    private void procesarEliminacionVianda(Vianda vianda) {
+        verificarSiTienePedidosActivos(vianda);
+
+        if (vianda.getDetalles().isEmpty()) {
+            viandaRepository.delete(vianda);
+        } else {
+            realizarBajaLogica(vianda);
+            viandaRepository.save(vianda);
+        }
+    }
+
+    private void verificarSiTienePedidosActivos(Vianda vianda) {
         boolean tienePedidosActivos = vianda.getDetalles().stream()
                 .anyMatch(detalle -> {
                     EstadoPedido estado = detalle.getPedido().getEstado();
@@ -274,14 +290,6 @@ public class ViandaServiceImpl implements ViandaService {
         if (tienePedidosActivos) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "No se puede eliminar la vianda porque está en un pedido en curso (Pendiente o Aceptado).");
-        }
-
-        if (vianda.getDetalles().isEmpty()) {
-            viandaRepository.delete(vianda);
-            return true;
-        } else {
-            realizarBajaLogica(vianda);
-            return true;
         }
     }
 
@@ -303,8 +311,6 @@ public class ViandaServiceImpl implements ViandaService {
 
         vianda.setDeletedAt(LocalDateTime.now());
         vianda.setEstaDisponible(false);
-
-        viandaRepository.save(vianda);
     }
 
     private Vianda DTOtoEntity(ViandaCreateDTO viandaDTO, String fotoUrl) {

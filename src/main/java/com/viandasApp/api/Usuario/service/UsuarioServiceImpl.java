@@ -1,8 +1,8 @@
 package com.viandasApp.api.Usuario.service;
 
-import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
+import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
+import com.viandasApp.api.Emprendimiento.service.EmprendimientoService;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
-import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
 import com.viandasApp.api.ServiceGenerales.CloudinaryService;
 import com.viandasApp.api.ServiceGenerales.ImageValidationService;
@@ -13,9 +13,9 @@ import com.viandasApp.api.Usuario.dto.UsuarioUpdateRolDTO;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.repository.UsuarioRepository;
-import com.viandasApp.api.Usuario.security.SecurityConfig;
 import com.viandasApp.api.Vianda.repository.ViandaRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,26 +24,30 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
     private final UsuarioRepository usuarioRepository;
-    private final EmprendimientoRepository emprendimientoRepository;
-    private final ViandaRepository viandaRepository;
+    private final EmprendimientoService emprendimientoService;
+    private final ViandaRepository viandaRepository; // <--- Agregado nuevamente
     private final PedidoRepository pedidoRepository;
     private final PasswordEncoder passwordEncoder;
     private final CloudinaryService cloudinaryService;
     private final ImageValidationService imageValidationService;
 
-    public UsuarioServiceImpl(UsuarioRepository usuarioRepository, EmprendimientoRepository emprendimientoRepository,
-                              ViandaRepository viandaRepository, PedidoRepository pedidoRepository, PasswordEncoder passwordEncoder,
-                              CloudinaryService cloudinaryService, ImageValidationService imageValidationService) {
-        // Inyección de dependencias a través del constructor
+    public UsuarioServiceImpl(UsuarioRepository usuarioRepository,
+                              @Lazy EmprendimientoService emprendimientoService,
+                              ViandaRepository viandaRepository,
+                              PedidoRepository pedidoRepository,
+                              PasswordEncoder passwordEncoder,
+                              CloudinaryService cloudinaryService,
+                              ImageValidationService imageValidationService) {
         this.usuarioRepository = usuarioRepository;
-        this.emprendimientoRepository = emprendimientoRepository;
-        this.viandaRepository = viandaRepository;
+        this.emprendimientoService = emprendimientoService;
+        this.viandaRepository = viandaRepository; // <--- Asignación
         this.pedidoRepository = pedidoRepository;
         this.passwordEncoder = passwordEncoder;
         this.cloudinaryService = cloudinaryService;
@@ -269,15 +273,10 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Transactional
     @Override
     public boolean deleteUsuarioAdmin(Long id) {
-        Optional<Usuario> usuarioExistente = usuarioRepository.findById(id);
-        if (usuarioExistente.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id);
-        }
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id));
 
-        Usuario usuario = usuarioExistente.get();
-
-        usuarioRepository.delete(usuario);
-        return true;
+        return procesarEliminacionUsuario(usuario);
     }
 
     @Transactional
@@ -290,10 +289,17 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acceso denegado para eliminar este usuario");
         }
 
+        return procesarEliminacionUsuario(usuario);
+    }
+
+    private boolean procesarEliminacionUsuario(Usuario usuario) {
+        Long id = usuario.getId();
+
         verificarSiTienePedidosActivos(id);
 
         if (tieneDatosHistoricos(usuario)) {
             realizarBajaLogica(usuario);
+            usuarioRepository.save(usuario);
             return true;
         } else {
             usuarioRepository.deleteById(id);
@@ -411,19 +417,29 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     private void realizarBajaLogica(Usuario usuario) {
+        List<Emprendimiento> emprendimientosCopia = new ArrayList<>(usuario.getEmprendimientos());
+
+        for (Emprendimiento emp : emprendimientosCopia) {
+            boolean tieneHistorialPedidos = pedidoRepository.existsByEmprendimientoId(emp.getId());
+
+            emprendimientoService.deleteEmprendimiento(emp.getId(), usuario);
+
+            if (!tieneHistorialPedidos) {
+                usuario.getEmprendimientos().remove(emp);
+            }
+        }
+
         String timestamp = String.valueOf(System.currentTimeMillis());
 
         usuario.setNombreCompleto("usuario_borrado_" + timestamp + "_" + usuario.getNombreCompleto());
-
         usuario.setEmail("usuario_borrado_" + timestamp + "_" + usuario.getEmail());
-
         usuario.setTelefono("borrado_" + timestamp + "_" + usuario.getTelefono());
-
         usuario.setImagenUrl("https://res.cloudinary.com/dsgqbotzi/image/upload/v1767728942/usuario_deleted_gi1u0v.webp");
+
         usuario.setPassword(passwordEncoder.encode("deleted_user_" + timestamp));
         usuario.setEnabled(false);
         usuario.setDeletedAt(LocalDateTime.now());
-
-        usuarioRepository.save(usuario);
     }
+
+
 }
