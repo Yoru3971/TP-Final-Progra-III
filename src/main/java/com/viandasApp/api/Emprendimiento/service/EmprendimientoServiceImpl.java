@@ -1,27 +1,21 @@
 package com.viandasApp.api.Emprendimiento.service;
 
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import com.viandasApp.api.Emprendimiento.dto.CreateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoAdminDTO;
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
-import com.viandasApp.api.Pedido.dto.PedidoDTO;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
-import com.viandasApp.api.Pedido.service.PedidoServiceImpl;
 import com.viandasApp.api.ServiceGenerales.CloudinaryService;
 import com.viandasApp.api.ServiceGenerales.ImageValidationService;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioServiceImpl;
-import com.viandasApp.api.Vianda.model.Vianda;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
