@@ -69,6 +69,22 @@ public class EmailService {
         }
     }
 
+    @Async
+    public void sendCambioEstadoReclamo(String to, String nombre, String ticketCode, String nuevoEstado, String respuestaAdmin) {
+        String contenido = buildCambioEstadoEmail(nombre, ticketCode, nuevoEstado, respuestaAdmin);
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
+            helper.setText(contenido, true);
+            helper.setTo(to);
+            helper.setSubject("Actualización de tu Reclamo - " + ticketCode);
+            helper.setFrom(emailFrom);
+            mailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            System.err.println("Error enviando actualización de reclamo: " + e.getMessage());
+        }
+    }
+
     // HTML para el USUARIO
     private String buildReclamoUserEmail(String nombre, String ticket) {
         return """
@@ -176,5 +192,53 @@ public class EmailService {
             </body>
             </html>
             """.formatted(ticket, cat, userEmail, userEmail, desc);
+    }
+
+    // HTML para CAMBIO DE ESTADO
+    private String buildCambioEstadoEmail(String nombre, String ticket, String estado, String respuesta) {
+        // Si no hay respuesta del admin, ponemos un texto genérico
+        String adminResponseHtml = (respuesta != null && !respuesta.isBlank())
+                ? "<div style='background-color: #fff7ed; border-left: 4px solid #eb8334; padding: 15px; margin: 20px 0; color: #555;'>" + respuesta + "</div>"
+                : "<p>Tu reclamo ha sido revisado y su estado ha cambiado.</p>";
+
+        String colorBadge = estado.equals("RESUELTO") ? "#27ae60" : (estado.equals("RECHAZADO") ? "#c0392b" : "#f39c12");
+
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+                    .container { max-width: 600px; margin: 20px auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                    .header { background-color: #eb8334; padding: 20px; text-align: center; color: white; }
+                    .content { padding: 30px; }
+                    .status-badge { background-color: %s; color: white; padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 14px; }
+                    .footer { text-align: center; font-size: 12px; color: #aaa; padding: 20px; border-top: 1px solid #eee; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>Actualización de Ticket</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hola <strong>%s</strong>,</p>
+                        <p>Hay novedades sobre tu reclamo <strong>%s</strong>.</p>
+                        
+                        <p>Nuevo Estado: <span class="status-badge">%s</span></p>
+                        
+                        <h3>Respuesta del soporte:</h3>
+                        %s
+                        
+                        <p style="font-size: 13px; color: #777; margin-top: 30px;">
+                           Si consideras que esto no resuelve tu problema, por favor responde a este correo o inicia un nuevo contacto.
+                        </p>
+                    </div>
+                    <div class="footer">Equipo MiViandita</div>
+                </div>
+            </body>
+            </html>
+            """.formatted(colorBadge, nombre, ticket, estado, adminResponseHtml);
     }
 }

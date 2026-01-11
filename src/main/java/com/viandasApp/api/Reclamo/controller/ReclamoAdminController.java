@@ -1,5 +1,6 @@
 package com.viandasApp.api.Reclamo.controller;
 
+import com.viandasApp.api.Reclamo.dto.ReclamoUpdateDTO;
 import com.viandasApp.api.Reclamo.model.EstadoReclamo;
 import com.viandasApp.api.Reclamo.model.Reclamo;
 import com.viandasApp.api.Reclamo.service.ReclamoService;
@@ -81,15 +82,11 @@ public class ReclamoAdminController {
             @ApiResponse(responseCode = "404", description = "Reclamo no encontrado")
     })
     @PutMapping("/id/{id}/estado")
-    public ResponseEntity<?> updateEstadoReclamo(@PathVariable Long id, @RequestParam EstadoReclamo nuevoEstado) {
+    public ResponseEntity<?> updateEstadoReclamo(@PathVariable Long id, @RequestBody ReclamoUpdateDTO dto) {
         try {
-            Reclamo actualizado = reclamoService.actualizarEstadoReclamo(id, nuevoEstado);
+            Reclamo actualizado = reclamoService.actualizarEstadoReclamo(id, dto.getNuevoEstado(), dto.getRespuestaAdmin());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Estado actualizado correctamente");
-            response.put("reclamo", actualizado);
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(actualizado);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

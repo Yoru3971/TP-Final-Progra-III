@@ -35,11 +35,9 @@ public class ReclamoClienteDuenoController {
     })
     @GetMapping
     public ResponseEntity<?> getMisReclamos() {
-        // Obtenemos el usuario del contexto de seguridad (Igual que en tus Pedidos)
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
 
-        // Usamos el email del usuario autenticado para buscar
         List<Reclamo> misReclamos = reclamoService.listarReclamosPorUsuario(autenticado.getEmail());
 
         return ResponseEntity.ok(misReclamos);

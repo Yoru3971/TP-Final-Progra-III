@@ -69,11 +69,22 @@ public class ReclamoServiceImpl implements ReclamoService {
 
     @Transactional
     @Override
-    public Reclamo actualizarEstadoReclamo(Long id, EstadoReclamo nuevoEstado) {
+    public Reclamo actualizarEstadoReclamo(Long id, EstadoReclamo nuevoEstado, String respuestaAdmin) {
         Reclamo reclamo = reclamoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Reclamo no encontrado"));
 
         reclamo.setEstado(nuevoEstado);
-        return reclamoRepository.save(reclamo);
+
+        if (respuestaAdmin != null && !respuestaAdmin.isBlank()) {
+            reclamo.setRespuestaAdmin(respuestaAdmin);
+        }
+
+        Reclamo updated = reclamoRepository.save(reclamo);
+
+        // Notificar al usuario
+        // Nota: Podrías buscar el nombre del usuario si quisieras, aquí pongo "Usuario" genérico o el mail
+        emailService.sendCambioEstadoReclamo(reclamo.getEmailUsuario(), "Usuario", reclamo.getCodigoTicket(), nuevoEstado.name(), respuestaAdmin);
+
+        return updated;
     }
 }

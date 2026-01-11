@@ -33,5 +33,8 @@ public class Reclamo {
     @Enumerated(EnumType.STRING)
     private EstadoReclamo estado;
 
+    @Column(length = 1000)
+    private String respuestaAdmin;
+
     private LocalDateTime fechaCreacion;
 }

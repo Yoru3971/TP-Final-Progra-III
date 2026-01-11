@@ -14,5 +14,5 @@ public interface ReclamoService {
     List<Reclamo> listarTodosLosReclamos();
     Optional<Reclamo> obtenerReclamoPorId(Long id);
     List<Reclamo> listarReclamosPorEstado(EstadoReclamo estado);
-    Reclamo actualizarEstadoReclamo(Long id, EstadoReclamo nuevoEstado);
+    Reclamo actualizarEstadoReclamo(Long id, EstadoReclamo nuevoEstado, String respuestaAdmin);
 }
