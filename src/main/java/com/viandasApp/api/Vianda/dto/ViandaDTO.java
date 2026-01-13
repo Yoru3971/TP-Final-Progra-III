@@ -6,11 +6,12 @@ import com.viandasApp.api.Vianda.model.Vianda;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.hateoas.RepresentationModel;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ViandaDTO {
+public class ViandaDTO extends RepresentationModel<ViandaDTO> {
     private Long id;
     private String nombreVianda;
     private CategoriaVianda categoria;
