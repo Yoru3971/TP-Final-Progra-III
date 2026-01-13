@@ -1,5 +1,7 @@
 package com.viandasApp.api.ServiceGenerales;
 
+import com.viandasApp.api.Pedido.model.DetallePedido;
+import com.viandasApp.api.Pedido.model.EstadoPedido;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +10,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -85,7 +89,170 @@ public class EmailService {
         }
     }
 
-    // HTML para el USUARIO
+    @Async
+    public void sendPedidoConfirmacionCliente(String to, String nombreCliente, Long pedidoId, String emprendimientoName, Double total, List<DetallePedido> items) {
+        String contenido = buildPedidoClienteEmail(nombreCliente, pedidoId, emprendimientoName, total, items);
+        sendEmail(to, "Confirmación de Pedido #" + pedidoId, contenido);
+    }
+
+    @Async
+    public void sendPedidoNuevoDueno(String to, String nombreDueno, Long pedidoId, String nombreCliente, Double total, List<DetallePedido> items) {
+        String contenido = buildPedidoDuenoEmail(nombreDueno, pedidoId, nombreCliente, total, items);
+        sendEmail(to, "Nuevo Pedido #" + pedidoId + " Recibido", contenido);
+    }
+
+    @Async
+    public void sendPedidoEstadoUpdate(String to, String nombreCliente, Long pedidoId, String emprendimientoName, EstadoPedido nuevoEstado) {
+        String contenido = buildPedidoEstadoEmail(nombreCliente, pedidoId, emprendimientoName, nuevoEstado);
+        sendEmail(to, "Tu pedido #" + pedidoId + " ha sido " + nuevoEstado, contenido);
+    }
+
+    private void sendEmail(String to, String subject, String content) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
+            helper.setText(content, true);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setFrom(emailFrom);
+            mailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            System.err.println("Error enviando email a " + to + ": " + e.getMessage());
+        }
+    }
+
+    // HTML BUILDERS PARA PEDIDOS Y RECLAMOS (contenido del mail)
+
+    private String buildViandasListHtml(List<DetallePedido> items) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<table style='width: 100%; border-collapse: collapse; margin-top: 15px;'>");
+        sb.append("<tr style='background-color: #fff7ed; color: #e68033;'><th style='padding: 8px; text-align: left;'>Vianda</th><th style='padding: 8px; text-align: center;'>Cant.</th><th style='padding: 8px; text-align: right;'>Subtotal</th></tr>");
+
+        for (DetallePedido item : items) {
+            sb.append("<tr>");
+            sb.append("<td style='padding: 8px; border-bottom: 1px solid #eee;'>").append(item.getVianda().getNombreVianda()).append("</td>");
+            sb.append("<td style='padding: 8px; border-bottom: 1px solid #eee; text-align: center;'>").append(item.getCantidad()).append("</td>");
+            sb.append("<td style='padding: 8px; border-bottom: 1px solid #eee; text-align: right;'>$").append(item.getSubtotal()).append("</td>");
+            sb.append("</tr>");
+        }
+        sb.append("</table>");
+        return sb.toString();
+    }
+
+    private String buildPedidoClienteEmail(String nombre, Long id, String emprendimiento, Double total, List<DetallePedido> items) {
+        String itemsHtml = buildViandasListHtml(items);
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: 'Segoe UI', sans-serif; background-color: #fff7ed; margin: 0; padding: 0; }
+                    .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 6px solid #eb8334; }
+                    .header h1 { color: #eb8334; font-size: 24px; margin: 0 0 10px 0; }
+                    .info { color: #555; line-height: 1.6; }
+                    .total { text-align: right; font-size: 18px; font-weight: bold; color: #333; margin-top: 15px; }
+                    .footer { text-align: center; font-size: 12px; color: #999; margin-top: 30px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>¡Pedido Confirmado!</h1>
+                    </div>
+                    <p class="info">Hola <strong>%s</strong>,</p>
+                    <p class="info">Tu pedido <strong>#%d</strong> a <strong>%s</strong> se ha registrado correctamente y está pendiente de aprobación.</p>
+                    
+                    <h3>Detalle del pedido:</h3>
+                    %s
+                    
+                    <div class="total">Total: $%s</div>
+                    
+                    <p class="info" style="margin-top: 20px;">Te notificaremos cuando el emprendimiento acepte tu pedido.</p>
+                    
+                    <div class="footer">Gracias por elegir MiViandita</div>
+                </div>
+            </body>
+            </html>
+            """.formatted(nombre, id, emprendimiento, itemsHtml, total);
+    }
+
+    private String buildPedidoDuenoEmail(String nombreDueno, Long id, String cliente, Double total, List<DetallePedido> items) {
+        String itemsHtml = buildViandasListHtml(items);
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; margin: 0; padding: 0; }
+                    .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; padding: 30px; border-left: 6px solid #eb8334; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+                    .title { color: #333; font-size: 22px; font-weight: bold; margin-bottom: 20px; }
+                    .badge { background-color: #eb8334; color: white; padding: 5px 10px; border-radius: 4px; font-size: 14px; vertical-align: middle; }
+                    .content { color: #555; line-height: 1.5; }
+                    .btn { display: inline-block; background-color: #eb8334; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: bold; }
+                    .total { font-size: 20px; font-weight: bold; color: #eb8334; text-align: right; margin-top: 10px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="title">Nueva Venta <span class="badge">#%d</span></div>
+                    <p class="content">Hola <strong>%s</strong>,</p>
+                    <p class="content"> <strong>%s</strong> ha realizado un nuevo pedido.</p>
+                    
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                    
+                    %s
+                    
+                    <div class="total">Total: $%s</div>
+                    
+                    <p class="content">Ingresa a MiViandita para aceptar o rechazar el pedido.</p>
+                    
+                </div>
+            </body>
+            </html>
+            """.formatted(id, nombreDueno, cliente, itemsHtml, total);
+    }
+
+    private String buildPedidoEstadoEmail(String nombre, Long id, String emprendimiento, EstadoPedido estado) {
+        String color = estado == EstadoPedido.ACEPTADO ? "#27ae60" : "#c0392b";
+        String mensajeExtra = estado == EstadoPedido.ACEPTADO
+                ? "Tu pedido fue aceptado, el emprendimiento se contactará contigo para coordinar la entrega."
+                : "Lo sentimos, el emprendimiento no puede tomar tu pedido en este momento.";
+
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+                    .container { max-width: 600px; margin: 30px auto; background: #ffffff; border-radius: 8px; overflow: hidden; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+                    .header { background-color: %s; padding: 30px; color: white; }
+                    .status-icon { font-size: 40px; margin-bottom: 10px; display: block; }
+                    .body { padding: 40px; color: #555; }
+                    .h2 { margin: 0; font-size: 24px; }
+                    .order-ref { background: #f8f9fa; display: inline-block; padding: 10px 20px; border-radius: 50px; margin: 20px 0; font-weight: bold; color: #333; border: 1px solid #ddd; }
+                    .footer { background-color: #f9f9f9; padding: 15px; font-size: 12px; color: #aaa; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <div class="h2">Pedido %s</div>
+                    </div>
+                    <div class="body">
+                        <p>Hola <strong>%s</strong>,</p>
+                        <p>El estado de tu pedido a <strong>%s</strong> ha cambiado.</p>
+                        
+                        <div class="order-ref">Pedido #%d</div>
+                        
+                        <p style="font-size: 16px;">%s</p>
+                    </div>
+                    <div class="footer">MiViandita</div>
+                </div>
+            </body>
+            </html>
+            """.formatted(color, estado, nombre, emprendimiento, id, mensajeExtra);
+    }
+
     private String buildReclamoUserEmail(String nombre, String ticket) {
         return """
             <!DOCTYPE html>
@@ -133,7 +300,6 @@ public class EmailService {
             """.formatted(ticket);
     }
 
-    // HTML para el ADMIN
     private String buildReclamoAdminEmail(String ticket, String cat, String desc, String userEmail) {
         return """
             <!DOCTYPE html>
@@ -194,7 +360,6 @@ public class EmailService {
             """.formatted(ticket, cat, userEmail, userEmail, desc);
     }
 
-    // HTML para CAMBIO DE ESTADO
     private String buildCambioEstadoEmail(String nombre, String ticket, String estado, String respuesta) {
         // Si no hay respuesta del admin, ponemos un texto genérico
         String adminResponseHtml = (respuesta != null && !respuesta.isBlank())
