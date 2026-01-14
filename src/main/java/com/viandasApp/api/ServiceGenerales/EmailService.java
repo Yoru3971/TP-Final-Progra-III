@@ -24,69 +24,25 @@ public class EmailService {
 
     @Async
     public void sendValidacionCuenta(String to, String emailContent) {
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
-
-            helper.setText(emailContent, true);
-            helper.setTo(to);
-            helper.setSubject("Confirma tu cuenta - ViandasApp");
-
-            helper.setFrom(emailFrom);
-
-            mailSender.send(mimeMessage);
-        } catch (MessagingException e) {
-            throw new IllegalStateException("Error al enviar el correo", e);
-        }
+        sendEmail(to, "Confirma tu cuenta - MiViandita", emailContent);
     }
 
     @Async
     public void sendReclamoConfirmacion(String to, String nombre, String ticketCode) {
         String contenido = buildReclamoUserEmail(nombre, ticketCode);
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
-            helper.setText(contenido, true);
-            helper.setTo(to);
-            helper.setSubject("Reclamo Recibido - Ticket: " + ticketCode);
-            helper.setFrom(emailFrom);
-            mailSender.send(mimeMessage);
-        } catch (MessagingException e) {
-            System.err.println("Error enviando confirmación de reclamo: " + e.getMessage());
-        }
+        sendEmail(to, "Reclamo Recibido - Ticket: " + ticketCode, contenido);
     }
 
     @Async
     public void sendReclamoNotificacionAdmin(String ticketCode, String categoria, String descripcion, String usuarioEmail) {
         String contenido = buildReclamoAdminEmail(ticketCode, categoria, descripcion, usuarioEmail);
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
-            helper.setText(contenido, true);
-            //lo enviamos al mail de la app, se podria cambiar a uno especializado para reclamos o de admins
-            helper.setTo(emailFrom);
-            helper.setSubject("NUEVO RECLAMO - " + categoria + " [" + ticketCode + "]");
-            helper.setFrom(emailFrom);
-            mailSender.send(mimeMessage);
-        } catch (MessagingException e) {
-            System.err.println("Error enviando notificación al admin: " + e.getMessage());
-        }
+        sendEmail(emailFrom, "NUEVO RECLAMO - " + categoria + " [" + ticketCode + "]", contenido);
     }
 
     @Async
     public void sendCambioEstadoReclamo(String to, String nombre, String ticketCode, String nuevoEstado, String respuestaAdmin) {
         String contenido = buildCambioEstadoEmail(nombre, ticketCode, nuevoEstado, respuestaAdmin);
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
-            helper.setText(contenido, true);
-            helper.setTo(to);
-            helper.setSubject("Actualización de tu Reclamo - " + ticketCode);
-            helper.setFrom(emailFrom);
-            mailSender.send(mimeMessage);
-        } catch (MessagingException e) {
-            System.err.println("Error enviando actualización de reclamo: " + e.getMessage());
-        }
+        sendEmail(to, "Actualización de tu Reclamo - " + ticketCode, contenido);
     }
 
     @Async
