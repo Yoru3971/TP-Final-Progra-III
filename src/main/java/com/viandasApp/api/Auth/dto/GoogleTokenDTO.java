@@ -3,6 +3,6 @@ package com.viandasApp.api.Auth.dto;
 import lombok.Data;
 
 @Data
-public class GoogleTokenDto {
+public class GoogleTokenDTO {
     private String token;
 }
