@@ -1,13 +1,10 @@
 package com.viandasApp.api.Usuario.dto;
 
 import com.viandasApp.api.Usuario.model.RolUsuario;
-import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
 import jakarta.validation.constraints.*;
 import lombok.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @AllArgsConstructor
 @Setter
@@ -17,9 +14,6 @@ public class UsuarioCreateDTO {
     @NotBlank(message = "El nombre es obligatorio.")
     @Size(min = 1, max = 255, message = "El nombre debe tener entre {min} y {max} caracteres.")
     private String nombreCompleto;
-
-    //@NotNull(message = "La foto de perfil es obligatoria.")
-    private MultipartFile image;
 
     @Email
     @NotBlank(message = "El email es obligatorio.")
