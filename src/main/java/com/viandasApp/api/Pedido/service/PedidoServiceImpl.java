@@ -10,6 +10,7 @@ import com.viandasApp.api.Pedido.model.DetallePedido;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
+import com.viandasApp.api.ServiceGenerales.EmailService;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
@@ -36,6 +37,7 @@ public class PedidoServiceImpl implements PedidoService {
     private final EmprendimientoServiceImpl emprendimientoService;
     private final ViandaServiceImpl viandaService;
     private final NotificacionServiceImpl notificacionService;
+    private final EmailService emailService;
 
     //--------------------------Create--------------------------//
     @Transactional
@@ -75,10 +77,9 @@ public class PedidoServiceImpl implements PedidoService {
         Pedido pedido = DTOtoEntity(pedidoCreateDTO, cliente, emprendimientoPedido, viandaService);
 
         Pedido guardado = pedidoRepository.save(pedido);
-        //Como este metodo lo usa el cliente, notificamos al dueño del emprendimiento
 
+        // Notificación interna al dueño
         Long idDuenoEmprendimiento = guardado.getEmprendimiento().getUsuario().getId();
-
         notificarCambio(
                 guardado,
                 "Te hicieron un nuevo pedido para tu emprendimiento '" + guardado.getEmprendimiento().getNombreEmprendimiento() +
@@ -86,6 +87,32 @@ public class PedidoServiceImpl implements PedidoService {
                         "', se registró con el ID #" + guardado.getId(),
                 idDuenoEmprendimiento
         );
+
+        // ENvío mail al cliente (Confirmación de pedido)
+        if (cliente.getEmail() != null) {
+            emailService.sendPedidoConfirmacionCliente(
+                    cliente.getEmail(),
+                    cliente.getNombreCompleto(),
+                    guardado.getId(),
+                    emprendimientoPedido.getNombreEmprendimiento(),
+                    guardado.getTotal(),
+                    guardado.getViandas()
+            );
+        }
+
+        // Envío mail al dueño (Nuevo pedido)
+        Usuario dueno = emprendimientoPedido.getUsuario();
+        if (dueno.getEmail() != null) {
+            emailService.sendPedidoNuevoDueno(
+                    dueno.getEmail(),
+                    dueno.getNombreCompleto(),
+                    guardado.getId(),
+                    cliente.getNombreCompleto(),
+                    guardado.getTotal(),
+                    guardado.getViandas()
+            );
+        }
+
         return new PedidoDTO(guardado);
     }
 
@@ -350,7 +377,26 @@ public class PedidoServiceImpl implements PedidoService {
             mensaje += " fue actualizado";
         }
 
+        // Notificación interna
         notificarCambio(actualizado, mensaje, actualizado.getUsuario().getId());
+
+        // Envío mail al cliente si cambió el estado de un pedido
+        if (cambioEstado && updatePedidoDTO.getEstado() != null) {
+            EstadoPedido nuevo = updatePedidoDTO.getEstado();
+
+            // Solo mando mail si se acepta o rechaza
+            if (nuevo == EstadoPedido.ACEPTADO || nuevo == EstadoPedido.RECHAZADO) {
+                if (actualizado.getUsuario().getEmail() != null) {
+                    emailService.sendPedidoEstadoUpdate(
+                            actualizado.getUsuario().getEmail(),
+                            actualizado.getUsuario().getNombreCompleto(),
+                            actualizado.getId(),
+                            actualizado.getEmprendimiento().getNombreEmprendimiento(),
+                            nuevo
+                    );
+                }
+            }
+        }
 
         return Optional.of(new PedidoDTO(actualizado));
     }
