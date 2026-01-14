@@ -48,7 +48,7 @@ public class EmailService {
     @Async
     public void sendPedidoConfirmacionCliente(String to, String nombreCliente, Long pedidoId, String emprendimientoName, Double total, List<DetallePedido> items) {
         String contenido = buildPedidoClienteEmail(nombreCliente, pedidoId, emprendimientoName, total, items);
-        sendEmail(to, "Confirmación de Pedido #" + pedidoId, contenido);
+        sendEmail(to, "Tu Pedido #" + pedidoId + " fue recibido", contenido);
     }
 
     @Async
@@ -113,7 +113,7 @@ public class EmailService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>¡Pedido Confirmado!</h1>
+                        <h1>¡Pedido Recibido!</h1>
                     </div>
                     <p class="info">Hola <strong>%s</strong>,</p>
                     <p class="info">Tu pedido <strong>#%d</strong> a <strong>%s</strong> se ha registrado correctamente y está pendiente de aprobación.</p>
