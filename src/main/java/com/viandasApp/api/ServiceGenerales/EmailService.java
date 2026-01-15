@@ -22,89 +22,15 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String emailFrom;
 
-    // VALIDACION EMAIL CUENTA
+
+    //  ----------------------  EMAILS DE CUENTA  ----------------------
+
+    // Validación de cuenta
     @Async
     public void sendValidacionCuenta(String to, String nombre, String link) {
         String emailContent = buildValidacionCuentaEmail(nombre, link);
         sendEmail(to, "Confirma tu cuenta - MiViandita", emailContent);
     }
-
-    @Async
-    public void sendRecoveryEmail(String to, String nombre, String token) {
-        String link = "http://localhost:4200/change-password?token=" + token;
-        String contenido = buildRecoveryEmail(nombre, link);
-
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
-            helper.setText(contenido, true);
-            helper.setTo(to);
-            helper.setSubject("Restablecer Contraseña - MiViandita");
-            helper.setFrom(emailFrom);
-            mailSender.send(mimeMessage);
-        } catch (MessagingException e) {
-            System.err.println("Error enviando email de recuperación: " + e.getMessage());
-        }
-    }
-
-    // CONFIRMACION POR EMAIL AL CLIENTE DE RECLAMO ENVIADO
-    @Async
-    public void sendReclamoConfirmacion(String to, String nombre, String ticketCode) {
-        String contenido = buildReclamoUserEmail(nombre, ticketCode);
-        sendEmail(to, "Reclamo Recibido - Ticket: " + ticketCode, contenido);
-    }
-
-    // NOTIFICACION POR MAIL AL ADMIN DE UN NUEVO RECLAMO
-    @Async
-    public void sendReclamoNotificacionAdmin(String ticketCode, String categoria, String descripcion, String usuarioEmail) {
-        String contenido = buildReclamoAdminEmail(ticketCode, categoria, descripcion, usuarioEmail);
-        sendEmail(emailFrom, "NUEVO RECLAMO - " + categoria + " [" + ticketCode + "]", contenido);
-    }
-
-    // AVISO AL CLIENTE QUE SU RECLAMO TUVO CAMBIO DE ESTADO
-    @Async
-    public void sendCambioEstadoReclamo(String to, String nombre, String ticketCode, String nuevoEstado, String respuestaAdmin) {
-        String contenido = buildCambioEstadoEmail(nombre, ticketCode, nuevoEstado, respuestaAdmin);
-        sendEmail(to, "Actualización de reclamo - " + ticketCode, contenido);
-    }
-
-    @Async
-    public void sendPedidoConfirmacionCliente(String to, String nombreCliente, Long pedidoId, String emprendimientoName, Double total, List<DetallePedido> items) {
-        String contenido = buildPedidoClienteEmail(nombreCliente, pedidoId, emprendimientoName, total, items);
-        sendEmail(to, "Tu Pedido fue recibido #" + pedidoId, contenido);
-    }
-
-    @Async
-    public void sendPedidoNuevoDueno(String to, String nombreDueno, Long pedidoId, String nombreCliente, Double total, List<DetallePedido> items) {
-        String contenido = buildPedidoDuenoEmail(nombreDueno, pedidoId, nombreCliente, total, items);
-        sendEmail(to, "Nuevo pedido recibido #" + pedidoId, contenido);
-    }
-
-    @Async
-    public void sendPedidoEstadoUpdate(String to, String nombreCliente, Long pedidoId, String emprendimientoName, EstadoPedido nuevoEstado, List<DetallePedido> items) {
-        String asunto = "Actualización sobre tu pedido #" + pedidoId;
-        String contenido = buildPedidoEstadoEmail(nombreCliente, pedidoId, emprendimientoName, nuevoEstado, items);
-        sendEmail(to, asunto, contenido);
-    }
-
-    private void sendEmail(String to, String subject, String content) {
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
-            helper.setText(content, true);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setFrom(emailFrom);
-            mailSender.send(mimeMessage);
-        } catch (MessagingException e) {
-            System.err.println("Error enviando email a " + to + ": " + e.getMessage());
-        }
-    }
-
-
-    // -------------------  HTML BUILDERS (contenido del mail)  -------------------
-
-    // Validación de cuenta
     private String buildValidacionCuentaEmail(String nombre, String link) {
         return """
             <!DOCTYPE html>
@@ -150,23 +76,67 @@ public class EmailService {
             """.formatted(nombre, link);
     }
 
-    // Pedidos
-    private String buildViandasListHtml(List<DetallePedido> items) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<table style='width: 100%; border-collapse: collapse; margin-top: 15px;'>");
-        sb.append("<tr style='background-color: #fff7ed; color: #e68033;'><th style='padding: 8px; text-align: left;'>Vianda</th><th style='padding: 8px; text-align: center;'>Cant.</th><th style='padding: 8px; text-align: right;'>Subtotal</th></tr>");
-
-        for (DetallePedido item : items) {
-            sb.append("<tr>");
-            sb.append("<td style='padding: 8px; border-bottom: 1px solid #eee;'>").append(item.getVianda().getNombreVianda()).append("</td>");
-            sb.append("<td style='padding: 8px; border-bottom: 1px solid #eee; text-align: center;'>").append(item.getCantidad()).append("</td>");
-            sb.append("<td style='padding: 8px; border-bottom: 1px solid #eee; text-align: right;'>$").append(item.getSubtotal()).append("</td>");
-            sb.append("</tr>");
-        }
-        sb.append("</table>");
-        return sb.toString();
+    //  Recuperar contraseña
+    @Async
+    public void sendRecoveryEmail(String to, String nombre, String token) {
+        String link = "http://localhost:4200/change-password?token=" + token;
+        String contenido = buildRecoveryEmail(nombre, link);
+        sendEmail(to, "Restablecer Contraseña - MiViandita", contenido);
+    }
+    private String buildRecoveryEmail(String nombre, String link) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: 'Segoe UI', sans-serif; background-color: #fff7ed; margin: 0; padding: 0; }
+                    .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; padding: 40px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 6px solid #eb8334; border-bottom: 6px solid #eb8334; }
+                    .header { text-align: center; margin-bottom: 30px; }
+                    .header h1 { color: #eb8334; font-size: 26px; margin: 0; font-weight: bold; }
+                    .content { color: #555; line-height: 1.6; font-size: 16px; text-align: center; }
+                    .btn { display: inline-block; background-color: #eb8334; color: #ffffff !important; padding: 12px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; margin: 25px 0; box-shadow: 0 4px 6px rgba(235, 131, 52, 0.3); }
+                    .btn:hover { background-color: #d35400; color: #ffffff !important; }
+                    .footer { text-align: center; font-size: 12px; color: #999; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+                    .footer img { height: 25px; vertical-align: middle; }
+                    .footer span { vertical-align: middle; margin-left: 8px; font-weight: 500; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>Recuperación de Contraseña</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hola <strong>%s</strong>,</p>
+                        <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en MiViandita.</p>
+                        
+                        <a href="%s" class="btn" style="color: #ffffff !important;">Cambiar mi contraseña</a>
+                        
+                        <p>Este enlace expirará en 15 minutos por tu seguridad.</p>
+                        
+                        <p style="font-size: 13px; color: #777; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+                            Si tú no solicitaste este cambio, puedes ignorar este correo tranquilamente. Tu contraseña seguirá siendo la misma.
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <img src="https://res.cloudinary.com/dsgqbotzi/image/upload/v1767926581/default_vianda_rb2ila.png" alt="Logo">
+                        <span>MiViandita</span>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(nombre, link);
     }
 
+
+    //  ----------------------  EMAILS DE PEDIDOS  ----------------------
+
+    //  Confirmación pedido (cliente)
+    @Async
+    public void sendPedidoConfirmacionCliente(String to, String nombreCliente, Long pedidoId, String emprendimientoName, Double total, List<DetallePedido> items) {
+        String contenido = buildPedidoClienteEmail(nombreCliente, pedidoId, emprendimientoName, total, items);
+        sendEmail(to, "Tu Pedido fue recibido #" + pedidoId, contenido);
+    }
     private String buildPedidoClienteEmail(String nombre, Long id, String emprendimiento, Double total, List<DetallePedido> items) {
         String itemsHtml = buildViandasListHtml(items);
         return """
@@ -227,6 +197,12 @@ public class EmailService {
             """.formatted(nombre, emprendimiento, id, itemsHtml, total);
     }
 
+    //  Pedido recibido (dueño)
+    @Async
+    public void sendPedidoNuevoDueno(String to, String nombreDueno, Long pedidoId, String nombreCliente, Double total, List<DetallePedido> items) {
+        String contenido = buildPedidoDuenoEmail(nombreDueno, pedidoId, nombreCliente, total, items);
+        sendEmail(to, "Nuevo pedido recibido #" + pedidoId, contenido);
+    }
     private String buildPedidoDuenoEmail(String nombreDueno, Long id, String cliente, Double total, List<DetallePedido> items) {
         String itemsHtml = buildViandasListHtml(items);
         return """
@@ -287,6 +263,13 @@ public class EmailService {
             """.formatted(nombreDueno, cliente, id, itemsHtml, total);
     }
 
+    //  Cambio de estado del pedido (cliente)
+    @Async
+    public void sendPedidoEstadoUpdate(String to, String nombreCliente, Long pedidoId, String emprendimientoName, EstadoPedido nuevoEstado, List<DetallePedido> items) {
+        String asunto = "Actualización sobre tu pedido #" + pedidoId;
+        String contenido = buildPedidoEstadoEmail(nombreCliente, pedidoId, emprendimientoName, nuevoEstado, items);
+        sendEmail(to, asunto, contenido);
+    }
     private String buildPedidoEstadoEmail(String nombre, Long id, String emprendimiento, EstadoPedido estado, List<DetallePedido> items) {
 
         String colorEstado = estado == EstadoPedido.ACEPTADO ? "#27ae60" : "#c0392b";
@@ -352,7 +335,15 @@ public class EmailService {
             """.formatted(nombre, emprendimiento, id, colorEstado, textoEstado, itemsHtml, totalCalculado, mensajeExtra);
     }
 
-    // Reclamos
+
+    //  ----------------------  EMAILS DE RECLAMOS  ----------------------
+
+    // Confirmación de reclamo (cliente)
+    @Async
+    public void sendReclamoConfirmacion(String to, String nombre, String ticketCode) {
+        String contenido = buildReclamoUserEmail(nombre, ticketCode);
+        sendEmail(to, "Reclamo Recibido - Ticket: " + ticketCode, contenido);
+    }
     private String buildReclamoUserEmail(String nombre, String ticket) {
         return """
             <!DOCTYPE html>
@@ -402,6 +393,12 @@ public class EmailService {
             """.formatted(ticket);
     }
 
+    // Reclamo recibido (admin)
+    @Async
+    public void sendReclamoNotificacionAdmin(String ticketCode, String categoria, String descripcion, String usuarioEmail) {
+        String contenido = buildReclamoAdminEmail(ticketCode, categoria, descripcion, usuarioEmail);
+        sendEmail(emailFrom, "NUEVO RECLAMO - " + categoria + " [" + ticketCode + "]", contenido);
+    }
     private String buildReclamoAdminEmail(String ticket, String cat, String desc, String userEmail) {
         return """
             <!DOCTYPE html>
@@ -479,6 +476,12 @@ public class EmailService {
             """.formatted(ticket, cat, userEmail, userEmail, desc);
     }
 
+    // Cambio de estado del reclamo (cliente)
+    @Async
+    public void sendCambioEstadoReclamo(String to, String nombre, String ticketCode, String nuevoEstado, String respuestaAdmin) {
+        String contenido = buildCambioEstadoEmail(nombre, ticketCode, nuevoEstado, respuestaAdmin);
+        sendEmail(to, "Actualización de reclamo - " + ticketCode, contenido);
+    }
     private String buildCambioEstadoEmail(String nombre, String ticket, String estado, String respuesta) {
         // Si no hay respuesta del admin, ponemos un texto genérico
         String adminResponseHtml = (respuesta != null && !respuesta.isBlank())
@@ -545,54 +548,39 @@ public class EmailService {
             """.formatted(nombre, ticket, colorBadge, estado, adminResponseHtml);
     }
 
-    // HTML PARA OLVIDE CONTRASEÑA
-    private String buildRecoveryEmail(String nombre, String link) {
-        return """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <style>
-                    body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #fff7ed; }
-                    .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
-                    .card { background-color: #ffffff; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 6px solid #eb8334; }
-                    .header { text-align: center; margin-bottom: 30px; }
-                    .title { color: #eb8334; font-size: 24px; font-weight: bold; margin: 0; }
-                    .text { color: #555555; font-size: 16px; line-height: 1.6; }
-                    .btn-container { text-align: center; margin: 30px 0; }
-                    .btn { background-color: #eb8334; color: #ffffff !important; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; }
-                    .btn:hover { background-color: #d6762b; }
-                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #999999; }
-                    .warning { font-size: 13px; color: #777; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="card">
-                        <div class="header">
-                            <h1 class="title">Recuperación de Contraseña</h1>
-                        </div>
-                        
-                        <p class="text">Hola <strong>%s</strong>,</p>
-                        <p class="text">Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en MiViandita.</p>
-                        
-                        <div class="btn-container">
-                            <a href="%s" class="btn">Cambiar mi contraseña</a>
-                        </div>
-                        
-                        <p class="text">Este enlace expirará en 15 minutos por tu seguridad.</p>
-                        
-                        <div class="warning">
-                            Si tú no solicitaste este cambio, puedes ignorar este correo tranquilamente. Tu contraseña seguirá siendo la misma.
-                        </div>
-                    </div>
-                    
-                    <div class="footer">
-                        &copy; MiViandita - Tus viandas favoritas
-                    </div>
-                </div>
-            </body>
-            </html>
-            """.formatted(nombre, link);
+
+    //  ----------------------  REUTILIZABLES  ----------------------
+
+    //  Envía mail genérico
+    private void sendEmail(String to, String subject, String content) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
+            helper.setText(content, true);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setFrom(emailFrom);
+            mailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            System.err.println("Error enviando email a " + to + ": " + e.getMessage());
+        }
     }
+
+    //  HTML de la lista de viandas de un pedido
+    private String buildViandasListHtml(List<DetallePedido> items) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<table style='width: 100%; border-collapse: collapse; margin-top: 15px;'>");
+        sb.append("<tr style='background-color: #fff7ed; color: #e68033;'><th style='padding: 8px; text-align: left;'>Vianda</th><th style='padding: 8px; text-align: center;'>Cant.</th><th style='padding: 8px; text-align: right;'>Subtotal</th></tr>");
+
+        for (DetallePedido item : items) {
+            sb.append("<tr>");
+            sb.append("<td style='padding: 8px; border-bottom: 1px solid #eee;'>").append(item.getVianda().getNombreVianda()).append("</td>");
+            sb.append("<td style='padding: 8px; border-bottom: 1px solid #eee; text-align: center;'>").append(item.getCantidad()).append("</td>");
+            sb.append("<td style='padding: 8px; border-bottom: 1px solid #eee; text-align: right;'>$").append(item.getSubtotal()).append("</td>");
+            sb.append("</tr>");
+        }
+        sb.append("</table>");
+        return sb.toString();
+    }
+
 }
