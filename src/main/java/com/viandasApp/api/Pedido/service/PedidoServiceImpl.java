@@ -392,7 +392,8 @@ public class PedidoServiceImpl implements PedidoService {
                             actualizado.getUsuario().getNombreCompleto(),
                             actualizado.getId(),
                             actualizado.getEmprendimiento().getNombreEmprendimiento(),
-                            nuevo
+                            nuevo,
+                            actualizado.getViandas()
                     );
                 }
             }

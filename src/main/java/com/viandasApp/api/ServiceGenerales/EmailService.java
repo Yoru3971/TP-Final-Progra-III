@@ -23,7 +23,8 @@ public class EmailService {
     private String emailFrom;
 
     @Async
-    public void sendValidacionCuenta(String to, String emailContent) {
+    public void sendValidacionCuenta(String to, String nombre, String link) {
+        String emailContent = buildValidacionCuentaEmail(nombre, link);
         sendEmail(to, "Confirma tu cuenta - MiViandita", emailContent);
     }
 
@@ -42,25 +43,26 @@ public class EmailService {
     @Async
     public void sendCambioEstadoReclamo(String to, String nombre, String ticketCode, String nuevoEstado, String respuestaAdmin) {
         String contenido = buildCambioEstadoEmail(nombre, ticketCode, nuevoEstado, respuestaAdmin);
-        sendEmail(to, "Actualización de tu Reclamo - " + ticketCode, contenido);
+        sendEmail(to, "Actualización de reclamo - " + ticketCode, contenido);
     }
 
     @Async
     public void sendPedidoConfirmacionCliente(String to, String nombreCliente, Long pedidoId, String emprendimientoName, Double total, List<DetallePedido> items) {
         String contenido = buildPedidoClienteEmail(nombreCliente, pedidoId, emprendimientoName, total, items);
-        sendEmail(to, "Tu Pedido #" + pedidoId + " fue recibido", contenido);
+        sendEmail(to, "Tu Pedido fue recibido #" + pedidoId, contenido);
     }
 
     @Async
     public void sendPedidoNuevoDueno(String to, String nombreDueno, Long pedidoId, String nombreCliente, Double total, List<DetallePedido> items) {
         String contenido = buildPedidoDuenoEmail(nombreDueno, pedidoId, nombreCliente, total, items);
-        sendEmail(to, "Nuevo Pedido #" + pedidoId + " Recibido", contenido);
+        sendEmail(to, "Nuevo pedido recibido #" + pedidoId, contenido);
     }
 
     @Async
-    public void sendPedidoEstadoUpdate(String to, String nombreCliente, Long pedidoId, String emprendimientoName, EstadoPedido nuevoEstado) {
-        String contenido = buildPedidoEstadoEmail(nombreCliente, pedidoId, emprendimientoName, nuevoEstado);
-        sendEmail(to, "Tu pedido #" + pedidoId + " ha sido " + nuevoEstado, contenido);
+    public void sendPedidoEstadoUpdate(String to, String nombreCliente, Long pedidoId, String emprendimientoName, EstadoPedido nuevoEstado, List<DetallePedido> items) {
+        String asunto = "Actualización sobre tu pedido #" + pedidoId;
+        String contenido = buildPedidoEstadoEmail(nombreCliente, pedidoId, emprendimientoName, nuevoEstado, items);
+        sendEmail(to, asunto, contenido);
     }
 
     private void sendEmail(String to, String subject, String content) {
@@ -77,8 +79,56 @@ public class EmailService {
         }
     }
 
-    // HTML BUILDERS PARA PEDIDOS Y RECLAMOS (contenido del mail)
 
+    // -------------------  HTML BUILDERS (contenido del mail)  -------------------
+
+    // Validación de cuenta
+    private String buildValidacionCuentaEmail(String nombre, String link) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: 'Segoe UI', sans-serif; background-color: #fff7ed; margin: 0; padding: 0; }
+                    .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; padding: 40px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 6px solid #eb8334; border-bottom: 6px solid #eb8334; }
+                    .header { text-align: center; margin-bottom: 30px; }
+                    .header h1 { color: #eb8334; font-size: 26px; margin: 0; font-weight: bold; }
+                    .content { color: #555; line-height: 1.6; font-size: 16px; text-align: center; }
+                    .btn { display: inline-block; background-color: #eb8334; color: #ffffff !important; padding: 12px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; margin: 25px 0; box-shadow: 0 4px 6px rgba(235, 131, 52, 0.3); }
+                    .btn:hover { background-color: #d35400; color: #ffffff !important; }
+                    .footer { text-align: center; font-size: 12px; color: #999; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+                    .footer img { height: 25px; vertical-align: middle; }
+                    .footer span { vertical-align: middle; margin-left: 8px; font-weight: 500; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>¡Bienvenido a MiViandita!</h1>
+                    </div>
+                    <div class="content">
+                        <p>¡Hola <strong>%s</strong>, gracias por registrarte!</p>
+                        <p>Estás a un solo paso de empezar a disfrutar de las mejores viandas.</p>
+                        <p>Por favor, valida tu correo electrónico haciendo click en el siguiente botón:</p>
+                        
+                        <a href="%s" class="btn" style="color: #ffffff !important;">Activar mi cuenta</a>
+                        
+                        <p style="font-size: 13px; color: #777; margin-top: 20px;">
+                           Si no creaste esta cuenta, puedes ignorar este mensaje.<br>
+                           El enlace expirará en 15 minutos.
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <img src="https://res.cloudinary.com/dsgqbotzi/image/upload/v1767926581/default_vianda_rb2ila.png" alt="Logo">
+                        <span>MiViandita</span>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(nombre, link);
+    }
+
+    // Pedidos
     private String buildViandasListHtml(List<DetallePedido> items) {
         StringBuilder sb = new StringBuilder();
         sb.append("<table style='width: 100%; border-collapse: collapse; margin-top: 15px;'>");
@@ -103,33 +153,56 @@ public class EmailService {
             <head>
                 <style>
                     body { font-family: 'Segoe UI', sans-serif; background-color: #fff7ed; margin: 0; padding: 0; }
-                    .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 6px solid #eb8334; }
-                    .header h1 { color: #eb8334; font-size: 24px; margin: 0 0 10px 0; }
-                    .info { color: #555; line-height: 1.6; }
-                    .total { text-align: right; font-size: 18px; font-weight: bold; color: #333; margin-top: 15px; }
-                    .footer { text-align: center; font-size: 12px; color: #999; margin-top: 30px; }
+                    .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; padding: 40px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 6px solid #eb8334; border-bottom: 6px solid #eb8334; }
+                    .header { text-align: center; margin-bottom: 30px; }
+                    .header h1 { color: #eb8334; font-size: 26px; margin: 0; font-weight: bold; }
+                    .info { color: #555; line-height: 1.6; font-size: 16px; margin-bottom: 25px; text-align: center; }
+                    .status-line { 
+                        text-align: center; 
+                        margin: 25px 0; 
+                        font-size: 18px; 
+                        padding-bottom: 15px;
+                        border-bottom: 1px dashed #ddd;
+                    }
+                    .id-badge { background-color: #fff7ed; color: #e68033; padding: 5px 12px; border-radius: 15px; font-weight: bold; font-size: 16px; border: 1px solid #ffdcb0; }
+                    .separator { color: #ccc; margin: 0 10px; }
+                    .status-text { font-weight: bold; color: #f5b041; }
+                    .total { text-align: right; font-size: 20px; font-weight: bold; color: #eb8334; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; }
+                    .footer { text-align: center; font-size: 12px; color: #999; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+                    .footer img { height: 25px; vertical-align: middle; }
+                    .footer span { vertical-align: middle; margin-left: 8px; font-weight: 500; }
+                    .center-text { text-align: center; }
                 </style>
             </head>
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>¡Pedido Recibido!</h1>
+                        <h1>Pedido Recibido</h1>
                     </div>
-                    <p class="info">Hola <strong>%s</strong>,</p>
-                    <p class="info">Tu pedido <strong>#%d</strong> a <strong>%s</strong> se ha registrado correctamente y está pendiente de aprobación.</p>
                     
-                    <h3>Detalle del pedido:</h3>
+                    <p class="info">Hola <strong>%s</strong>, tu pedido a <strong>%s</strong> se ha registrado correctamente y está pendiente de aprobación.</p>
+                    
+                    <div class="status-line">
+                        <span class="id-badge">Pedido #%d</span>
+                        <span class="separator">|</span>
+                        <span class="status-text">PENDIENTE</span>
+                    </div>
+                    
+                    <h3 style="color: #555; margin-top: 0;">Detalle del pedido:</h3>
                     %s
                     
                     <div class="total">Total: $%s</div>
                     
-                    <p class="info" style="margin-top: 20px;">Te notificaremos cuando el emprendimiento acepte tu pedido.</p>
+                    <p class="info center-text" style="margin-top: 30px; font-size: 14px; color: #777;">Te notificaremos cuando el emprendimiento acepte tu pedido.</p>
                     
-                    <div class="footer">Gracias por elegir MiViandita</div>
+                    <div class="footer">
+                        <img src="https://res.cloudinary.com/dsgqbotzi/image/upload/v1767926581/default_vianda_rb2ila.png" alt="Logo">
+                        <span>MiViandita</span>
+                    </div>
                 </div>
             </body>
             </html>
-            """.formatted(nombre, id, emprendimiento, itemsHtml, total);
+            """.formatted(nombre, emprendimiento, id, itemsHtml, total);
     }
 
     private String buildPedidoDuenoEmail(String nombreDueno, Long id, String cliente, Double total, List<DetallePedido> items) {
@@ -140,75 +213,124 @@ public class EmailService {
             <head>
                 <style>
                     body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; margin: 0; padding: 0; }
-                    .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; padding: 30px; border-left: 6px solid #eb8334; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-                    .title { color: #333; font-size: 22px; font-weight: bold; margin-bottom: 20px; }
-                    .badge { background-color: #eb8334; color: white; padding: 5px 10px; border-radius: 4px; font-size: 14px; vertical-align: middle; }
-                    .content { color: #555; line-height: 1.5; }
-                    .btn { display: inline-block; background-color: #eb8334; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 20px; font-weight: bold; }
-                    .total { font-size: 20px; font-weight: bold; color: #eb8334; text-align: right; margin-top: 10px; }
+                    .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; padding: 40px; border-top: 6px solid #eb8334; border-bottom: 6px solid #eb8334; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+                    .header { text-align: center; margin-bottom: 30px; }
+                    .title { color: #eb8334; font-size: 26px; font-weight: bold; margin: 0; }
+                    .content { color: #555; line-height: 1.6; font-size: 16px; margin-bottom: 25px; text-align: center; }
+                    .status-line {
+                        text-align: center;
+                        margin: 25px 0; 
+                        font-size: 18px; 
+                        padding-bottom: 15px;
+                        border-bottom: 1px dashed #ddd;
+                    }
+                    .id-badge { background-color: #fff7ed; color: #e68033; padding: 5px 12px; border-radius: 15px; font-weight: bold; font-size: 16px; border: 1px solid #ffdcb0; }
+                    .separator { color: #ccc; margin: 0 10px; }
+                    .status-text { font-weight: bold; color: #f5b041; }
+                    .total { font-size: 20px; font-weight: bold; color: #eb8334; text-align: right; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; }
+                    .footer { text-align: center; font-size: 12px; color: #999; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+                    .footer img { height: 25px; vertical-align: middle; }
+                    .footer span { vertical-align: middle; margin-left: 8px; font-weight: 500; }
+                    .center-text { text-align: center; }
                 </style>
             </head>
             <body>
                 <div class="container">
-                    <div class="title">Nueva Venta <span class="badge">#%d</span></div>
-                    <p class="content">Hola <strong>%s</strong>,</p>
-                    <p class="content"> <strong>%s</strong> ha realizado un nuevo pedido.</p>
+                    <div class="header">
+                        <div class="title">Nuevo Pedido</div>
+                    </div>
                     
-                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p class="content">Hola <strong>%s</strong>, <strong>%s</strong> te ha realizado un pedido y espera tu respuesta.</p>
                     
+                    <div class="status-line">
+                        <span class="id-badge">Pedido #%d</span>
+                        <span class="separator">|</span>
+                        <span class="status-text">PENDIENTE</span>
+                    </div>
+                    
+                    <h3 style="color: #555; margin-top: 0;">Detalle:</h3>
                     %s
                     
                     <div class="total">Total: $%s</div>
                     
-                    <p class="content">Ingresa a MiViandita para aceptar o rechazar el pedido.</p>
+                    <p class="content center-text" style="margin-top: 30px;">Ingresa a MiViandita para aceptar o rechazar el pedido.</p>
                     
+                    <div class="footer">
+                        <img src="https://res.cloudinary.com/dsgqbotzi/image/upload/v1767926581/default_vianda_rb2ila.png" alt="Logo">
+                        <span>MiViandita</span>
+                    </div>
                 </div>
             </body>
             </html>
-            """.formatted(id, nombreDueno, cliente, itemsHtml, total);
+            """.formatted(nombreDueno, cliente, id, itemsHtml, total);
     }
 
-    private String buildPedidoEstadoEmail(String nombre, Long id, String emprendimiento, EstadoPedido estado) {
-        String color = estado == EstadoPedido.ACEPTADO ? "#27ae60" : "#c0392b";
+    private String buildPedidoEstadoEmail(String nombre, Long id, String emprendimiento, EstadoPedido estado, List<DetallePedido> items) {
+
+        String colorEstado = estado == EstadoPedido.ACEPTADO ? "#27ae60" : "#c0392b";
+        String textoEstado = estado == EstadoPedido.ACEPTADO ? "ACEPTADO" : "RECHAZADO";
+
         String mensajeExtra = estado == EstadoPedido.ACEPTADO
                 ? "Tu pedido fue aceptado, el emprendimiento se contactará contigo para coordinar la entrega."
                 : "Lo sentimos, el emprendimiento no puede tomar tu pedido en este momento.";
+
+        String itemsHtml = buildViandasListHtml(items);
+        double totalCalculado = items.stream().mapToDouble(DetallePedido::getSubtotal).sum();
 
         return """
             <!DOCTYPE html>
             <html>
             <head>
                 <style>
-                    body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
-                    .container { max-width: 600px; margin: 30px auto; background: #ffffff; border-radius: 8px; overflow: hidden; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-                    .header { background-color: %s; padding: 30px; color: white; }
-                    .status-icon { font-size: 40px; margin-bottom: 10px; display: block; }
-                    .body { padding: 40px; color: #555; }
-                    .h2 { margin: 0; font-size: 24px; }
-                    .order-ref { background: #f8f9fa; display: inline-block; padding: 10px 20px; border-radius: 50px; margin: 20px 0; font-weight: bold; color: #333; border: 1px solid #ddd; }
-                    .footer { background-color: #f9f9f9; padding: 15px; font-size: 12px; color: #aaa; }
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+                    .container { max-width: 600px; margin: 30px auto; background: #ffffff; border-radius: 12px; padding: 40px; border-top: 6px solid #eb8334; border-bottom: 6px solid #eb8334; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+                    .header { text-align: center; margin-bottom: 25px; }
+                    .header h1 { margin: 0; color: #eb8334; font-size: 26px; font-weight: bold; }
+                    .body { color: #555; font-size: 16px; line-height: 1.6; }
+                    .status-line { text-align: center; margin: 25px 0; font-size: 18px; padding-bottom: 15px; border-bottom: 1px dashed #ddd; }
+                    .id-badge { background-color: #fff7ed; color: #e68033; padding: 5px 12px; border-radius: 15px; font-weight: bold; font-size: 16px; border: 1px solid #ffdcb0; }
+                    .separator { color: #ccc; margin: 0 10px; }
+                    .status-text { font-weight: bold; }
+                    .message { margin-top: 30px; margin-bottom: 10px; text-align: center; color: #666; font-size: 16px; }
+                    .total { text-align: right; font-size: 20px; font-weight: bold; color: #eb8334; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
+                    .footer { text-align: center; font-size: 12px; color: #999; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+                    .footer img { height: 25px; vertical-align: middle; }
+                    .footer span { vertical-align: middle; margin-left: 8px; font-weight: 500; }
                 </style>
             </head>
             <body>
                 <div class="container">
                     <div class="header">
-                        <div class="h2">Pedido %s</div>
+                        <h1>Actualización de Pedido</h1>
                     </div>
                     <div class="body">
-                        <p>Hola <strong>%s</strong>,</p>
-                        <p>El estado de tu pedido a <strong>%s</strong> ha cambiado.</p>
+                        <p style="text-align: center;">Hola <strong>%s</strong>, hay novedades sobre tu pedido a <strong>%s</strong>.</p>
                         
-                        <div class="order-ref">Pedido #%d</div>
+                        <div class="status-line">
+                            <span class="id-badge">Pedido #%d</span>
+                            <span class="separator">|</span>
+                            <span class="status-text" style="color: %s;">%s</span>
+                        </div>
                         
-                        <p style="font-size: 16px;">%s</p>
+                        <h4 style="color: #555; margin-bottom: 5px; margin-top: 0;">Resumen del pedido:</h4>
+                        %s
+                        
+                        <div class="total">Total: $%s</div>
+                        
+                        <p class="message">%s</p>
                     </div>
-                    <div class="footer">MiViandita</div>
+                    
+                    <div class="footer">
+                        <img src="https://res.cloudinary.com/dsgqbotzi/image/upload/v1767926581/default_vianda_rb2ila.png" alt="Logo">
+                        <span>MiViandita</span>
+                    </div>
                 </div>
             </body>
             </html>
-            """.formatted(color, estado, nombre, emprendimiento, id, mensajeExtra);
+            """.formatted(nombre, emprendimiento, id, colorEstado, textoEstado, itemsHtml, totalCalculado, mensajeExtra);
     }
 
+    // Reclamos
     private String buildReclamoUserEmail(String nombre, String ticket) {
         return """
             <!DOCTYPE html>
@@ -218,14 +340,17 @@ public class EmailService {
                 <style>
                     body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #fff7ed; }
                     .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
-                    .card { background-color: #ffffff; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 6px solid #eb8334; }
+                    .card { background-color: #ffffff; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 6px solid #eb8334; border-bottom: 6px solid #eb8334; }
                     .header { text-align: center; margin-bottom: 30px; }
-                    .title { color: #eb8334; font-size: 24px; font-weight: bold; margin: 0; }
+                    .title { color: #eb8334; font-size: 26px; font-weight: bold; margin: 0; }
                     .text { color: #555555; font-size: 16px; line-height: 1.6; }
                     .ticket-box { background-color: #fff7ed; border: 1px dashed #fe9039; border-radius: 8px; padding: 15px; text-align: center; margin: 25px 0; }
                     .ticket-code { color: #e68033; font-size: 28px; font-weight: bold; letter-spacing: 2px; }
                     .ticket-label { color: #e07b3d; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
-                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #999999; }
+                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #999999; border-top: 1px solid #eee; padding-top: 20px; }
+                    .footer img { height: 25px; vertical-align: middle; }
+                    .footer span { vertical-align: middle; margin-left: 8px; font-weight: 500; }
+                    .center-text { text-align: center; }
                 </style>
             </head>
             <body>
@@ -235,20 +360,19 @@ public class EmailService {
                             <h1 class="title">Reporte Recibido</h1>
                         </div>
                         
-                        <p class="text">Hola,</p>
-                        <p class="text">Hemos recibido tu reporte correctamente. Nuestro equipo de soporte ya tiene constancia del problema y lo revisará a la brevedad.</p>
+                        <p class="text center-text">Hola, hemos recibido tu reporte correctamente. Nuestro equipo de soporte ya tiene constancia del problema y lo revisará a la brevedad.</p>
                         
                         <div class="ticket-box">
                             <div class="ticket-label">Tu código de seguimiento</div>
                             <div class="ticket-code">%s</div>
                         </div>
                         
-                        <p class="text">Si necesitamos más información, te contactaremos a este mismo correo.</p>
-                        <p class="text" style="margin-top: 30px;">Atte.<br><strong style="color: #eb8334;">Equipo MiViandita</strong></p>
-                    </div>
-                    
-                    <div class="footer">
-                        &copy; 2025 MiViandita - Tus viandas favoritas
+                        <p class="text center-text" style="margin-top: 30px;">Si necesitamos más información, te contactaremos a este mismo correo.</p>
+                        
+                        <div class="footer">
+                            <img src="https://res.cloudinary.com/dsgqbotzi/image/upload/v1767926581/default_vianda_rb2ila.png" alt="Logo">
+                            <span>MiViandita</span>
+                        </div>
                     </div>
                 </div>
             </body>
@@ -265,16 +389,34 @@ public class EmailService {
                 <style>
                     body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
                     .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
-                    .card { background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-                    .header { background-color: #eb8334; padding: 20px; text-align: center; }
-                    .header h2 { color: #ffffff; margin: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
-                    .content { padding: 30px; }
+                    .card { background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 40px; border-top: 6px solid #eb8334; border-bottom: 6px solid #eb8334; }
+                    .header { text-align: center; margin-bottom: 20px; }
+                    .header h2 { color: #eb8334; margin: 0; font-size: 26px; font-weight: bold; }
+                    .content { padding: 10px; }
                     .row { margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
                     .label { color: #999; font-size: 12px; text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 5px; }
                     .value { color: #333; font-size: 16px; font-weight: 500; }
-                    .badge { background-color: #fff7ed; color: #e68033; padding: 4px 10px; border-radius: 4px; border: 1px solid #fe9039; font-weight: bold; font-size: 14px; display: inline-block;}
+                    .status-line {
+                        text-align: center;
+                        margin: 25px 0;
+                        font-size: 18px;
+                        padding-bottom: 15px;
+                        border-bottom: 1px dashed #ddd;
+                    }
+                    .id-badge, .cat-badge {
+                        background-color: #fff7ed;
+                        color: #e68033;
+                        padding: 5px 12px;
+                        border-radius: 15px;
+                        font-weight: bold;
+                        font-size: 16px;
+                        border: 1px solid #ffdcb0;
+                    }
+                    .separator { color: #ccc; margin: 0 10px; }
                     .description-box { background-color: #fcfcfc; border-left: 4px solid #fe9039; padding: 15px; margin-top: 10px; color: #555; font-style: italic; line-height: 1.5; }
-                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #aaa; }
+                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #aaa; border-top: 1px solid #eee; padding-top: 20px; }
+                    .footer img { height: 25px; vertical-align: middle; }
+                    .footer span { vertical-align: middle; margin-left: 8px; font-weight: 500; }
                 </style>
             </head>
             <body>
@@ -284,14 +426,11 @@ public class EmailService {
                             <h2>Nuevo Reclamo</h2>
                         </div>
                         <div class="content">
-                            <div class="row">
-                                <span class="label">Ticket ID</span>
-                                <span class="value" style="font-family: monospace; font-size: 18px;">%s</span>
-                            </div>
                             
-                            <div class="row">
-                                <span class="label">Categoría</span>
-                                <span class="badge">%s</span>
+                            <div class="status-line">
+                                <span class="id-badge">%s</span>
+                                <span class="separator">|</span>
+                                <span class="cat-badge">%s</span>
                             </div>
 
                             <div class="row">
@@ -306,9 +445,11 @@ public class EmailService {
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="footer">
-                        Sistema de Reportes - MiViandita
+                        
+                        <div class="footer">
+                            <img src="https://res.cloudinary.com/dsgqbotzi/image/upload/v1767926581/default_vianda_rb2ila.png" alt="Logo">
+                            <span>MiViandita - Admin</span>
+                        </div>
                     </div>
                 </div>
             </body>
@@ -331,11 +472,24 @@ public class EmailService {
                 <meta charset="UTF-8">
                 <style>
                     body { font-family: 'Segoe UI', sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
-                    .container { max-width: 600px; margin: 20px auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-                    .header { background-color: #eb8334; padding: 20px; text-align: center; color: white; }
-                    .content { padding: 30px; }
-                    .status-badge { background-color: %s; color: white; padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 14px; }
-                    .footer { text-align: center; font-size: 12px; color: #aaa; padding: 20px; border-top: 1px solid #eee; }
+                    .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; padding: 40px; border-top: 6px solid #eb8334; border-bottom: 6px solid #eb8334; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                    .header { text-align: center; margin-bottom: 30px; }
+                    .header h1 { color: #eb8334; font-size: 26px; margin: 0; font-weight: bold; }
+                    .content { padding: 10px; color: #555; font-size: 16px; line-height: 1.6; }
+                    .status-line { 
+                        text-align: center; 
+                        margin: 25px 0; 
+                        font-size: 18px; 
+                        padding-bottom: 15px;
+                        border-bottom: 1px dashed #ddd;
+                    }
+                    .id-badge { background-color: #fff7ed; color: #e68033; padding: 5px 12px; border-radius: 15px; font-weight: bold; font-size: 16px; border: 1px solid #ffdcb0; }
+                    .separator { color: #ccc; margin: 0 10px; }
+                    .status-text { font-weight: bold; }
+                    .footer { text-align: center; font-size: 12px; color: #999; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+                    .footer img { height: 25px; vertical-align: middle; }
+                    .footer span { vertical-align: middle; margin-left: 8px; font-weight: 500; }
+                    .center-text { text-align: center; }
                 </style>
             </head>
             <body>
@@ -344,22 +498,28 @@ public class EmailService {
                         <h1>Actualización de Ticket</h1>
                     </div>
                     <div class="content">
-                        <p>Hola <strong>%s</strong>,</p>
-                        <p>Hay novedades sobre tu reclamo <strong>%s</strong>.</p>
+                        <p class="center-text">Hola <strong>%s</strong>, hay novedades sobre tu reclamo.</p>
                         
-                        <p>Nuevo Estado: <span class="status-badge">%s</span></p>
+                        <div class="status-line">
+                            <span class="id-badge">%s</span>
+                            <span class="separator">|</span>
+                            <span class="status-text" style="color: %s;">%s</span>
+                        </div>
                         
                         <h3>Respuesta del soporte:</h3>
                         %s
                         
-                        <p style="font-size: 13px; color: #777; margin-top: 30px;">
+                        <p class="center-text" style="font-size: 13px; color: #777; margin-top: 30px;">
                            Si consideras que esto no resuelve tu problema, por favor responde a este correo o inicia un nuevo contacto.
                         </p>
                     </div>
-                    <div class="footer">Equipo MiViandita</div>
+                    <div class="footer">
+                        <img src="https://res.cloudinary.com/dsgqbotzi/image/upload/v1767926581/default_vianda_rb2ila.png" alt="Logo">
+                        <span>MiViandita</span>
+                    </div>
                 </div>
             </body>
             </html>
-            """.formatted(colorBadge, nombre, ticket, estado, adminResponseHtml);
+            """.formatted(nombre, ticket, colorBadge, estado, adminResponseHtml);
     }
 }
