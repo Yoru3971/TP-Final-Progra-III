@@ -1,14 +1,12 @@
 package com.viandasApp.api.Auth.controller;
 
-import com.viandasApp.api.Auth.dto.GoogleTokenDto;
+import com.viandasApp.api.Auth.dto.GoogleTokenDTO;
 import com.viandasApp.api.Auth.dto.UsuarioLogedResponseDTO;
 import com.viandasApp.api.Auth.dto.UsuarioRegisterDTO;
 import com.viandasApp.api.Auth.service.AuthService;
-import com.viandasApp.api.Auth.service.AuthServiceImpl;
 import com.viandasApp.api.Auth.service.GoogleAuthService;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Auth.dto.UsuarioLoginDTO;
-import com.viandasApp.api.Usuario.security.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -17,7 +15,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -64,7 +61,7 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Token de Google inválido")
     })
     @PostMapping("/google")
-    public ResponseEntity<?> googleLogin(@RequestBody GoogleTokenDto googleTokenDto) {
+    public ResponseEntity<?> googleLogin(@RequestBody GoogleTokenDTO googleTokenDto) {
         Map<String, Object> respuesta = googleAuthService.loginWithGoogle(googleTokenDto.getToken());
         return ResponseEntity.ok(respuesta);
     }

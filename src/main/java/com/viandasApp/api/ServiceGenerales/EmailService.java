@@ -22,6 +22,7 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String emailFrom;
 
+    // VALIDACION EMAIL CUENTA
     @Async
     public void sendValidacionCuenta(String to, String nombre, String link) {
         String emailContent = buildValidacionCuentaEmail(nombre, link);
@@ -29,17 +30,38 @@ public class EmailService {
     }
 
     @Async
+    public void sendRecoveryEmail(String to, String nombre, String token) {
+        String link = "http://localhost:4200/change-password?token=" + token;
+        String contenido = buildRecoveryEmail(nombre, link);
+
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
+            helper.setText(contenido, true);
+            helper.setTo(to);
+            helper.setSubject("Restablecer Contraseña - MiViandita");
+            helper.setFrom(emailFrom);
+            mailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            System.err.println("Error enviando email de recuperación: " + e.getMessage());
+        }
+    }
+
+    // CONFIRMACION POR EMAIL AL CLIENTE DE RECLAMO ENVIADO
+    @Async
     public void sendReclamoConfirmacion(String to, String nombre, String ticketCode) {
         String contenido = buildReclamoUserEmail(nombre, ticketCode);
         sendEmail(to, "Reclamo Recibido - Ticket: " + ticketCode, contenido);
     }
 
+    // NOTIFICACION POR MAIL AL ADMIN DE UN NUEVO RECLAMO
     @Async
     public void sendReclamoNotificacionAdmin(String ticketCode, String categoria, String descripcion, String usuarioEmail) {
         String contenido = buildReclamoAdminEmail(ticketCode, categoria, descripcion, usuarioEmail);
         sendEmail(emailFrom, "NUEVO RECLAMO - " + categoria + " [" + ticketCode + "]", contenido);
     }
 
+    // AVISO AL CLIENTE QUE SU RECLAMO TUVO CAMBIO DE ESTADO
     @Async
     public void sendCambioEstadoReclamo(String to, String nombre, String ticketCode, String nuevoEstado, String respuestaAdmin) {
         String contenido = buildCambioEstadoEmail(nombre, ticketCode, nuevoEstado, respuestaAdmin);
@@ -521,5 +543,56 @@ public class EmailService {
             </body>
             </html>
             """.formatted(nombre, ticket, colorBadge, estado, adminResponseHtml);
+    }
+
+    // HTML PARA OLVIDE CONTRASEÑA
+    private String buildRecoveryEmail(String nombre, String link) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #fff7ed; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+                    .card { background-color: #ffffff; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 6px solid #eb8334; }
+                    .header { text-align: center; margin-bottom: 30px; }
+                    .title { color: #eb8334; font-size: 24px; font-weight: bold; margin: 0; }
+                    .text { color: #555555; font-size: 16px; line-height: 1.6; }
+                    .btn-container { text-align: center; margin: 30px 0; }
+                    .btn { background-color: #eb8334; color: #ffffff !important; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; }
+                    .btn:hover { background-color: #d6762b; }
+                    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #999999; }
+                    .warning { font-size: 13px; color: #777; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="card">
+                        <div class="header">
+                            <h1 class="title">Recuperación de Contraseña</h1>
+                        </div>
+                        
+                        <p class="text">Hola <strong>%s</strong>,</p>
+                        <p class="text">Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en MiViandita.</p>
+                        
+                        <div class="btn-container">
+                            <a href="%s" class="btn">Cambiar mi contraseña</a>
+                        </div>
+                        
+                        <p class="text">Este enlace expirará en 15 minutos por tu seguridad.</p>
+                        
+                        <div class="warning">
+                            Si tú no solicitaste este cambio, puedes ignorar este correo tranquilamente. Tu contraseña seguirá siendo la misma.
+                        </div>
+                    </div>
+                    
+                    <div class="footer">
+                        &copy; MiViandita - Tus viandas favoritas
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(nombre, link);
     }
 }
