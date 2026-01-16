@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +29,7 @@ import java.util.Optional;
 @Tag(name = "Viandas - Dueño")
 @RequestMapping("/api/dueno/viandas")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('DUENO')")
 public class ViandaDuenoController {
 
     private final ViandaService viandasService;

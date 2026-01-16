@@ -19,11 +19,10 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +35,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Tag(name = "Emprendimientos - Admin Panel")
 @RequestMapping("/api/admin/emprendimientos")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class EmprendimientoAdminController {
 
     private final EmprendimientoService emprendimientoService;
@@ -57,10 +57,6 @@ public class EmprendimientoAdminController {
             @PageableDefault(size = 10, page = 0) Pageable pageable,
             @AuthenticationPrincipal Usuario usuario
     ) {
-        if (usuario.getRolUsuario() != RolUsuario.ADMIN) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acceso denegado. Se requiere rol ADMIN.");
-        }
-
         Page<EmprendimientoAdminDTO> page = emprendimientoService.getAllEmprendimientosForAdmin(pageable);
 
         PagedModel<EntityModel<EmprendimientoAdminDTO>> pagedModel = pagedResourcesAssembler
@@ -86,9 +82,7 @@ public class EmprendimientoAdminController {
             @PathVariable Long id,
             @AuthenticationPrincipal Usuario usuario
     ) {
-        validarRolAdmin(usuario);
-
-        // Reutilizamos el método del service que ya contiene la lógica de excepción para ADMIN
+        // Reutilizamos el metodo del service que ya contiene la logica de excepcion para ADMIN
         EmprendimientoDTO emprendimiento = emprendimientoService.getEmprendimientoById(id, usuario).get();
 
         // HATEOAS apuntando al controller de Admin
@@ -118,8 +112,6 @@ public class EmprendimientoAdminController {
             @Valid @RequestBody UpdateEmprendimientoDTO updateEmprendimientoDTO,
             @AuthenticationPrincipal Usuario usuario
     ) {
-        validarRolAdmin(usuario);
-
         Optional<EmprendimientoDTO> emprendimientoActualizado = emprendimientoService.updateEmprendimiento(id, updateEmprendimientoDTO, usuario);
 
         if (emprendimientoActualizado.isPresent()) {
@@ -148,7 +140,6 @@ public class EmprendimientoAdminController {
             @PathVariable Long id,
             @AuthenticationPrincipal Usuario usuario
     ) {
-        validarRolAdmin(usuario);
 
         Map<String, String> response = new HashMap<>();
 
@@ -157,12 +148,5 @@ public class EmprendimientoAdminController {
 
         response.put("message", "Emprendimiento eliminado correctamente (ADMIN)");
         return ResponseEntity.ok(response);
-    }
-
-    //--------------------------Método Auxiliar--------------------------//
-    private void validarRolAdmin(Usuario usuario) {
-        if (usuario.getRolUsuario() != RolUsuario.ADMIN) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acceso denegado. Se requiere rol ADMIN.");
-        }
     }
 }

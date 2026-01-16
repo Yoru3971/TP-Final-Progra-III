@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +30,7 @@ import java.util.Optional;
 @Tag(name = "Pedidos - Cliente")
 @RequestMapping("/api/cliente/pedidos")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('CLIENTE')")
 public class PedidoClienteController {
     private final PedidoService pedidoService;
 
@@ -142,7 +144,6 @@ public class PedidoClienteController {
     })
     @PutMapping("/id/{id}") 
     public ResponseEntity<Map<String, Object>> updatePedido(@PathVariable Long id, @RequestBody @Valid UpdatePedidoDTO updatePedidoDTO) {
-
 
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();

@@ -19,6 +19,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,6 +37,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Tag(name = "Viandas - Admin Panel")
 @RequestMapping("/api/admin/viandas")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class ViandaAdminController {
 
     private final ViandaService viandaService;
@@ -57,7 +59,6 @@ public class ViandaAdminController {
             @PageableDefault(size = 10, page = 0) Pageable pageable,
             @AuthenticationPrincipal Usuario usuario
     ) {
-        validarRolAdmin(usuario);
 
         Page<ViandaAdminDTO> page = viandaService.getAllViandasForAdmin(pageable);
 
@@ -72,8 +73,6 @@ public class ViandaAdminController {
     public ResponseEntity<?> createVianda(
             @Valid @ModelAttribute ViandaCreateDTO viandaCreateDTO,
             @AuthenticationPrincipal Usuario usuario) {
-
-        validarRolAdmin(usuario);
 
         ViandaDTO nuevaVianda = viandaService.createVianda(viandaCreateDTO, usuario);
 
@@ -91,8 +90,6 @@ public class ViandaAdminController {
     public ResponseEntity<ViandaDTO> findViandaById(
             @PathVariable Long id,
             @AuthenticationPrincipal Usuario usuario) {
-
-        validarRolAdmin(usuario);
 
         // El servicio ya soporta que entre un ADMIN
         ViandaDTO vianda = viandaService.findViandaById(id, usuario).get();
@@ -112,9 +109,7 @@ public class ViandaAdminController {
             @ModelAttribute FiltroViandaDTO filtroViandaDTO,
             @AuthenticationPrincipal Usuario usuario) {
 
-        validarRolAdmin(usuario);
-
-        // Usamos el método que trae TODAS (incluso las no disponibles) porque es para gestión
+        // Usamos el metodo que trae TODAS (incluso las no disponibles) porque es para gestión
         List<ViandaDTO> viandas = viandaService.getViandasByEmprendimiento(filtroViandaDTO, idEmprendimiento, usuario);
 
         return ResponseEntity.ok(viandas);
@@ -128,8 +123,6 @@ public class ViandaAdminController {
             @PathVariable Long id,
             @Valid @RequestBody ViandaUpdateDTO dto,
             @AuthenticationPrincipal Usuario usuario) {
-
-        validarRolAdmin(usuario);
 
         Optional<ViandaDTO> viandaActualizada = viandaService.updateVianda(id, dto, usuario);
 
@@ -149,8 +142,6 @@ public class ViandaAdminController {
             @RequestParam("image") MultipartFile image,
             @AuthenticationPrincipal Usuario usuario) {
 
-        validarRolAdmin(usuario);
-
         ViandaDTO vianda = viandaService.updateImagenVianda(id, image, usuario);
         vianda.add(linkTo(methodOn(ViandaAdminController.class).findViandaById(id, usuario)).withSelfRel());
 
@@ -164,19 +155,10 @@ public class ViandaAdminController {
             @PathVariable Long id,
             @AuthenticationPrincipal Usuario usuario) {
 
-        validarRolAdmin(usuario);
-
         viandaService.deleteVianda(id, usuario);
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Vianda eliminada correctamente (ADMIN)");
         return ResponseEntity.ok(response);
-    }
-
-    //--------------------------Helper--------------------------//
-    private void validarRolAdmin(Usuario usuario) {
-        if (usuario.getRolUsuario() != RolUsuario.ADMIN) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acceso denegado. Se requiere rol ADMIN.");
-        }
     }
 }
