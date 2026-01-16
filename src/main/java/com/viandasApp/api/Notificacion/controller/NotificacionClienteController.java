@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +22,7 @@ import java.util.List;
 @Tag(name = "Notificaciones - Cliente")
 @RequestMapping("/api/cliente/notificaciones")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('CLIENTE')")
 public class NotificacionClienteController {
     private final NotificacionService notificacionService;
 

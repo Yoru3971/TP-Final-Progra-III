@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +20,7 @@ import java.util.List;
 @Tag(name = "Reclamos - Usuario")
 @RequestMapping("/api/cliente/reclamos") // Aplica tanto para Cliente como Dueño
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('CLIENTE', 'DUENO')")
 public class ReclamoClienteDuenoController {
 
     private final ReclamoService reclamoService;

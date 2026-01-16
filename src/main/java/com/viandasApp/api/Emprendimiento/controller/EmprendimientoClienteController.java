@@ -17,6 +17,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +31,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 @Tag(name = "Emprendimientos - Cliente")
 @RequestMapping("/api/cliente/emprendimientos")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('CLIENTE')")
 public class EmprendimientoClienteController {
 
     private final EmprendimientoService emprendimientoService;

@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +23,7 @@ import java.util.Optional;
 @RequestMapping("/api/cliente/viandas")
 @Tag(name = "Viandas - Cliente")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('CLIENTE')")
 public class ViandaClienteController {
     private final ViandaService viandasService;
 

@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,7 @@ import java.util.Optional;
 @Tag(name = "Usuarios - Admin")
 @RequestMapping("/api/admin/usuarios")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class UsuarioAdminController {
     private final UsuarioService usuarioService;
 

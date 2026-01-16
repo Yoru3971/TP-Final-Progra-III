@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,6 +41,7 @@ public class UsuarioClienteDuenoController {
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado o acceso denegado"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
+    @PreAuthorize("hasAnyRole('CLIENTE', 'DUENO') and #id == authentication.principal.id")
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUsuario(
             @PathVariable Long id,
@@ -67,6 +69,7 @@ public class UsuarioClienteDuenoController {
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
+    @PreAuthorize("hasAnyRole('CLIENTE', 'DUENO') and #id == authentication.principal.id")
     @PutMapping(value = "/{id}/imagen", consumes = "multipart/form-data")
     public ResponseEntity<UsuarioDTO> updateImagenUsuario(
             @PathVariable Long id,
@@ -92,6 +95,7 @@ public class UsuarioClienteDuenoController {
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado o acceso denegado"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
+    @PreAuthorize("hasAnyRole('CLIENTE', 'DUENO')")
     @PutMapping("/changePassword/me")
     public ResponseEntity<?> cambiarPassword(
             @RequestBody PasswordUpdateDTO passwordUpdateDTO
@@ -117,6 +121,7 @@ public class UsuarioClienteDuenoController {
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
+    @PreAuthorize("hasAnyRole('CLIENTE', 'DUENO') and #id == authentication.principal.id")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUsuario(
             @PathVariable Long id) {
@@ -142,6 +147,7 @@ public class UsuarioClienteDuenoController {
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
+    @PreAuthorize("hasAnyRole('CLIENTE', 'DUENO')")
     @GetMapping("/me")
     public ResponseEntity<?> showProfile() {
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
