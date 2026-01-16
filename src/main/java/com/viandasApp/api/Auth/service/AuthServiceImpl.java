@@ -5,12 +5,12 @@ import com.viandasApp.api.Auth.dto.UsuarioLoginDTO;
 import com.viandasApp.api.Auth.dto.UsuarioRegisterDTO;
 import com.viandasApp.api.ServiceGenerales.EmailService;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
-import com.viandasApp.api.Usuario.model.ConfirmacionToken;
+import com.viandasApp.api.Auth.model.ConfirmacionToken;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
-import com.viandasApp.api.Usuario.repository.ConfirmacionTokenRepository;
+import com.viandasApp.api.Auth.repository.ConfirmacionTokenRepository;
 import com.viandasApp.api.Usuario.repository.UsuarioRepository;
-import com.viandasApp.api.Usuario.security.JwtUtil;
+import com.viandasApp.api.Security.jwt.JwtUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -96,7 +96,7 @@ public class AuthServiceImpl implements AuthService {
         return new UsuarioDTO(savedUsuario);
     }
 
-    // === CONFIRMACION TOKEN ===
+    // === CONFIRMACION CUENTA CON TOKEN EMAIL ===
     @Override
     @Transactional
     public String confirmToken(String token) {
@@ -145,7 +145,7 @@ public class AuthServiceImpl implements AuthService {
 
         return new UsuarioLogedResponseDTO(usuario.get().getId(), token);
     }
-    // === REENVIAR TOKEN VALIDACION ===
+    // === REENVIAR TOKEN VALIDACION DE CUENTA EMAIL===
     @Override
     @Transactional
     public String resendToken(String email) {

@@ -1,6 +1,6 @@
-package com.viandasApp.api.Usuario.repository;
+package com.viandasApp.api.Auth.repository;
 
-import com.viandasApp.api.Usuario.model.ConfirmacionToken;
+import com.viandasApp.api.Auth.model.ConfirmacionToken;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
