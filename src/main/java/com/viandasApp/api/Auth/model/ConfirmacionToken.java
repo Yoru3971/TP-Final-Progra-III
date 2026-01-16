@@ -1,5 +1,6 @@
-package com.viandasApp.api.Usuario.model;
+package com.viandasApp.api.Auth.model;
 
+import com.viandasApp.api.Usuario.model.Usuario;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

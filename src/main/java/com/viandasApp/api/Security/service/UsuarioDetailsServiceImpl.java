@@ -1,4 +1,4 @@
-package com.viandasApp.api.Usuario.security;
+package com.viandasApp.api.Security.service;
 
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.repository.UsuarioRepository;
