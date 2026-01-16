@@ -1,7 +1,7 @@
 package com.viandasApp.api.ServiceGenerales;
 
 import com.viandasApp.api.Usuario.repository.UsuarioRepository;
-import com.viandasApp.api.Usuario.repository.ConfirmacionTokenRepository; // Asegúrate que el nombre coincida (Confirmacion vs Confirmation)
+import com.viandasApp.api.Auth.repository.ConfirmacionTokenRepository; // Asegúrate que el nombre coincida (Confirmacion vs Confirmation)
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
