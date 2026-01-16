@@ -1,5 +1,6 @@
 package com.viandasApp.api.Usuario.model;
 
+import com.viandasApp.api.Auth.model.ConfirmacionToken;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Pedido.model.Pedido;
 import jakarta.persistence.*;
