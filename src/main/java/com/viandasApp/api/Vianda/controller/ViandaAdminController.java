@@ -41,7 +41,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class ViandaAdminController {
 
     private final ViandaService viandaService;
-    private final PagedResourcesAssembler<ViandaAdminDTO> pagedResourcesAssembler;
+    private final PagedResourcesAssembler<ViandaAdminDTO> adminAssembler;
+    private final PagedResourcesAssembler<ViandaDTO> viandaAssembler;
 
     //--------------------------Read All (Audit)--------------------------//
     @Operation(
@@ -62,7 +63,10 @@ public class ViandaAdminController {
 
         Page<ViandaAdminDTO> page = viandaService.getAllViandasForAdmin(pageable);
 
-        PagedModel<EntityModel<ViandaAdminDTO>> pagedModel = pagedResourcesAssembler.toModel(page, EntityModel::of);
+        PagedModel<EntityModel<ViandaAdminDTO>> pagedModel = adminAssembler.toModel(page, vianda -> {
+            vianda.add(linkTo(methodOn(ViandaAdminController.class).findViandaById(vianda.getId(), null)).withSelfRel());
+            return EntityModel.of(vianda);
+        });
 
         return ResponseEntity.ok(pagedModel);
     }
@@ -76,7 +80,6 @@ public class ViandaAdminController {
 
         ViandaDTO nuevaVianda = viandaService.createVianda(viandaCreateDTO, usuario);
 
-        // Links HATEOAS
         nuevaVianda.add(linkTo(methodOn(ViandaAdminController.class).findViandaById(nuevaVianda.getId(), usuario)).withSelfRel());
 
         Map<String, Object> response = new HashMap<>();
@@ -104,15 +107,20 @@ public class ViandaAdminController {
     //--------------------------Read List by Emprendimiento--------------------------//
     @Operation(summary = "Obtener viandas de un emprendimiento (Admin)", security = @SecurityRequirement(name = "bearer-jwt"))
     @GetMapping("/idEmprendimiento/{idEmprendimiento}")
-    public ResponseEntity<List<ViandaDTO>> getViandasByEmprendimiento(
+    public ResponseEntity<PagedModel<EntityModel<ViandaDTO>>> getViandasByEmprendimiento(
             @PathVariable Long idEmprendimiento,
             @ModelAttribute FiltroViandaDTO filtroViandaDTO,
+            @PageableDefault(size = 10, page = 0) Pageable pageable,
             @AuthenticationPrincipal Usuario usuario) {
 
-        // Usamos el metodo que trae TODAS (incluso las no disponibles) porque es para gestión
-        List<ViandaDTO> viandas = viandaService.getViandasByEmprendimiento(filtroViandaDTO, idEmprendimiento, usuario);
+        Page<ViandaDTO> page = viandaService.getViandasByEmprendimiento(filtroViandaDTO, idEmprendimiento, usuario, true, pageable);
 
-        return ResponseEntity.ok(viandas);
+        PagedModel<EntityModel<ViandaDTO>> pagedModel = viandaAssembler.toModel(page, vianda -> {
+            vianda.add(linkTo(methodOn(ViandaAdminController.class).findViandaById(vianda.getId(), usuario)).withSelfRel());
+            return EntityModel.of(vianda);
+        });
+
+        return ResponseEntity.ok(pagedModel);
     }
 
 

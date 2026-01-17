@@ -13,6 +13,12 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,6 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 @RestController
 @Tag(name = "Viandas - Dueño")
 @RequestMapping("/api/dueno/viandas")
@@ -33,6 +42,7 @@ import java.util.Optional;
 public class ViandaDuenoController {
 
     private final ViandaService viandasService;
+    private final PagedResourcesAssembler<ViandaDTO> pagedResourcesAssembler;
 
     //--------------------------Create--------------------------//
      @Operation(
@@ -56,6 +66,8 @@ public class ViandaDuenoController {
 
         ViandaDTO viandaCreada = viandasService.createVianda(dto, autenticado);
 
+         viandaCreada.add(linkTo(methodOn(ViandaDuenoController.class).getById(viandaCreada.getId())).withSelfRel());
+
         Map<String, Object> response = new HashMap<>();
         response.put("Vianda creada correctamente:", viandaCreada);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -65,7 +77,7 @@ public class ViandaDuenoController {
     //--------------------------Read--------------------------//
      @Operation(
             summary = "Obtener viandas por emprendimiento",
-            description = "Obtiene una lista de viandas filtradas por emprendimiento y otros criterios",
+            description = "Obtiene una lista paginada de viandas filtradas por emprendimiento y otros criterios",
             security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
@@ -76,11 +88,23 @@ public class ViandaDuenoController {
                     @ApiResponse(responseCode = "500", description = "Error interno del servidor")
             })
     @GetMapping("/idEmprendimiento/{idEmprendimiento}")
-    public ResponseEntity<List<ViandaDTO>> getViandasByEmprendimiento(@Valid @ModelAttribute FiltroViandaDTO filtro, @PathVariable Long idEmprendimiento) {
-        Usuario usuarioLogueado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<ViandaDTO> resultados = viandasService.getViandasByEmprendimiento(filtro, idEmprendimiento, usuarioLogueado);
-        return ResponseEntity.ok(resultados);
-    }
+     public ResponseEntity<PagedModel<EntityModel<ViandaDTO>>> getViandasByEmprendimiento(
+             @Valid @ModelAttribute FiltroViandaDTO filtro,
+             @PathVariable Long idEmprendimiento,
+             @PageableDefault(size = 10) Pageable pageable) {
+
+         Usuario usuarioLogueado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+         Page<ViandaDTO> page = viandasService.getViandasByEmprendimiento(filtro, idEmprendimiento, usuarioLogueado, false, pageable);
+
+         PagedModel<EntityModel<ViandaDTO>> pagedModel = pagedResourcesAssembler.toModel(page, vianda -> {
+             vianda.add(linkTo(methodOn(ViandaDuenoController.class).getById(vianda.getId())).withSelfRel());
+             vianda.add(linkTo(methodOn(ViandaDuenoController.class).updateVianda(vianda.getId(), null)).withRel("update"));
+             vianda.add(linkTo(methodOn(ViandaDuenoController.class).deleteVianda(vianda.getId())).withRel("delete"));
+             return EntityModel.of(vianda);
+         });
+
+         return ResponseEntity.ok(pagedModel);
+     }
 
     @Operation(
             summary = "Obtener vianda por ID",
@@ -95,9 +119,14 @@ public class ViandaDuenoController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping("/id/{id}")
-    public ResponseEntity<?> getById(@PathVariable Long id) {
+    public ResponseEntity<ViandaDTO> getById(@PathVariable Long id) {
         Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Optional<ViandaDTO> vianda = viandasService.findViandaById(id, usuario);
+        ViandaDTO vianda = viandasService.findViandaById(id, usuario).get();
+
+        vianda.add(linkTo(methodOn(ViandaDuenoController.class).getById(id)).withSelfRel());
+        vianda.add(linkTo(methodOn(ViandaDuenoController.class).updateVianda(id, null)).withRel("update"));
+        vianda.add(linkTo(methodOn(ViandaDuenoController.class).deleteVianda(id)).withRel("delete"));
+
         return ResponseEntity.ok(vianda);
     }
 
@@ -122,6 +151,10 @@ public class ViandaDuenoController {
                 .getAuthentication().getPrincipal();
 
         Optional<ViandaDTO> viandaActualizado = viandasService.updateVianda(id, dto, usuario);
+
+       if(viandaActualizado.isPresent()){
+           viandaActualizado.get().add(linkTo(methodOn(ViandaDuenoController.class).getById(id)).withSelfRel());
+       }
 
         Map<String, Object> response = new HashMap<>();
         response.put("Vianda actualizada correctamente:", viandaActualizado);
@@ -150,6 +183,7 @@ public class ViandaDuenoController {
                  .getAuthentication().getPrincipal();
 
          ViandaDTO viandaActualizada = viandasService.updateImagenVianda(id, image, usuario);
+        viandaActualizada.add(linkTo(methodOn(ViandaDuenoController.class).getById(id)).withSelfRel());
          return ResponseEntity.ok(viandaActualizada);
     }
 
