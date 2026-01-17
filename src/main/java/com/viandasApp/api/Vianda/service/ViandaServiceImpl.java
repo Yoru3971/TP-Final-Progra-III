@@ -181,6 +181,31 @@ public class ViandaServiceImpl implements ViandaService {
                 .map(ViandaAdminDTO::new);
     }
 
+    @Override
+    public List<CategoriaVianda> getCategoriasByEmprendimiento(Long idEmprendimiento, Usuario usuario) {
+
+        Emprendimiento emprendimiento = emprendimientoService.findEntityById(idEmprendimiento)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + idEmprendimiento));
+
+        if (usuario == null) {
+            return viandaRepository.findCategoriasByEmprendimientoIdPublic(idEmprendimiento);
+        }
+
+        if (usuario.getRolUsuario().equals(RolUsuario.ADMIN)) {
+            return viandaRepository.findCategoriasByEmprendimientoIdAdmin(idEmprendimiento);
+        }
+
+        if (usuario.getRolUsuario().equals(RolUsuario.DUENO)) {
+            boolean esSuEmprendimiento = emprendimiento.getUsuario().getId().equals(usuario.getId());
+            if (esSuEmprendimiento) {
+                return viandaRepository.findCategoriasByEmprendimientoIdOwner(idEmprendimiento);
+            } else {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver información de este emprendimiento.");
+            }
+        }
+        return viandaRepository.findCategoriasByEmprendimientoIdPublic(idEmprendimiento);
+    }
+
     //--------------------------Update--------------------------//
     @Transactional
     @Override
