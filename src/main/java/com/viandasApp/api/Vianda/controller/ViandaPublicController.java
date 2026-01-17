@@ -3,6 +3,7 @@ package com.viandasApp.api.Vianda.controller;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Vianda.dto.FiltroViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaDTO;
+import com.viandasApp.api.Vianda.model.CategoriaVianda;
 import com.viandasApp.api.Vianda.service.ViandaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -80,5 +81,15 @@ public class ViandaPublicController {
         ViandaDTO vianda = viandasService.findViandaByIdPublic(id).get();
         vianda.add(linkTo(methodOn(ViandaPublicController.class).getById(id)).withSelfRel());
         return ResponseEntity.ok(vianda);
+    }
+
+    @Operation(
+            summary = "Obtener categorías por emprendimiento",
+            description = "Devuelve la lista de categorías únicas de viandas disponibles de un emprendimiento."
+    )
+    @GetMapping("/categorias/idEmprendimiento/{idEmprendimiento}")
+    public ResponseEntity<List<CategoriaVianda>> getCategoriasByEmprendimiento(@PathVariable Long idEmprendimiento) {
+        List<CategoriaVianda> categorias = viandasService.getCategoriasByEmprendimiento(idEmprendimiento, null);
+        return ResponseEntity.ok(categorias);
     }
 }

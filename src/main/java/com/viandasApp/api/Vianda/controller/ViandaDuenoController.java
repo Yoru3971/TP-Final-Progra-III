@@ -5,6 +5,7 @@ import com.viandasApp.api.Vianda.dto.FiltroViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaCreateDTO;
 import com.viandasApp.api.Vianda.dto.ViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaUpdateDTO;
+import com.viandasApp.api.Vianda.model.CategoriaVianda;
 import com.viandasApp.api.Vianda.service.ViandaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -128,6 +129,16 @@ public class ViandaDuenoController {
         vianda.add(linkTo(methodOn(ViandaDuenoController.class).deleteVianda(id)).withRel("delete"));
 
         return ResponseEntity.ok(vianda);
+    }
+
+    @Operation(
+            summary = "Obtener categorías por emprendimiento (Dueño)",
+            security = @SecurityRequirement(name = "bearer-jwt"))
+    @GetMapping("/categorias/idEmprendimiento/{idEmprendimiento}")
+    public ResponseEntity<List<CategoriaVianda>> getCategoriasByEmprendimiento(@PathVariable Long idEmprendimiento) {
+        Usuario usuarioLogueado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<CategoriaVianda> categorias = viandasService.getCategoriasByEmprendimiento(idEmprendimiento, usuarioLogueado);
+        return ResponseEntity.ok(categorias);
     }
 
     //--------------------------Update--------------------------//

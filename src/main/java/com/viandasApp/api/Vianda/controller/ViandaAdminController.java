@@ -3,6 +3,7 @@ package com.viandasApp.api.Vianda.controller;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Vianda.dto.*;
+import com.viandasApp.api.Vianda.model.CategoriaVianda;
 import com.viandasApp.api.Vianda.service.ViandaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -123,6 +124,16 @@ public class ViandaAdminController {
         return ResponseEntity.ok(pagedModel);
     }
 
+    @Operation(
+            summary = "Obtener categorías por emprendimiento (Admin)",
+            security = @SecurityRequirement(name = "bearer-jwt"))
+    @GetMapping("/categorias/idEmprendimiento/{idEmprendimiento}")
+    public ResponseEntity<List<CategoriaVianda>> getCategoriasByEmprendimiento(
+            @PathVariable Long idEmprendimiento,
+            @AuthenticationPrincipal Usuario usuario) {
+        List<CategoriaVianda> categorias = viandaService.getCategoriasByEmprendimiento(idEmprendimiento, usuario);
+        return ResponseEntity.ok(categorias);
+    }
 
     //--------------------------Update--------------------------//
     @Operation(summary = "Actualizar vianda (Admin)", security = @SecurityRequirement(name = "bearer-jwt"))
