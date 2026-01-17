@@ -14,6 +14,10 @@ public class ViandaSpecifications {
         return (root, query, cb) -> cb.equal(root.get("estaDisponible"), disponible);
     }
 
+    public static Specification<Vianda> noEstaEliminada() {
+        return (root, query, cb) -> cb.isNull(root.get("deletedAt"));
+    }
+
     public static Specification<Vianda> perteneceAEmprendimiento(Long emprendimientoId) {
         return (root, query, cb) -> emprendimientoId == null ? null : cb.equal(root.get("emprendimiento").get("id"), emprendimientoId);
     }
