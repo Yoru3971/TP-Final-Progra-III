@@ -1,5 +1,9 @@
-package com.viandasApp.api.Usuario.security;
+package com.viandasApp.api.Config;
 
+import com.viandasApp.api.Security.jwt.JwtAuthenticationEntryPoint;
+import com.viandasApp.api.Security.jwt.JwtAuthenticationFilter;
+import com.viandasApp.api.Security.jwt.JwtUtil;
+import com.viandasApp.api.Security.service.UsuarioDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +27,7 @@ public class SecurityConfig {
 
     private final UsuarioDetailsServiceImpl usuarioDetailsServiceImpl;
     private final JwtUtil jwtUtil;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -60,8 +65,10 @@ public class SecurityConfig {
                 }))
 
                 .csrf(csrf -> csrf.disable())
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/public/logout-all").authenticated()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/auth/**",
                                 "/v3/api-docs/**",
@@ -76,13 +83,4 @@ public class SecurityConfig {
 
         return http.build();
     }
-
 }
-
-
-/**
- * Configuración de seguridad:
- * - Stateless (JWT)
- * - Reglas por rutas
- * - Agrega el filtro JWT antes del UsernamePasswordAuthenticationFilter
- */

@@ -1,4 +1,4 @@
-package com.viandasApp.api.Usuario.security;
+package com.viandasApp.api.Security.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -1,4 +1,4 @@
-package com.viandasApp.api.Usuario.security;
+package com.viandasApp.api.Security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
