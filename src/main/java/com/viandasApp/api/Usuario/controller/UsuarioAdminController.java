@@ -20,6 +20,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -169,7 +170,33 @@ public class UsuarioAdminController {
         response.put("Usuario actualizado correctamente", usuarioActualizar);
         return ResponseEntity.ok(usuarioActualizar.get());
     }
-      
+
+    @Operation(
+            summary = "Actualizar foto de perfil",
+            description = "Actualiza la imagen de perfil de un usuario.",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Imagen actualizada correctamente"),
+            @ApiResponse(responseCode = "400", description = "Archivo inválido o formato no permitido"),
+            @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
+            @ApiResponse(responseCode = "403", description = "No tenés permiso para editar este perfil"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PutMapping(value = "/{id}/imagen", consumes = "multipart/form-data")
+    public ResponseEntity<UsuarioDTO> updateImagenUsuario(
+            @PathVariable Long id,
+            @RequestParam("image") MultipartFile image
+    ) {
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        UsuarioDTO usuarioActualizado = usuarioService.updateImagenUsuarioAdmin(id, image);
+
+        return ResponseEntity.ok(usuarioActualizado);
+    }
+
     @Operation(
             summary = "Cambiar contraseña de un usuario",
             description = "Permite al administrador cambiar la contraseña de un usuario",

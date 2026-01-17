@@ -219,7 +219,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         return new UsuarioDTO(usuario);
     }
 
-
     @Transactional
     @Override
     public Optional<UsuarioDTO> updateUsuarioAdmin(Long id, UsuarioUpdateRolDTO usuarioUpdateRolDTO) {
@@ -263,6 +262,22 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         Usuario actualizado = usuarioRepository.save(usuarioExistente);
         return Optional.of(new UsuarioDTO(actualizado));
+    }
+
+    @Transactional
+    @Override
+    public UsuarioDTO updateImagenUsuarioAdmin(Long id, MultipartFile image) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado."));
+
+        imageValidationService.validarImagen(image, ImageValidationService.TipoValidacion.PERFIL);
+
+        String fotoUrl = cloudinaryService.subirImagen(image, "usuarios");
+
+        usuario.setImagenUrl(fotoUrl);
+
+        usuarioRepository.save(usuario);
+        return new UsuarioDTO(usuario);
     }
 
     //--------------------------Delete--------------------------//
