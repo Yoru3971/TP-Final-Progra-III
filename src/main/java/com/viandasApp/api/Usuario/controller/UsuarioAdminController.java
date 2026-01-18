@@ -1,9 +1,6 @@
 package com.viandasApp.api.Usuario.controller;
 
-import com.viandasApp.api.Usuario.dto.AdminPasswordUpdateDTO;
-import com.viandasApp.api.Usuario.dto.UsuarioCreateDTO;
-import com.viandasApp.api.Usuario.dto.UsuarioDTO;
-import com.viandasApp.api.Usuario.dto.UsuarioUpdateRolDTO;
+import com.viandasApp.api.Usuario.dto.*;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioService;
@@ -51,7 +48,7 @@ public class UsuarioAdminController {
     @PostMapping("/register")
     public ResponseEntity<?> registrar(@Valid @RequestBody UsuarioCreateDTO usuarioCreateDTO, BindingResult result) {
         Map<String, Object> response = new HashMap<>();
-        UsuarioDTO nuevoUsuario = usuarioService.createUsuario(usuarioCreateDTO);
+        UsuarioAdminDTO nuevoUsuario = usuarioService.createUsuario(usuarioCreateDTO);
         response.put("message", "Usuario registrado correctamente");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -71,7 +68,7 @@ public class UsuarioAdminController {
     })
     @GetMapping
     public ResponseEntity<?> readUsuarios() {
-        List<UsuarioDTO> usuarios = usuarioService.readUsuarios();
+        List<UsuarioAdminDTO> usuarios = usuarioService.readUsuarios();
         return ResponseEntity.ok(usuarios);
     }
     
@@ -87,7 +84,7 @@ public class UsuarioAdminController {
     })
     @GetMapping("/id/{id}")
     public ResponseEntity<?> findById(@PathVariable Long id) {
-        Optional<UsuarioDTO> usuario = usuarioService.findById(id);
+        Optional<UsuarioAdminDTO> usuario = usuarioService.findByIdAdmin(id);
         return ResponseEntity.ok(usuario.get());
     }
 
@@ -105,7 +102,7 @@ public class UsuarioAdminController {
     public ResponseEntity<?> findByNombreCompleto(
             String nombreCompleto
     ) {
-        Optional<UsuarioDTO> usuarioEncontrado = usuarioService.findByNombreCompleto(nombreCompleto);
+        Optional<UsuarioAdminDTO> usuarioEncontrado = usuarioService.findByNombreCompleto(nombreCompleto);
         return ResponseEntity.ok(usuarioEncontrado.get());
     }
 
@@ -123,7 +120,7 @@ public class UsuarioAdminController {
     public ResponseEntity<?> findByEmail(
             @PathVariable String email
     ) {
-        Optional<UsuarioDTO> usuario = usuarioService.findByEmail(email);
+        Optional<UsuarioAdminDTO> usuario = usuarioService.findByEmail(email);
         return ResponseEntity.ok(usuario);
     }
 
@@ -141,7 +138,7 @@ public class UsuarioAdminController {
     public ResponseEntity<?> findByRolUsuario(
             @PathVariable RolUsuario rolUsuario
     ) {
-        List<UsuarioDTO> usuarios = usuarioService.findByRolUsuario(rolUsuario);
+        List<UsuarioAdminDTO> usuarios = usuarioService.findByRolUsuario(rolUsuario);
 
         return ResponseEntity.ok(usuarios);
     }
@@ -164,7 +161,7 @@ public class UsuarioAdminController {
     public ResponseEntity<?> updateUsuario(
             @Valid @PathVariable Long id,
             @Valid @RequestBody UsuarioUpdateRolDTO userDto) {
-        Optional<UsuarioDTO> usuarioActualizar = usuarioService.updateUsuarioAdmin(id, userDto);
+        Optional<UsuarioAdminDTO> usuarioActualizar = usuarioService.updateUsuarioAdmin(id, userDto);
         Map<String, Object> response = new HashMap<>();
 
         response.put("Usuario actualizado correctamente", usuarioActualizar);
@@ -185,14 +182,11 @@ public class UsuarioAdminController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PutMapping(value = "/{id}/imagen", consumes = "multipart/form-data")
-    public ResponseEntity<UsuarioDTO> updateImagenUsuario(
+    public ResponseEntity<UsuarioAdminDTO> updateImagenUsuario(
             @PathVariable Long id,
             @RequestParam("image") MultipartFile image
     ) {
-        Usuario autenticado = (Usuario) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-
-        UsuarioDTO usuarioActualizado = usuarioService.updateImagenUsuarioAdmin(id, image);
+        UsuarioAdminDTO usuarioActualizado = usuarioService.updateImagenUsuarioAdmin(id, image);
 
         return ResponseEntity.ok(usuarioActualizado);
     }
@@ -218,6 +212,27 @@ public class UsuarioAdminController {
 
         response.put("message", "Contraseña actualizada correctamente");
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+            summary = "Activar un usuario no activado",
+            description = "Permite al administrador activar un usuario aún no activado (validado mediante mail)",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuario activado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud inválida, usuario ya activado"),
+            @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado, no tenés el rol necesario"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado o contraseña inválida"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PutMapping("/{id}/enable")
+    public ResponseEntity<?> enableUsuario(
+            @PathVariable Long id) {
+        UsuarioAdminDTO usuarioActivado = usuarioService.enableUsuario(id);
+
+        return ResponseEntity.ok(usuarioActivado);
     }
 
     //--------------------------Delete--------------------------//   
