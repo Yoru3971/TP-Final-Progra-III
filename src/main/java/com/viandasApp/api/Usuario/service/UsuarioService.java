@@ -26,6 +26,7 @@ public interface UsuarioService {
     //--------------------------Update--------------------------//
     Optional<UsuarioDTO> updateUsuarioAdmin(Long id, UsuarioUpdateRolDTO userDto);
     Optional<UsuarioDTO> updateUsuario(Long id, UsuarioUpdateDTO dto, Usuario autenticado);
+    UsuarioDTO updateImagenUsuarioAdmin(Long id, MultipartFile image);
     UsuarioDTO updateImagenUsuario(Long id, MultipartFile image, Usuario autenticado);
 
     //--------------------------Delete--------------------------//
