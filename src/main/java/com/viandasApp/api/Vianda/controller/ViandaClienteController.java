@@ -68,6 +68,17 @@ public class ViandaClienteController {
     }
 
     @Operation(
+            summary = "Obtener todas las viandas disponibles por emprendimiento",
+            description = "Obtiene la lista completa de viandas disponibles para el emprendimiento especificado",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @GetMapping("/all/idEmprendimiento/{idEmprendimiento}")
+    public ResponseEntity<List<ViandaDTO>> getAllViandasDisponibles(@PathVariable Long idEmprendimiento) {
+        List<ViandaDTO> viandas = viandasService.getAllViandasDisponiblesByEmprendimiento(idEmprendimiento);
+        return ResponseEntity.ok(viandas);
+    }
+
+    @Operation(
             summary = "Obtener vianda por ID",
             description = "Obtiene la vianda correspondiente al ID proporcionado para el cliente autenticado",
             security = @SecurityRequirement(name = "bearer-jwt")
