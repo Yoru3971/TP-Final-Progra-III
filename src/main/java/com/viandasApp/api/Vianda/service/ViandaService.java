@@ -18,6 +18,7 @@ public interface ViandaService {
     //--------------------------Read--------------------------//
     Page<Vianda> getViandasByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento, Usuario usuario, boolean incluirEliminadas, Pageable pageable);
     Page<ViandaDTO> getViandasDisponiblesByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento, Pageable pageable);
+    List<ViandaDTO> getAllViandasDisponiblesByEmprendimiento(Long idEmprendimiento);
     Optional<ViandaDTO> findViandaById(Long id, Usuario usuario);
     Optional<ViandaDTO> findViandaByIdPublic(Long id);
     Page<ViandaAdminDTO> getAllViandasForAdmin(Pageable pageable);

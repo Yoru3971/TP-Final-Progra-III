@@ -139,6 +139,26 @@ public class ViandaServiceImpl implements ViandaService {
     }
 
     @Override
+    public List<ViandaDTO> getAllViandasDisponiblesByEmprendimiento(Long idEmprendimiento) {
+
+        emprendimientoService.findEntityById(idEmprendimiento)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + idEmprendimiento));
+
+        Specification<Vianda> spec = ViandaSpecifications
+                .estaDisponible()
+                .and(ViandaSpecifications.perteneceAEmprendimiento(idEmprendimiento))
+                .and(ViandaSpecifications.noEstaEliminada());
+
+        Sort sort = Sort.by(Sort.Direction.ASC, "nombreVianda");
+
+        List<Vianda> viandas = viandaRepository.findAll(spec, sort);
+
+        return viandas.stream()
+                .map(ViandaDTO::new)
+                .toList();
+    }
+
+    @Override
     public Optional<ViandaDTO> findViandaById(Long id, Usuario usuarioLogueado) {
 
         Vianda vianda = viandaRepository.findById(id)
