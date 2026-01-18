@@ -59,11 +59,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Transactional
     public UsuarioDTO createUsuario(UsuarioCreateDTO usuarioCreateDTO) {
 
-        imageValidationService.validarImagen(usuarioCreateDTO.getImage(), ImageValidationService.TipoValidacion.PERFIL);
-
-        String fotoUrl = cloudinaryService.subirImagen(usuarioCreateDTO.getImage(), "usuarios");
-
-        Usuario usuario = DTOToEntity(usuarioCreateDTO, fotoUrl);
+        Usuario usuario = DTOToEntity(usuarioCreateDTO);
 
         Usuario usuarioLogueado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -308,7 +304,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     //--------------------------Otros--------------------------//
-    private Usuario DTOToEntity(UsuarioCreateDTO dto, String imagenUrl) {
+    private Usuario DTOToEntity(UsuarioCreateDTO dto) {
+        String imagenPorDefecto = "https://res.cloudinary.com/dsgqbotzi/image/upload/v1765496442/usuario_por_defecto_dtac7c.jpg";
+
         return new Usuario(
                 null, // id será generado por JPA
                 dto.getNombreCompleto(),
@@ -316,7 +314,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 passwordEncoder.encode(dto.getPassword()),
                 dto.getTelefono(),
                 dto.getRolUsuario(),
-                imagenUrl
+                imagenPorDefecto
         );
     }
 
