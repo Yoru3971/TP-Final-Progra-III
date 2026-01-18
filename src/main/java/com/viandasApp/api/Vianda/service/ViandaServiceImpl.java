@@ -92,7 +92,7 @@ public class ViandaServiceImpl implements ViandaService {
             if (incluirEliminadas) {
                 // ADMIN: Disponibles -> No disponibles -> Eliminadas
                 defaultSort = Sort.by(
-                        Sort.Order.asc("deletedAt").nullsFirst(),
+                        Sort.Order.asc("deletedAt"),
                         Sort.Order.desc("estaDisponible"),
                         Sort.Order.asc("nombreVianda")
                 );
