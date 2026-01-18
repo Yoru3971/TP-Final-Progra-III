@@ -66,7 +66,7 @@ public class ViandaServiceImpl implements ViandaService {
 
     //--------------------------Read--------------------------//
     @Override
-    public Page<ViandaDTO> getViandasByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento, Usuario usuario, boolean incluirEliminadas, Pageable pageable) {
+    public Page<Vianda> getViandasByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento, Usuario usuario, boolean incluirEliminadas, Pageable pageable) {
 
         Emprendimiento emprendimiento = emprendimientoService.findEntityById(idEmprendimiento)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + idEmprendimiento));
@@ -109,7 +109,7 @@ public class ViandaServiceImpl implements ViandaService {
         if (viandas.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron viandas para el emprendimiento con ID: " + idEmprendimiento);
         }
-        return viandas.map(ViandaDTO::new);
+        return viandas;
     }
 
     @Override
