@@ -6,10 +6,7 @@ import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
 import com.viandasApp.api.ServiceGenerales.CloudinaryService;
 import com.viandasApp.api.ServiceGenerales.ImageValidationService;
-import com.viandasApp.api.Usuario.dto.UsuarioCreateDTO;
-import com.viandasApp.api.Usuario.dto.UsuarioDTO;
-import com.viandasApp.api.Usuario.dto.UsuarioUpdateDTO;
-import com.viandasApp.api.Usuario.dto.UsuarioUpdateRolDTO;
+import com.viandasApp.api.Usuario.dto.*;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.repository.UsuarioRepository;
@@ -57,7 +54,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     //--------------------------Create--------------------------//
     @Override
     @Transactional
-    public UsuarioDTO createUsuario(UsuarioCreateDTO usuarioCreateDTO) {
+    public UsuarioAdminDTO createUsuario(UsuarioCreateDTO usuarioCreateDTO) {
 
         Usuario usuario = DTOToEntity(usuarioCreateDTO);
 
@@ -86,20 +83,32 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         Usuario savedUsuario = usuarioRepository.save(usuario);
-        return new UsuarioDTO(savedUsuario);
+        return new UsuarioAdminDTO(savedUsuario);
     }
 
     //--------------------------Read--------------------------//
     @Override
-    public List<UsuarioDTO> readUsuarios() {
-        List<UsuarioDTO> encontrados = usuarioRepository.findAll()
+    public List<UsuarioAdminDTO> readUsuarios() {
+        List<UsuarioAdminDTO> encontrados = usuarioRepository.findAll()
                 .stream()
-                .map(UsuarioDTO::new).toList();
+                .map(UsuarioAdminDTO::new).toList();
 
         if (encontrados.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron usuarios");
         }
         return encontrados;
+    }
+
+    @Override
+    public Optional<UsuarioAdminDTO> findByIdAdmin(Long id) {
+        Optional<UsuarioAdminDTO> encontrado = usuarioRepository.findById(id)
+                .map(UsuarioAdminDTO::new);
+
+        if (encontrado.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron usuarios con el ID: " + id);
+        }
+
+        return encontrado;
     }
 
     @Override
@@ -115,9 +124,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public Optional<UsuarioDTO> findByNombreCompleto(String nombreCompleto) {
-        Optional<UsuarioDTO> encontrado = usuarioRepository.findByNombreCompletoContaining(nombreCompleto)
-                .map(UsuarioDTO::new);
+    public Optional<UsuarioAdminDTO> findByNombreCompleto(String nombreCompleto) {
+        Optional<UsuarioAdminDTO> encontrado = usuarioRepository.findByNombreCompletoContaining(nombreCompleto)
+                .map(UsuarioAdminDTO::new);
 
         if (encontrado.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron usuarios con el nombre: " + nombreCompleto);
@@ -127,9 +136,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public Optional<UsuarioDTO> findByEmail(String email) {
-        Optional<UsuarioDTO> encontrado = usuarioRepository.findByEmail(email)
-                .map(UsuarioDTO::new);
+    public Optional<UsuarioAdminDTO> findByEmail(String email) {
+        Optional<UsuarioAdminDTO> encontrado = usuarioRepository.findByEmail(email)
+                .map(UsuarioAdminDTO::new);
 
         if (encontrado.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron usuarios con el email: " + email);
@@ -139,10 +148,10 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public List<UsuarioDTO> findByRolUsuario(RolUsuario rolUsuario) {
-        List<UsuarioDTO> encontrados = usuarioRepository.findByRolUsuario(rolUsuario)
+    public List<UsuarioAdminDTO> findByRolUsuario(RolUsuario rolUsuario) {
+        List<UsuarioAdminDTO> encontrados = usuarioRepository.findByRolUsuario(rolUsuario)
                 .stream()
-                .map(UsuarioDTO::new).toList();
+                .map(UsuarioAdminDTO::new).toList();
 
         if (encontrados.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron usuarios con el rol: " + rolUsuario);
@@ -221,7 +230,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Transactional
     @Override
-    public Optional<UsuarioDTO> updateUsuarioAdmin(Long id, UsuarioUpdateRolDTO usuarioUpdateRolDTO) {
+    public Optional<UsuarioAdminDTO> updateUsuarioAdmin(Long id, UsuarioUpdateRolDTO usuarioUpdateRolDTO) {
         Usuario usuarioExistente = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id));
 
@@ -261,12 +270,12 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         Usuario actualizado = usuarioRepository.save(usuarioExistente);
-        return Optional.of(new UsuarioDTO(actualizado));
+        return Optional.of(new UsuarioAdminDTO(actualizado));
     }
 
     @Transactional
     @Override
-    public UsuarioDTO updateImagenUsuarioAdmin(Long id, MultipartFile image) {
+    public UsuarioAdminDTO updateImagenUsuarioAdmin(Long id, MultipartFile image) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado."));
 
@@ -277,7 +286,27 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuario.setImagenUrl(fotoUrl);
 
         usuarioRepository.save(usuario);
-        return new UsuarioDTO(usuario);
+        return new UsuarioAdminDTO(usuario);
+    }
+
+    @Transactional
+    @Override
+    public UsuarioAdminDTO enableUsuario(Long id) {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
+
+        if (usuarioOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id);
+        }
+
+        Usuario usuario = usuarioOpt.get();
+
+        if (usuario.isEnabled()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este usuario ya está activado.");
+        }
+
+        usuario.setEnabled(true);
+        usuarioRepository.save(usuario);
+        return new UsuarioAdminDTO(usuario);
     }
 
     //--------------------------Delete--------------------------//
