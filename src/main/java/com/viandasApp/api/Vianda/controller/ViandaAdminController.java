@@ -4,6 +4,7 @@ import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Vianda.dto.*;
 import com.viandasApp.api.Vianda.model.CategoriaVianda;
+import com.viandasApp.api.Vianda.model.Vianda;
 import com.viandasApp.api.Vianda.service.ViandaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -108,15 +109,16 @@ public class ViandaAdminController {
     //--------------------------Read List by Emprendimiento--------------------------//
     @Operation(summary = "Obtener viandas de un emprendimiento (Admin)", security = @SecurityRequirement(name = "bearer-jwt"))
     @GetMapping("/idEmprendimiento/{idEmprendimiento}")
-    public ResponseEntity<PagedModel<EntityModel<ViandaDTO>>> getViandasByEmprendimiento(
+    public ResponseEntity<PagedModel<EntityModel<ViandaAdminDTO>>> getViandasByEmprendimiento(
             @PathVariable Long idEmprendimiento,
             @ModelAttribute FiltroViandaDTO filtroViandaDTO,
             @PageableDefault(size = 10, page = 0) Pageable pageable,
             @AuthenticationPrincipal Usuario usuario) {
 
-        Page<ViandaDTO> page = viandaService.getViandasByEmprendimiento(filtroViandaDTO, idEmprendimiento, usuario, true, pageable);
+        Page<Vianda> page = viandaService.getViandasByEmprendimiento(filtroViandaDTO, idEmprendimiento, usuario, true, pageable);
 
-        PagedModel<EntityModel<ViandaDTO>> pagedModel = viandaAssembler.toModel(page, vianda -> {
+        Page<ViandaAdminDTO> adminPage = page.map(ViandaAdminDTO::new);
+        PagedModel<EntityModel<ViandaAdminDTO>> pagedModel = adminAssembler.toModel(adminPage, vianda -> {
             vianda.add(linkTo(methodOn(ViandaAdminController.class).findViandaById(vianda.getId(), usuario)).withSelfRel());
             return EntityModel.of(vianda);
         });

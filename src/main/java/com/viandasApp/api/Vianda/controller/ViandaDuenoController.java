@@ -6,6 +6,7 @@ import com.viandasApp.api.Vianda.dto.ViandaCreateDTO;
 import com.viandasApp.api.Vianda.dto.ViandaDTO;
 import com.viandasApp.api.Vianda.dto.ViandaUpdateDTO;
 import com.viandasApp.api.Vianda.model.CategoriaVianda;
+import com.viandasApp.api.Vianda.model.Vianda;
 import com.viandasApp.api.Vianda.service.ViandaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -95,9 +96,11 @@ public class ViandaDuenoController {
              @PageableDefault(size = 10) Pageable pageable) {
 
          Usuario usuarioLogueado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-         Page<ViandaDTO> page = viandasService.getViandasByEmprendimiento(filtro, idEmprendimiento, usuarioLogueado, false, pageable);
+         Page<Vianda> page = viandasService.getViandasByEmprendimiento(filtro, idEmprendimiento, usuarioLogueado, false, pageable);
 
-         PagedModel<EntityModel<ViandaDTO>> pagedModel = pagedResourcesAssembler.toModel(page, vianda -> {
+         Page<ViandaDTO> dtoPage = page.map(ViandaDTO::new);
+
+         PagedModel<EntityModel<ViandaDTO>> pagedModel = pagedResourcesAssembler.toModel(dtoPage, vianda -> {
              vianda.add(linkTo(methodOn(ViandaDuenoController.class).getById(vianda.getId())).withSelfRel());
              vianda.add(linkTo(methodOn(ViandaDuenoController.class).updateVianda(vianda.getId(), null)).withRel("update"));
              vianda.add(linkTo(methodOn(ViandaDuenoController.class).deleteVianda(vianda.getId())).withRel("delete"));
