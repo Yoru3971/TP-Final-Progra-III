@@ -15,6 +15,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -133,7 +134,9 @@ public class AuthServiceImpl implements AuthService {
                     )
             );
         } catch (DisabledException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cuenta no validada. Por favor revisa tu email.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ACCOUNT_NOT_VERIFIED");
+        } catch (LockedException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ACCOUNT_BANNED");
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email o contraseña incorrecta.");
         }

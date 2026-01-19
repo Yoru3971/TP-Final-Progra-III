@@ -58,6 +58,9 @@ public class Usuario implements UserDetails {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "banned_at")
+    private LocalDateTime bannedAt;
+
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
@@ -102,7 +105,7 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return UserDetails.super.isAccountNonLocked();
+        return this.bannedAt == null;
     }
 
     @Override

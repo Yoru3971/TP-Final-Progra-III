@@ -235,6 +235,48 @@ public class UsuarioAdminController {
         return ResponseEntity.ok(usuarioActivado);
     }
 
+    @Operation(
+            summary = "Bloquear un usuario",
+            description = "Permite al administrador bloquear a un usuario",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuario bloqueado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud inválida, usuario ya bloqueado"),
+            @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado, no tenés el rol necesario"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado o contraseña inválida"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PutMapping("/{id}/ban")
+    public ResponseEntity<?> banUsuario(
+            @PathVariable Long id) {
+        UsuarioAdminDTO usuarioBloqueado = usuarioService.banUsuario(id);
+
+        return ResponseEntity.ok(usuarioBloqueado);
+    }
+
+    @Operation(
+            summary = "Desbloquear un usuario",
+            description = "Permite al administrador desbloquear a un usuario",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuario desbloqueado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud inválida, usuario no bloqueado"),
+            @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado, no tenés el rol necesario"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado o contraseña inválida"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PutMapping("/{id}/unban")
+    public ResponseEntity<?> unbanUsuario(
+            @PathVariable Long id) {
+        UsuarioAdminDTO usuarioDesbloqueado = usuarioService.unbanUsuario(id);
+
+        return ResponseEntity.ok(usuarioDesbloqueado);
+    }
+
     //--------------------------Delete--------------------------//   
      @Operation(
             summary = "Eliminar usuario",

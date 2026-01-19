@@ -309,6 +309,46 @@ public class UsuarioServiceImpl implements UsuarioService {
         return new UsuarioAdminDTO(usuario);
     }
 
+    @Transactional
+    @Override
+    public UsuarioAdminDTO banUsuario(Long id) {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
+
+        if (usuarioOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id);
+        }
+
+        Usuario usuario = usuarioOpt.get();
+
+        if (usuario.getBannedAt() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este usuario ya está bloqueado.");
+        }
+
+        usuario.setBannedAt(LocalDateTime.now());
+        usuarioRepository.save(usuario);
+        return new UsuarioAdminDTO(usuario);
+    }
+
+    @Transactional
+    @Override
+    public UsuarioAdminDTO unbanUsuario(Long id) {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
+
+        if (usuarioOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id);
+        }
+
+        Usuario usuario = usuarioOpt.get();
+
+        if (usuario.getBannedAt() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este usuario no está bloqueado.");
+        }
+
+        usuario.setBannedAt(null);
+        usuarioRepository.save(usuario);
+        return new UsuarioAdminDTO(usuario);
+    }
+
     //--------------------------Delete--------------------------//
     @Transactional
     @Override

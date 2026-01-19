@@ -7,10 +7,7 @@ import com.viandasApp.api.Security.service.UsuarioDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -43,9 +40,14 @@ public class SecurityConfig {
                 throw new DisabledException("La cuenta no está activada");
             }
 
+            if (!user.isAccountNonLocked()) {
+                throw new LockedException("La cuenta está bloqueada");
+            }
+
             if (!passwordEncoder().matches(authentication.getCredentials().toString(), user.getPassword())) {
                 throw new BadCredentialsException("Contraseña inválida");
             }
+
             return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
         };
     }

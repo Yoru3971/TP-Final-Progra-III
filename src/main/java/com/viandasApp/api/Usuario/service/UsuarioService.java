@@ -27,6 +27,8 @@ public interface UsuarioService {
     UsuarioAdminDTO updateImagenUsuarioAdmin(Long id, MultipartFile image);
     UsuarioDTO updateImagenUsuario(Long id, MultipartFile image, Usuario autenticado);
     UsuarioAdminDTO enableUsuario(Long id);
+    UsuarioAdminDTO banUsuario(Long id);
+    UsuarioAdminDTO unbanUsuario(Long id);
 
     //--------------------------Delete--------------------------//
     boolean deleteUsuarioAdmin(Long id);
