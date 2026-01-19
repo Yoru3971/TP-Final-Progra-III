@@ -31,6 +31,8 @@ public class UsuarioAdminDTO {
 
     private LocalDateTime createdAt;
 
+    private LocalDateTime bannedAt;
+
     private LocalDateTime deletedAt;
 
     public UsuarioAdminDTO(Usuario usuario) {
@@ -42,6 +44,7 @@ public class UsuarioAdminDTO {
         this.rolUsuario = usuario.getRolUsuario();
         this.enabled = usuario.isEnabled();
         this.createdAt = usuario.getCreatedAt();
+        this.bannedAt = usuario.getBannedAt();
         this.deletedAt = usuario.getDeletedAt();
     }
 }
