@@ -2,6 +2,7 @@ package com.viandasApp.api.Vianda.service;
 
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Vianda.dto.*;
+import com.viandasApp.api.Vianda.model.CategoriaVianda;
 import com.viandasApp.api.Vianda.model.Vianda;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,11 +16,13 @@ public interface ViandaService {
     ViandaDTO createVianda(ViandaCreateDTO viandaDto, Usuario usuario);
 
     //--------------------------Read--------------------------//
-    List<ViandaDTO> getViandasByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento, Usuario usuario);
-    List<ViandaDTO> getViandasDisponiblesByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento);
+    Page<Vianda> getViandasByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento, Usuario usuario, boolean incluirEliminadas, Pageable pageable);
+    Page<ViandaDTO> getViandasDisponiblesByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento, Pageable pageable);
+    List<ViandaDTO> getAllViandasDisponiblesByEmprendimiento(Long idEmprendimiento);
     Optional<ViandaDTO> findViandaById(Long id, Usuario usuario);
     Optional<ViandaDTO> findViandaByIdPublic(Long id);
     Page<ViandaAdminDTO> getAllViandasForAdmin(Pageable pageable);
+    List<CategoriaVianda> getCategoriasByEmprendimiento(Long idEmprendimiento, Usuario usuario);
 
     //--------------------------Update--------------------------//
     Optional<ViandaDTO> updateVianda(Long id, ViandaUpdateDTO viandaDto, Usuario usuario);

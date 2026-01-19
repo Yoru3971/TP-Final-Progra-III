@@ -14,6 +14,8 @@ import com.viandasApp.api.Vianda.repository.ViandaRepository;
 import com.viandasApp.api.Vianda.specification.ViandaSpecifications;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -64,7 +66,7 @@ public class ViandaServiceImpl implements ViandaService {
 
     //--------------------------Read--------------------------//
     @Override
-    public List<ViandaDTO> getViandasByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento, Usuario usuario) {
+    public Page<Vianda> getViandasByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento, Usuario usuario, boolean incluirEliminadas, Pageable pageable) {
 
         Emprendimiento emprendimiento = emprendimientoService.findEntityById(idEmprendimiento)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + idEmprendimiento));
@@ -77,90 +79,83 @@ public class ViandaServiceImpl implements ViandaService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver las viandas de este emprendimiento.");
         }
 
-        Specification<Vianda> spec = ViandaSpecifications
-                .perteneceAEmprendimiento(idEmprendimiento);
+        //  Filtro con Specifications
+        Specification<Vianda> spec = ViandaSpecifications.perteneceAEmprendimiento(idEmprendimiento);
+        if (!incluirEliminadas) {
+            spec = spec.and(ViandaSpecifications.noEstaEliminada());
+        }
+        spec = aplicarFiltrosComunes(spec, filtroViandaDTO);
 
-        if (filtroViandaDTO.getEstaDisponible() != null)
-            spec = spec.and(ViandaSpecifications.estaDisponible(filtroViandaDTO.getEstaDisponible()));
-
-        if (filtroViandaDTO.getEsVegano() != null)
-            spec = spec.and(ViandaSpecifications.esVegana(filtroViandaDTO.getEsVegano()));
-
-        if (filtroViandaDTO.getEsVegetariano() != null)
-            spec = spec.and(ViandaSpecifications.esVegetariana(filtroViandaDTO.getEsVegetariano()));
-
-        if (filtroViandaDTO.getEsSinTacc() != null)
-            spec = spec.and(ViandaSpecifications.esSinTacc(filtroViandaDTO.getEsSinTacc()));
-
-        if (filtroViandaDTO.getCategoria() != null) {
-            try {
-                CategoriaVianda categoriaEnum = CategoriaVianda.fromDescripcion(filtroViandaDTO.getCategoria());
-                spec = spec.and(ViandaSpecifications.tieneCategoria(categoriaEnum));
-            } catch (IllegalArgumentException ignored) {
+        //  Ordeno (por nombre, disponibilidad y eliminación)
+        if (pageable.getSort().isUnsorted()) {
+            Sort defaultSort;
+            if (incluirEliminadas) {
+                // ADMIN: Disponibles -> No disponibles -> Eliminadas
+                defaultSort = Sort.by(
+                        Sort.Order.asc("deletedAt"),
+                        Sort.Order.desc("estaDisponible"),
+                        Sort.Order.asc("nombreVianda")
+                );
+            } else {
+                // DUEÑO: Disponibles -> No disponibles
+                defaultSort = Sort.by(Sort.Direction.DESC, "estaDisponible")
+                        .and(Sort.by(Sort.Direction.ASC, "nombreVianda"));
             }
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), defaultSort);
         }
 
-        if (filtroViandaDTO.getPrecioMin() != null)
-            spec = spec.and(ViandaSpecifications.precioMayorA(filtroViandaDTO.getPrecioMin()));
 
-        if (filtroViandaDTO.getPrecioMax() != null)
-            spec = spec.and(ViandaSpecifications.precioMenorA(filtroViandaDTO.getPrecioMax()));
-
-        if (filtroViandaDTO.getNombreVianda() != null)
-            spec = spec.and(ViandaSpecifications.nombreContieneIgnoreCase(filtroViandaDTO.getNombreVianda()));
-
-        List<Vianda> viandas = viandaRepository.findAll(spec);
+        Page<Vianda> viandas = viandaRepository.findAll(spec, pageable);
         if (viandas.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron viandas para el emprendimiento con ID: " + idEmprendimiento);
         }
-        return viandas.stream()
-                        .map(ViandaDTO::new)
-                        .toList();
+        return viandas;
     }
 
     @Override
-    public List<ViandaDTO> getViandasDisponiblesByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento) {
+    public Page<ViandaDTO> getViandasDisponiblesByEmprendimiento(FiltroViandaDTO filtroViandaDTO, Long idEmprendimiento, Pageable pageable) {
 
         Emprendimiento emprendimiento = emprendimientoService.findEntityById(idEmprendimiento)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + idEmprendimiento));
 
+        //  Filtro con Specifications
         Specification<Vianda> spec = ViandaSpecifications
                 .estaDisponible()
                 .and(ViandaSpecifications.perteneceAEmprendimiento(idEmprendimiento));
+        spec = spec.and(ViandaSpecifications.noEstaEliminada());
+        spec = aplicarFiltrosComunes(spec, filtroViandaDTO);
 
-        if (filtroViandaDTO.getEsVegano() != null)
-            spec = spec.and(ViandaSpecifications.esVegana(filtroViandaDTO.getEsVegano()));
-
-        if (filtroViandaDTO.getEsVegetariano() != null)
-            spec = spec.and(ViandaSpecifications.esVegetariana(filtroViandaDTO.getEsVegetariano()));
-
-        if (filtroViandaDTO.getEsSinTacc() != null)
-            spec = spec.and(ViandaSpecifications.esSinTacc(filtroViandaDTO.getEsSinTacc()));
-
-        if (filtroViandaDTO.getCategoria() != null) {
-            try {
-                CategoriaVianda categoriaEnum = CategoriaVianda.fromDescripcion(filtroViandaDTO.getCategoria());
-                spec = spec.and(ViandaSpecifications.tieneCategoria(categoriaEnum));
-            } catch (IllegalArgumentException ignored) {
-            }
+        //  Ordeno (por nombre)
+        if (pageable.getSort().isUnsorted()) {
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.ASC, "nombreVianda"));
         }
 
-        if (filtroViandaDTO.getPrecioMin() != null)
-            spec = spec.and(ViandaSpecifications.precioMayorA(filtroViandaDTO.getPrecioMin()));
 
-        if (filtroViandaDTO.getPrecioMax() != null)
-            spec = spec.and(ViandaSpecifications.precioMenorA(filtroViandaDTO.getPrecioMax()));
-
-        if (filtroViandaDTO.getNombreVianda() != null)
-            spec = spec.and(ViandaSpecifications.nombreContieneIgnoreCase(filtroViandaDTO.getNombreVianda()));
-
-        List<Vianda> viandas = viandaRepository.findAll(spec);
+        Page<Vianda> viandas = viandaRepository.findAll(spec, pageable);
         if (viandas.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron viandas disponibles para el emprendimiento con ID: " + idEmprendimiento);
         }
+        return viandas.map(ViandaDTO::new);
+    }
+
+    @Override
+    public List<ViandaDTO> getAllViandasDisponiblesByEmprendimiento(Long idEmprendimiento) {
+
+        emprendimientoService.findEntityById(idEmprendimiento)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + idEmprendimiento));
+
+        Specification<Vianda> spec = ViandaSpecifications
+                .estaDisponible()
+                .and(ViandaSpecifications.perteneceAEmprendimiento(idEmprendimiento))
+                .and(ViandaSpecifications.noEstaEliminada());
+
+        Sort sort = Sort.by(Sort.Direction.ASC, "nombreVianda");
+
+        List<Vianda> viandas = viandaRepository.findAll(spec, sort);
+
         return viandas.stream()
-                        .map(ViandaDTO::new)
-                        .toList();
+                .map(ViandaDTO::new)
+                .toList();
     }
 
     @Override
@@ -168,6 +163,10 @@ public class ViandaServiceImpl implements ViandaService {
 
         Vianda vianda = viandaRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada para el Id: " + id));
+
+        if (vianda.getDeletedAt() != null && !usuarioLogueado.getRolUsuario().equals(RolUsuario.ADMIN)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada para el Id: " + id);
+        }
 
         Emprendimiento emprendimiento = emprendimientoService.findEntityById(vianda.getEmprendimiento().getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + vianda.getEmprendimiento().getId()));
@@ -189,6 +188,10 @@ public class ViandaServiceImpl implements ViandaService {
         Vianda vianda = viandaRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada para el Id: " + id));
 
+        if (vianda.getDeletedAt() != null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada para el Id: " + id);
+        }
+
         return Optional.of(new ViandaDTO(vianda));
     }
 
@@ -198,6 +201,31 @@ public class ViandaServiceImpl implements ViandaService {
                 .map(ViandaAdminDTO::new);
     }
 
+    @Override
+    public List<CategoriaVianda> getCategoriasByEmprendimiento(Long idEmprendimiento, Usuario usuario) {
+
+        Emprendimiento emprendimiento = emprendimientoService.findEntityById(idEmprendimiento)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + idEmprendimiento));
+
+        if (usuario == null) {
+            return viandaRepository.findCategoriasByEmprendimientoIdPublic(idEmprendimiento);
+        }
+
+        if (usuario.getRolUsuario().equals(RolUsuario.ADMIN)) {
+            return viandaRepository.findCategoriasByEmprendimientoIdAdmin(idEmprendimiento);
+        }
+
+        if (usuario.getRolUsuario().equals(RolUsuario.DUENO)) {
+            boolean esSuEmprendimiento = emprendimiento.getUsuario().getId().equals(usuario.getId());
+            if (esSuEmprendimiento) {
+                return viandaRepository.findCategoriasByEmprendimientoIdOwner(idEmprendimiento);
+            } else {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver información de este emprendimiento.");
+            }
+        }
+        return viandaRepository.findCategoriasByEmprendimientoIdPublic(idEmprendimiento);
+    }
+
     //--------------------------Update--------------------------//
     @Transactional
     @Override
@@ -205,6 +233,10 @@ public class ViandaServiceImpl implements ViandaService {
 
         Vianda vianda = viandaRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada para el Id: " + id));
+
+        if (vianda.getDeletedAt() != null && !usuarioLogueado.getRolUsuario().equals(RolUsuario.ADMIN)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada.");
+        }
 
         Long duenioEmprendimientoId = vianda.getEmprendimiento().getUsuario().getId();
 
@@ -255,6 +287,10 @@ public class ViandaServiceImpl implements ViandaService {
     public boolean deleteVianda(Long id, Usuario usuarioLogueado) {
         Vianda vianda = viandaRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada para el Id: " + id));
+
+        if (vianda.getDeletedAt() != null && !usuarioLogueado.getRolUsuario().equals(RolUsuario.ADMIN)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada.");
+        }
 
         Long duenioEmprendimientoId = vianda.getEmprendimiento().getUsuario().getId();
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
@@ -330,5 +366,38 @@ public class ViandaServiceImpl implements ViandaService {
                 emprendimiento,
                 fotoUrl
         );
+    }
+
+    private Specification<Vianda> aplicarFiltrosComunes(Specification<Vianda> spec, FiltroViandaDTO filtro) {
+        if (filtro.getEstaDisponible() != null)
+            spec = spec.and(ViandaSpecifications.estaDisponible(filtro.getEstaDisponible()));
+
+        if (filtro.getEsVegano() != null)
+            spec = spec.and(ViandaSpecifications.esVegana(filtro.getEsVegano()));
+
+        if (filtro.getEsVegetariano() != null)
+            spec = spec.and(ViandaSpecifications.esVegetariana(filtro.getEsVegetariano()));
+
+        if (filtro.getEsSinTacc() != null)
+            spec = spec.and(ViandaSpecifications.esSinTacc(filtro.getEsSinTacc()));
+
+        if (filtro.getCategoria() != null) {
+            try {
+                CategoriaVianda categoriaEnum = CategoriaVianda.fromDescripcion(filtro.getCategoria());
+                spec = spec.and(ViandaSpecifications.tieneCategoria(categoriaEnum));
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+
+        if (filtro.getPrecioMin() != null)
+            spec = spec.and(ViandaSpecifications.precioMayorA(filtro.getPrecioMin()));
+
+        if (filtro.getPrecioMax() != null)
+            spec = spec.and(ViandaSpecifications.precioMenorA(filtro.getPrecioMax()));
+
+        if (filtro.getNombreVianda() != null)
+            spec = spec.and(ViandaSpecifications.nombreContieneIgnoreCase(filtro.getNombreVianda()));
+
+        return spec;
     }
 }
