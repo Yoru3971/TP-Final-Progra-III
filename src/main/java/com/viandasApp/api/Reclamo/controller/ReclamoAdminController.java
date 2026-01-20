@@ -1,5 +1,6 @@
 package com.viandasApp.api.Reclamo.controller;
 
+import com.viandasApp.api.Reclamo.dto.ReclamoUpdateDTO;
 import com.viandasApp.api.Reclamo.model.EstadoReclamo;
 import com.viandasApp.api.Reclamo.model.Reclamo;
 import com.viandasApp.api.Reclamo.service.ReclamoService;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -21,6 +23,7 @@ import java.util.Optional;
 @Tag(name = "Reclamos - Admin")
 @RequestMapping("/api/admin/reclamos")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class ReclamoAdminController {
 
     private final ReclamoService reclamoService;
@@ -81,15 +84,11 @@ public class ReclamoAdminController {
             @ApiResponse(responseCode = "404", description = "Reclamo no encontrado")
     })
     @PutMapping("/id/{id}/estado")
-    public ResponseEntity<?> updateEstadoReclamo(@PathVariable Long id, @RequestParam EstadoReclamo nuevoEstado) {
+    public ResponseEntity<?> updateEstadoReclamo(@PathVariable Long id, @RequestBody ReclamoUpdateDTO dto) {
         try {
-            Reclamo actualizado = reclamoService.actualizarEstadoReclamo(id, nuevoEstado);
+            Reclamo actualizado = reclamoService.actualizarEstadoReclamo(id, dto.getNuevoEstado(), dto.getRespuestaAdmin());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Estado actualizado correctamente");
-            response.put("reclamo", actualizado);
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(actualizado);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

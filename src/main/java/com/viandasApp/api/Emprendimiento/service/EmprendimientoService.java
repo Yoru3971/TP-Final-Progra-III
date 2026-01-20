@@ -1,6 +1,7 @@
 package com.viandasApp.api.Emprendimiento.service;
 
 import com.viandasApp.api.Emprendimiento.dto.CreateEmprendimientoDTO;
+import com.viandasApp.api.Emprendimiento.dto.EmprendimientoAdminDTO;
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
@@ -20,6 +21,7 @@ public interface EmprendimientoService {
     Page<EmprendimientoDTO> getAllEmprendimientosDisponibles(Pageable pageable);
     Page<EmprendimientoDTO> getEmprendimientosDisponiblesByCiudad(String ciudad, Pageable pageable);
     Page<EmprendimientoDTO> getEmprendimientosByUsuario(Long idUsuario, Usuario usuario, String ciudad, Pageable pageable);
+    Page<EmprendimientoAdminDTO> getAllEmprendimientosForAdmin(Pageable pageable);
 
     //--------------------------Read--------------------------//
     List<EmprendimientoDTO> getAllEmprendimientos();

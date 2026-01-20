@@ -1,21 +1,18 @@
 package com.viandasApp.api.Usuario.service;
 
-import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
+import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
+import com.viandasApp.api.Emprendimiento.service.EmprendimientoService;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
-import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
 import com.viandasApp.api.ServiceGenerales.CloudinaryService;
 import com.viandasApp.api.ServiceGenerales.ImageValidationService;
-import com.viandasApp.api.Usuario.dto.UsuarioCreateDTO;
-import com.viandasApp.api.Usuario.dto.UsuarioDTO;
-import com.viandasApp.api.Usuario.dto.UsuarioUpdateDTO;
-import com.viandasApp.api.Usuario.dto.UsuarioUpdateRolDTO;
+import com.viandasApp.api.Usuario.dto.*;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.repository.UsuarioRepository;
-import com.viandasApp.api.Usuario.security.SecurityConfig;
 import com.viandasApp.api.Vianda.repository.ViandaRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,26 +20,31 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
     private final UsuarioRepository usuarioRepository;
-    private final EmprendimientoRepository emprendimientoRepository;
-    private final ViandaRepository viandaRepository;
+    private final EmprendimientoService emprendimientoService;
+    private final ViandaRepository viandaRepository; // <--- Agregado nuevamente
     private final PedidoRepository pedidoRepository;
     private final PasswordEncoder passwordEncoder;
     private final CloudinaryService cloudinaryService;
     private final ImageValidationService imageValidationService;
 
-    public UsuarioServiceImpl(UsuarioRepository usuarioRepository, EmprendimientoRepository emprendimientoRepository,
-                              ViandaRepository viandaRepository, PedidoRepository pedidoRepository, PasswordEncoder passwordEncoder,
-                              CloudinaryService cloudinaryService, ImageValidationService imageValidationService) {
-        // Inyección de dependencias a través del constructor
+    public UsuarioServiceImpl(UsuarioRepository usuarioRepository,
+                              @Lazy EmprendimientoService emprendimientoService,
+                              ViandaRepository viandaRepository,
+                              PedidoRepository pedidoRepository,
+                              PasswordEncoder passwordEncoder,
+                              CloudinaryService cloudinaryService,
+                              ImageValidationService imageValidationService) {
         this.usuarioRepository = usuarioRepository;
-        this.emprendimientoRepository = emprendimientoRepository;
-        this.viandaRepository = viandaRepository;
+        this.emprendimientoService = emprendimientoService;
+        this.viandaRepository = viandaRepository; // <--- Asignación
         this.pedidoRepository = pedidoRepository;
         this.passwordEncoder = passwordEncoder;
         this.cloudinaryService = cloudinaryService;
@@ -52,13 +54,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     //--------------------------Create--------------------------//
     @Override
     @Transactional
-    public UsuarioDTO createUsuario(UsuarioCreateDTO usuarioCreateDTO) {
+    public UsuarioAdminDTO createUsuario(UsuarioCreateDTO usuarioCreateDTO) {
 
-        imageValidationService.validarImagen(usuarioCreateDTO.getImage(), ImageValidationService.TipoValidacion.PERFIL);
-
-        String fotoUrl = cloudinaryService.subirImagen(usuarioCreateDTO.getImage(), "usuarios");
-
-        Usuario usuario = DTOToEntity(usuarioCreateDTO, fotoUrl);
+        Usuario usuario = DTOToEntity(usuarioCreateDTO);
 
         Usuario usuarioLogueado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -85,20 +83,32 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         Usuario savedUsuario = usuarioRepository.save(usuario);
-        return new UsuarioDTO(savedUsuario);
+        return new UsuarioAdminDTO(savedUsuario);
     }
 
     //--------------------------Read--------------------------//
     @Override
-    public List<UsuarioDTO> readUsuarios() {
-        List<UsuarioDTO> encontrados = usuarioRepository.findAll()
+    public List<UsuarioAdminDTO> readUsuarios() {
+        List<UsuarioAdminDTO> encontrados = usuarioRepository.findAll()
                 .stream()
-                .map(UsuarioDTO::new).toList();
+                .map(UsuarioAdminDTO::new).toList();
 
         if (encontrados.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron usuarios");
         }
         return encontrados;
+    }
+
+    @Override
+    public Optional<UsuarioAdminDTO> findByIdAdmin(Long id) {
+        Optional<UsuarioAdminDTO> encontrado = usuarioRepository.findById(id)
+                .map(UsuarioAdminDTO::new);
+
+        if (encontrado.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron usuarios con el ID: " + id);
+        }
+
+        return encontrado;
     }
 
     @Override
@@ -114,9 +124,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public Optional<UsuarioDTO> findByNombreCompleto(String nombreCompleto) {
-        Optional<UsuarioDTO> encontrado = usuarioRepository.findByNombreCompletoContaining(nombreCompleto)
-                .map(UsuarioDTO::new);
+    public Optional<UsuarioAdminDTO> findByNombreCompleto(String nombreCompleto) {
+        Optional<UsuarioAdminDTO> encontrado = usuarioRepository.findByNombreCompletoContaining(nombreCompleto)
+                .map(UsuarioAdminDTO::new);
 
         if (encontrado.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron usuarios con el nombre: " + nombreCompleto);
@@ -126,9 +136,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public Optional<UsuarioDTO> findByEmail(String email) {
-        Optional<UsuarioDTO> encontrado = usuarioRepository.findByEmail(email)
-                .map(UsuarioDTO::new);
+    public Optional<UsuarioAdminDTO> findByEmail(String email) {
+        Optional<UsuarioAdminDTO> encontrado = usuarioRepository.findByEmail(email)
+                .map(UsuarioAdminDTO::new);
 
         if (encontrado.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron usuarios con el email: " + email);
@@ -138,10 +148,10 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public List<UsuarioDTO> findByRolUsuario(RolUsuario rolUsuario) {
-        List<UsuarioDTO> encontrados = usuarioRepository.findByRolUsuario(rolUsuario)
+    public List<UsuarioAdminDTO> findByRolUsuario(RolUsuario rolUsuario) {
+        List<UsuarioAdminDTO> encontrados = usuarioRepository.findByRolUsuario(rolUsuario)
                 .stream()
-                .map(UsuarioDTO::new).toList();
+                .map(UsuarioAdminDTO::new).toList();
 
         if (encontrados.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron usuarios con el rol: " + rolUsuario);
@@ -218,10 +228,9 @@ public class UsuarioServiceImpl implements UsuarioService {
         return new UsuarioDTO(usuario);
     }
 
-
     @Transactional
     @Override
-    public Optional<UsuarioDTO> updateUsuarioAdmin(Long id, UsuarioUpdateRolDTO usuarioUpdateRolDTO) {
+    public Optional<UsuarioAdminDTO> updateUsuarioAdmin(Long id, UsuarioUpdateRolDTO usuarioUpdateRolDTO) {
         Usuario usuarioExistente = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id));
 
@@ -261,45 +270,127 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         Usuario actualizado = usuarioRepository.save(usuarioExistente);
-        return Optional.of(new UsuarioDTO(actualizado));
+        return Optional.of(new UsuarioAdminDTO(actualizado));
+    }
+
+    @Transactional
+    @Override
+    public UsuarioAdminDTO updateImagenUsuarioAdmin(Long id, MultipartFile image) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado."));
+
+        imageValidationService.validarImagen(image, ImageValidationService.TipoValidacion.PERFIL);
+
+        String fotoUrl = cloudinaryService.subirImagen(image, "usuarios");
+
+        usuario.setImagenUrl(fotoUrl);
+
+        usuarioRepository.save(usuario);
+        return new UsuarioAdminDTO(usuario);
+    }
+
+    @Transactional
+    @Override
+    public UsuarioAdminDTO enableUsuario(Long id) {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
+
+        if (usuarioOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id);
+        }
+
+        Usuario usuario = usuarioOpt.get();
+
+        if (usuario.isEnabled()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este usuario ya está activado.");
+        }
+
+        usuario.setEnabled(true);
+        usuarioRepository.save(usuario);
+        return new UsuarioAdminDTO(usuario);
+    }
+
+    @Transactional
+    @Override
+    public UsuarioAdminDTO banUsuario(Long id) {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
+
+        if (usuarioOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id);
+        }
+
+        Usuario usuario = usuarioOpt.get();
+
+        if (usuario.getBannedAt() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este usuario ya está bloqueado.");
+        }
+
+        usuario.setBannedAt(LocalDateTime.now());
+        usuarioRepository.save(usuario);
+        return new UsuarioAdminDTO(usuario);
+    }
+
+    @Transactional
+    @Override
+    public UsuarioAdminDTO unbanUsuario(Long id) {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
+
+        if (usuarioOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id);
+        }
+
+        Usuario usuario = usuarioOpt.get();
+
+        if (usuario.getBannedAt() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este usuario no está bloqueado.");
+        }
+
+        usuario.setBannedAt(null);
+        usuarioRepository.save(usuario);
+        return new UsuarioAdminDTO(usuario);
     }
 
     //--------------------------Delete--------------------------//
     @Transactional
     @Override
     public boolean deleteUsuarioAdmin(Long id) {
-        Optional<Usuario> usuarioExistente = usuarioRepository.findById(id);
-        if (usuarioExistente.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id);
-        }
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id));
 
-        Usuario usuario = usuarioExistente.get();
-
-        usuarioRepository.delete(usuario);
-        return true;
+        return procesarEliminacionUsuario(usuario);
     }
 
     @Transactional
     @Override
     public boolean deleteUsuario(Long id, Usuario autenticado) {
-
-        Optional<Usuario> usuarioExistente = usuarioRepository.findById(id);
-        if (usuarioExistente.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id);
-        }
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el usuario con el ID: " + id));
 
         if (!autenticado.getId().equals(id)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acceso denegado para eliminar este usuario");
         }
 
-        verificarSiTienePedidos(id);
+        return procesarEliminacionUsuario(usuario);
+    }
 
-        usuarioRepository.deleteById(id);
-        return true;
+    private boolean procesarEliminacionUsuario(Usuario usuario) {
+        Long id = usuario.getId();
+
+        verificarSiTienePedidosActivos(id);
+
+        if (tieneDatosHistoricos(usuario)) {
+            realizarBajaLogica(usuario);
+            usuarioRepository.save(usuario);
+            return true;
+        } else {
+            usuarioRepository.deleteById(id);
+            return true;
+        }
     }
 
     //--------------------------Otros--------------------------//
-    private Usuario DTOToEntity(UsuarioCreateDTO dto, String imagenUrl) {
+    private Usuario DTOToEntity(UsuarioCreateDTO dto) {
+        String imagenPorDefecto = "https://res.cloudinary.com/dsgqbotzi/image/upload/v1765496442/usuario_por_defecto_dtac7c.jpg";
+
         return new Usuario(
                 null, // id será generado por JPA
                 dto.getNombreCompleto(),
@@ -307,7 +398,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 passwordEncoder.encode(dto.getPassword()),
                 dto.getTelefono(),
                 dto.getRolUsuario(),
-                imagenUrl
+                imagenPorDefecto
         );
     }
 
@@ -386,4 +477,51 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
         return true;
     }
+
+    private void verificarSiTienePedidosActivos(Long id) {
+        boolean tienePedidosActivos = pedidoRepository.existsByEstadoAndUsuarioId(EstadoPedido.PENDIENTE, id)
+                || pedidoRepository.existsByEstadoAndUsuarioId(EstadoPedido.ACEPTADO, id);
+
+        boolean tienePedidosActivosComoDueno = pedidoRepository.existsByEstadoAndEmprendimientoUsuarioId(EstadoPedido.PENDIENTE, id)
+                || pedidoRepository.existsByEstadoAndEmprendimientoUsuarioId(EstadoPedido.ACEPTADO, id);
+
+        if (tienePedidosActivos || tienePedidosActivosComoDueno) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "No podés eliminar tu cuenta mientras tengas pedidos en curso (Pendientes o Aceptados).");
+        }
+    }
+
+    private boolean tieneDatosHistoricos(Usuario usuario) {
+        boolean tienePedidosHistoricos = !usuario.getPedidos().isEmpty();
+        boolean tieneEmprendimientos = !usuario.getEmprendimientos().isEmpty();
+
+        return tienePedidosHistoricos || tieneEmprendimientos;
+    }
+
+    private void realizarBajaLogica(Usuario usuario) {
+        List<Emprendimiento> emprendimientosCopia = new ArrayList<>(usuario.getEmprendimientos());
+
+        for (Emprendimiento emp : emprendimientosCopia) {
+            boolean tieneHistorialPedidos = pedidoRepository.existsByEmprendimientoId(emp.getId());
+
+            emprendimientoService.deleteEmprendimiento(emp.getId(), usuario);
+
+            if (!tieneHistorialPedidos) {
+                usuario.getEmprendimientos().remove(emp);
+            }
+        }
+
+        String timestamp = String.valueOf(System.currentTimeMillis());
+
+        usuario.setNombreCompleto("usuario_borrado_" + timestamp + "_" + usuario.getNombreCompleto());
+        usuario.setEmail("usuario_borrado_" + timestamp + "_" + usuario.getEmail());
+        usuario.setTelefono("borrado_" + timestamp + "_" + usuario.getTelefono());
+        usuario.setImagenUrl("https://res.cloudinary.com/dsgqbotzi/image/upload/v1767728942/usuario_deleted_gi1u0v.webp");
+
+        usuario.setPassword(passwordEncoder.encode("deleted_user_" + timestamp));
+        usuario.setEnabled(false);
+        usuario.setDeletedAt(LocalDateTime.now());
+    }
+
+
 }

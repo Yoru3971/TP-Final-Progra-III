@@ -5,16 +5,17 @@ import com.viandasApp.api.Auth.dto.UsuarioLoginDTO;
 import com.viandasApp.api.Auth.dto.UsuarioRegisterDTO;
 import com.viandasApp.api.ServiceGenerales.EmailService;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
-import com.viandasApp.api.Usuario.model.ConfirmacionToken;
+import com.viandasApp.api.Auth.model.ConfirmacionToken;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
-import com.viandasApp.api.Usuario.repository.ConfirmacionTokenRepository;
+import com.viandasApp.api.Auth.repository.ConfirmacionTokenRepository;
 import com.viandasApp.api.Usuario.repository.UsuarioRepository;
-import com.viandasApp.api.Usuario.security.JwtUtil;
+import com.viandasApp.api.Security.jwt.JwtUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -90,12 +91,13 @@ public class AuthServiceImpl implements AuthService {
         String link = "http://localhost:4200/confirmar-cuenta?token=" + token;
         emailService.sendValidacionCuenta(
                 usuarioRegisterDTO.getEmail(),
-                buildEmail(usuarioRegisterDTO.getNombreCompleto(), link)
+                usuarioRegisterDTO.getNombreCompleto(),
+                link
         );
         return new UsuarioDTO(savedUsuario);
     }
 
-    // === CONFIRMACION TOKEN ===
+    // === CONFIRMACION CUENTA CON TOKEN EMAIL ===
     @Override
     @Transactional
     public String confirmToken(String token) {
@@ -132,7 +134,9 @@ public class AuthServiceImpl implements AuthService {
                     )
             );
         } catch (DisabledException e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cuenta no validada. Por favor revisa tu email.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ACCOUNT_NOT_VERIFIED");
+        } catch (LockedException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ACCOUNT_BANNED");
         } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email o contraseña incorrecta.");
         }
@@ -144,7 +148,7 @@ public class AuthServiceImpl implements AuthService {
 
         return new UsuarioLogedResponseDTO(usuario.get().getId(), token);
     }
-    // === REENVIAR TOKEN VALIDACION ===
+    // === REENVIAR TOKEN VALIDACION DE CUENTA EMAIL===
     @Override
     @Transactional
     public String resendToken(String email) {
@@ -167,7 +171,8 @@ public class AuthServiceImpl implements AuthService {
         String link = "http://localhost:4200/confirmar-cuenta?token=" + token;
         emailService.sendValidacionCuenta(
                 usuario.getEmail(),
-                buildEmail(usuario.getNombreCompleto(), link)
+                usuario.getNombreCompleto(),
+                link
         );
 
         return "Nuevo código de verificación enviado.";
@@ -190,48 +195,6 @@ public class AuthServiceImpl implements AuthService {
         return u;
     }
 
-    // === ESTRUCTURA MAIL ===
-    private String buildEmail(String nombre, String link) {
-        return "<!DOCTYPE html>\n" +
-                "<html>\n" +
-                "<head>\n" +
-                "    <meta charset=\"UTF-8\">\n" +
-                "    <title>Verifica tu correo</title>\n" +
-                "    <style>\n" +
-                "        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }\n" +
-                "        .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); overflow: hidden; }\n" +
-                "        .header { background-color: #2c3e50; padding: 20px; text-align: center; color: #ffffff; }\n" +
-                "        .header h1 { margin: 0; font-size: 24px; }\n" +
-                "        .content { padding: 30px; color: #333333; line-height: 1.6; }\n" +
-                "        .button-container { text-align: center; margin: 30px 0; }\n" +
-                "        .button { background-color: #27ae60; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; }\n" +
-                "        .footer { background-color: #f9f9f9; padding: 15px; text-align: center; font-size: 12px; color: #777777; border-top: 1px solid #eeeeee; }\n" +
-                "    </style>\n" +
-                "</head>\n" +
-                "<body>\n" +
-                "    <div class=\"container\">\n" +
-                "        <div class=\"header\">\n" +
-                "            <h1>¡Bienvenido a ViandasApp!</h1>\n" +
-                "        </div>\n" +
-                "        <div class=\"content\">\n" +
-                "            <p>Hola <strong>" + nombre + "</strong>,</p>\n" +
-                "            <p>Gracias por registrarte. Estás a un solo paso de empezar a disfrutar de las mejores viandas.</p>\n" +
-                "            <p>Por favor, valida tu correo electrónico haciendo clic en el siguiente botón:</p>\n" +
-                "            \n" +
-                "            <div class=\"button-container\">\n" +
-                "                <a href=\"" + link + "\" class=\"button\">Activar mi cuenta</a>\n" +
-                "            </div>\n" +
-                "            \n" +
-                "            <p>Si no creaste esta cuenta, puedes ignorar este mensaje.</p>\n" +
-                "            <p>El enlace expirará en 15 minutos.</p>\n" +
-                "        </div>\n" +
-                "        <div class=\"footer\">\n" +
-                "            &copy; 2025 ViandasApp. Todos los derechos reservados.\n" +
-                "        </div>\n" +
-                "    </div>\n" +
-                "</body>\n" +
-                "</html>";
-    }
 }
 
 

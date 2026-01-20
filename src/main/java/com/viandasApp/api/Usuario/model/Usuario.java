@@ -1,5 +1,6 @@
 package com.viandasApp.api.Usuario.model;
 
+import com.viandasApp.api.Auth.model.ConfirmacionToken;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Pedido.model.Pedido;
 import jakarta.persistence.*;
@@ -57,6 +58,12 @@ public class Usuario implements UserDetails {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "banned_at")
+    private LocalDateTime bannedAt;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pedido> pedidos = new ArrayList<>();
 
@@ -98,7 +105,7 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return UserDetails.super.isAccountNonLocked();
+        return this.bannedAt == null;
     }
 
     @Override

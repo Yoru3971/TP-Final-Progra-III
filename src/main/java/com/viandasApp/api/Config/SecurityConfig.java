@@ -1,12 +1,13 @@
-package com.viandasApp.api.Usuario.security;
+package com.viandasApp.api.Config;
 
+import com.viandasApp.api.Security.jwt.JwtAuthenticationEntryPoint;
+import com.viandasApp.api.Security.jwt.JwtAuthenticationFilter;
+import com.viandasApp.api.Security.jwt.JwtUtil;
+import com.viandasApp.api.Security.service.UsuarioDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -23,6 +24,7 @@ public class SecurityConfig {
 
     private final UsuarioDetailsServiceImpl usuarioDetailsServiceImpl;
     private final JwtUtil jwtUtil;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -38,9 +40,14 @@ public class SecurityConfig {
                 throw new DisabledException("La cuenta no está activada");
             }
 
+            if (!user.isAccountNonLocked()) {
+                throw new LockedException("La cuenta está bloqueada");
+            }
+
             if (!passwordEncoder().matches(authentication.getCredentials().toString(), user.getPassword())) {
                 throw new BadCredentialsException("Contraseña inválida");
             }
+
             return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
         };
     }
@@ -60,8 +67,10 @@ public class SecurityConfig {
                 }))
 
                 .csrf(csrf -> csrf.disable())
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/public/logout-all").authenticated()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/auth/**",
                                 "/v3/api-docs/**",
@@ -76,13 +85,4 @@ public class SecurityConfig {
 
         return http.build();
     }
-
 }
-
-
-/**
- * Configuración de seguridad:
- * - Stateless (JWT)
- * - Reglas por rutas
- * - Agrega el filtro JWT antes del UsernamePasswordAuthenticationFilter
- */

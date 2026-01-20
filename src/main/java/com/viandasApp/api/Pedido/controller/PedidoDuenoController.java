@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +28,7 @@ import java.util.Optional;
 @Tag(name = "Pedidos - Dueño")
 @RequestMapping("/api/dueno/pedidos")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('DUENO')")
 public class PedidoDuenoController {
     private final PedidoService pedidoService;
 

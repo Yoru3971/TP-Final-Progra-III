@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +31,7 @@ import java.util.Optional;
 @Tag(name = "Pedidos - Admin")
 @RequestMapping("/api/admin/pedidos")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class PedidoAdminController {
     private final PedidoService pedidoService;
 
