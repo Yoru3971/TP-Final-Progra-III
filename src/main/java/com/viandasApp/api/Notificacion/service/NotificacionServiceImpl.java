@@ -6,9 +6,15 @@ import com.viandasApp.api.Notificacion.dto.NotificacionCreateDTO;
 import com.viandasApp.api.Notificacion.dto.NotificacionDTO;
 import com.viandasApp.api.Notificacion.model.Notificacion;
 import com.viandasApp.api.Notificacion.repository.NotificacionRepository;
+import com.viandasApp.api.Notificacion.specification.NotificacionSpecifications;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioServiceImpl;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -53,81 +59,30 @@ public class NotificacionServiceImpl implements NotificacionService{
     }
 
     @Override
-    public List<NotificacionDTO> getAllNotificaciones() {
+    public Page<NotificacionDTO> buscarNotificaciones(Long destinatarioId, Boolean leida, LocalDate desde, LocalDate hasta, Pageable pageable) {
 
-        List<Notificacion> notificaciones = notificacionRepository.findAll();
+        Specification<Notificacion> spec = Specification.where(NotificacionSpecifications.byDestinatarioId(destinatarioId));
 
-        if (notificaciones.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron notificaciones");
+        if (leida != null) {
+            spec = spec.and(NotificacionSpecifications.byLeida(leida));
         }
-        return notificaciones.stream().map(NotificacionDTO::new).toList();
+        if (desde != null) {
+            spec = spec.and(NotificacionSpecifications.byFechaDesde(desde));
+        }
+        if (hasta != null) {
+            spec = spec.and(NotificacionSpecifications.byFechaHasta(hasta));
+        }
+
+        if (pageable.getSort().isUnsorted()) {
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.DESC, "fechaEnviado", "id"));
+        }
+
+        return notificacionRepository.findAll(spec, pageable).map(NotificacionDTO::new);
     }
 
     @Override
-    public List<NotificacionDTO> getAllByDestinatarioId(Long destinatarioId, Boolean leida) {
-
-        Usuario usuario = usuarioService.findEntityById(destinatarioId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
-
-        List<Notificacion> notificaciones;
-
-        if (leida == null) {
-            notificaciones = notificacionRepository.findAllByDestinatarioId(destinatarioId);
-        } else {
-            notificaciones = notificacionRepository.findAllByDestinatarioIdAndLeida(destinatarioId, leida);
-        }
-
-        if (notificaciones.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron notificaciones");
-        }
-
-        return notificaciones.stream().map(NotificacionDTO::new).toList();
-    }
-
-    @Override
-    public List<NotificacionDTO> getAllByEmprendimientoId(Long emprendimientoId) {
-
-        Emprendimiento emprendimiento = emprendimientoService.findEntityById(emprendimientoId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado"));
-
-        List<Notificacion> notificaciones = notificacionRepository.findAllByEmprendimientoId(emprendimientoId);
-        if (notificaciones.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron notificaciones para el emprendimiento");
-        }
-        return notificaciones.stream().map(NotificacionDTO::new).toList();
-    }
-
-    @Override
-    public List<NotificacionDTO> getAllByFechaEnviadoBetween(LocalDate start, LocalDate end) {
-
-        if (start == null || end == null || start.isAfter(end)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rango de fechas inválido");
-        }
-
-        List<Notificacion> notificaciones = notificacionRepository.findAllByFechaEnviadoBetween(start, end);
-
-        if (notificaciones.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron notificaciones en el rango de fechas especificado");
-        }
-        return notificaciones.stream().map(NotificacionDTO::new).toList();
-    }
-
-    @Override
-    public List<NotificacionDTO> getAllByFechaEnviadoBetweenAndDestinatarioId(Long destinatarioId, LocalDate start, LocalDate end) {
-
-        Usuario usuario = usuarioService.findEntityById(destinatarioId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
-
-        if (start == null || end == null || start.isAfter(end)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rango de fechas inválido");
-        }
-
-        List<Notificacion> notificaciones = notificacionRepository.findAllByDestinatarioIdAndFechaEnviadoBetween(destinatarioId,start, end);
-        if (notificaciones.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron notificaciones en el rango de fechas especificado");
-        }
-
-        return notificaciones.stream().map(NotificacionDTO::new).toList();
+    public long contarNoLeidas(Long destinatarioId) {
+        return notificacionRepository.countByDestinatarioIdAndLeidaFalse(destinatarioId);
     }
 
     @Transactional
