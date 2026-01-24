@@ -31,7 +31,7 @@ public class PedidoSpecifications {
     public static Specification<Pedido> hasNombreEmprendimiento(String nombre) {
         return (root, query, cb) -> {
             if (nombre == null || nombre.isEmpty()) return null;
-            return cb.equal(root.get("emprendimiento").get("nombreEmprendimiento"), nombre);
+            return cb.like(cb.lower(root.get("emprendimiento").get("nombreEmprendimiento")), "%" + nombre.toLowerCase() + "%");
         };
     }
 
