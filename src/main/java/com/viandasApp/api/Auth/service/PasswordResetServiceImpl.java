@@ -3,7 +3,7 @@ package com.viandasApp.api.Auth.service;
 import com.viandasApp.api.Auth.dto.PasswordResetChangeDTO;
 import com.viandasApp.api.Auth.model.PasswordResetToken;
 import com.viandasApp.api.Auth.repository.PasswordTokenRepository;
-import com.viandasApp.api.ServiceGenerales.EmailService;
+import com.viandasApp.api.ServiceGenerales.email.EmailService;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
