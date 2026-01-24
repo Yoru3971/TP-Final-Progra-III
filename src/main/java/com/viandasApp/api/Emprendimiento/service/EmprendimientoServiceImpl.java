@@ -9,8 +9,9 @@ import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
-import com.viandasApp.api.ServiceGenerales.CloudinaryService;
-import com.viandasApp.api.ServiceGenerales.ImageValidationService;
+import com.viandasApp.api.ServiceGenerales.cloudinary.CloudinaryService;
+import com.viandasApp.api.ServiceGenerales.imageValidation.ImageValidationService;
+import com.viandasApp.api.ServiceGenerales.imageValidation.TipoValidacion;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioService;
@@ -74,7 +75,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo podés crear emprendimientos a tu nombre.");
         }
 
-        imageValidationService.validarImagen(createEmprendimientoDTO.getImage(), ImageValidationService.TipoValidacion.PERFIL);
+        imageValidationService.validarImagen(createEmprendimientoDTO.getImage(), TipoValidacion.EMPRENDIMIENTO);
 
         String fotoUrl = cloudinaryService.subirImagen(createEmprendimientoDTO.getImage(), "emprendimientos");
 
@@ -322,7 +323,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar este emprendimiento.");
         }
 
-        imageValidationService.validarImagen(image, ImageValidationService.TipoValidacion.PERFIL);
+        imageValidationService.validarImagen(image, TipoValidacion.EMPRENDIMIENTO);
 
         String fotoUrl = cloudinaryService.subirImagen(image, "emprendimientos");
         emprendimiento.setImagenUrl(fotoUrl);

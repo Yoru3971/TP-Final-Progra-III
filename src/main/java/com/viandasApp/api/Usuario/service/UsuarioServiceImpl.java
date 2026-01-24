@@ -4,8 +4,9 @@ import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoService;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
-import com.viandasApp.api.ServiceGenerales.CloudinaryService;
-import com.viandasApp.api.ServiceGenerales.ImageValidationService;
+import com.viandasApp.api.ServiceGenerales.cloudinary.CloudinaryService;
+import com.viandasApp.api.ServiceGenerales.imageValidation.ImageValidationService;
+import com.viandasApp.api.ServiceGenerales.imageValidation.TipoValidacion;
 import com.viandasApp.api.Usuario.dto.*;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
@@ -218,7 +219,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado."));
 
-        imageValidationService.validarImagen(image, ImageValidationService.TipoValidacion.PERFIL);
+        imageValidationService.validarImagen(image, TipoValidacion.PERFIL_USUARIO);
 
         String fotoUrl = cloudinaryService.subirImagen(image, "usuarios");
 
@@ -279,7 +280,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado."));
 
-        imageValidationService.validarImagen(image, ImageValidationService.TipoValidacion.PERFIL);
+        imageValidationService.validarImagen(image, TipoValidacion.PERFIL_USUARIO);
 
         String fotoUrl = cloudinaryService.subirImagen(image, "usuarios");
 
