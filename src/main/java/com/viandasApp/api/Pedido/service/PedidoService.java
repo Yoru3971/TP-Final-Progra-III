@@ -6,6 +6,8 @@ import com.viandasApp.api.Pedido.dto.PedidoUpdateViandasDTO;
 import com.viandasApp.api.Pedido.dto.UpdatePedidoDTO;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Usuario.model.Usuario;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -16,16 +18,9 @@ public interface PedidoService {
     PedidoDTO createPedido(PedidoCreateDTO dto, Usuario usuarioLogueado);
 
     //--------------------------Read--------------------------//
-    List<PedidoDTO> getAllPedidos();
-    List<PedidoDTO> getAllPedidosByEmprendimiento(Long idEmprendimiento, Usuario usuarioLogueado);
-    List<PedidoDTO> getAllPedidosByEmprendimientoAndUsuario(Long idEmprendimiento,Long idUsuario, Usuario usuarioLogueado);
-    Optional<PedidoDTO> getPedidoById(Long id);
-    List<PedidoDTO> getAllPedidosDueno(Long idDueno);
-    List<PedidoDTO> getAllPedidosByUsuarioId(Long idUsuario);
-    List<PedidoDTO> getAllPedidosByEstado(EstadoPedido estado);
-    List<PedidoDTO> getAllPedidosByFecha(LocalDate fecha);
-    List<PedidoDTO> getAllPedidosByFechaAndUsuarioId(LocalDate fecha, Long idUsuario);
-    List<PedidoDTO> getAllPedidosByFechaAndEmprendimientoId(LocalDate fecha, Long idEmprendimiento, Usuario usuarioLogueado);
+    Page<PedidoDTO> buscarPedidos(Usuario usuarioLogueado, EstadoPedido estado, String nombreEmprendimiento, LocalDate desde, LocalDate hasta, Pageable pageable);
+    Optional<PedidoDTO> getPedidoById(Long id, Usuario usuario);
+    List<String> getNombresEmprendimientosFiltro(Usuario usuario);
 
     //--------------------------Update--------------------------//
     Optional<PedidoDTO> updatePedidoAdmin(Long id, UpdatePedidoDTO updatePedidoDTO);

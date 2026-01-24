@@ -10,6 +10,7 @@ import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
 import com.viandasApp.api.ServiceGenerales.email.EmailService;
+import com.viandasApp.api.Pedido.specification.PedidoSpecifications;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
@@ -18,6 +19,12 @@ import com.viandasApp.api.Vianda.model.Vianda;
 import com.viandasApp.api.Vianda.service.ViandaServiceImpl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cglib.core.Local;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -115,174 +122,61 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     //--------------------------Read--------------------------//
-    @Override
-    public List<PedidoDTO> getAllPedidos() {
-        List<PedidoDTO> pedidos = pedidoRepository.findAll()
-                .stream()
-                .map(PedidoDTO::new)
-                .toList();
 
-        if (pedidos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron pedidos.");
+    @Override
+    public Page<PedidoDTO> buscarPedidos(Usuario usuario, EstadoPedido estado, String nombreEmprendimiento, LocalDate desde, LocalDate hasta, Pageable pageable) {
+
+        Specification<Pedido> spec = Specification.where(null);
+
+        if (usuario.getRolUsuario() == RolUsuario.CLIENTE) {
+            spec = spec.and(PedidoSpecifications.delCliente(usuario.getId()));
+        } else if (usuario.getRolUsuario() == RolUsuario.DUENO) {
+            spec = spec.and(PedidoSpecifications.delDueno(usuario.getId()));
         }
 
-        return pedidos;
+        if (estado != null) {
+            spec = spec.and(PedidoSpecifications.hasEstado(estado));
+        }
+        if (nombreEmprendimiento != null) {
+            spec = spec.and(PedidoSpecifications.hasNombreEmprendimiento(nombreEmprendimiento));
+        }
+        spec = spec.and(PedidoSpecifications.fechaEntregaEntre(desde, hasta));
+
+        if (pageable.getSort().isUnsorted()) {
+            spec = spec.and(PedidoSpecifications.conOrdenamientoDefecto());
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        }
+
+        return pedidoRepository.findAll(spec, pageable).map(PedidoDTO::new);
     }
 
     @Override
-    public List<PedidoDTO> getAllPedidosByEmprendimiento(Long idEmprendimiento, Usuario usuarioLogueado) {
+    public Optional<PedidoDTO> getPedidoById(Long id, Usuario usuario) {
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el pedido con ID: " + id));
 
-        Emprendimiento emprendimiento = emprendimientoService.findEntityById(idEmprendimiento)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado."));
-
-        if (usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO) && !(emprendimiento.getUsuario().getId().equals(usuarioLogueado.getId()))) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El emprendimiento no pertenece al usuario logueado.");
+        if (usuario.getRolUsuario().equals(RolUsuario.CLIENTE)) {
+            if (!pedido.getUsuario().getId().equals(usuario.getId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver este pedido.");
+            }
         }
-
-        List<PedidoDTO> pedidos = pedidoRepository.findByEmprendimientoId(idEmprendimiento)
-                .stream()
-                .map(PedidoDTO::new)
-                .toList();
-
-        if (pedidos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron pedidos para el emprendimiento con ID: " + idEmprendimiento);
+        else if (usuario.getRolUsuario().equals(RolUsuario.DUENO)) {
+            if (!pedido.getEmprendimiento().getUsuario().getId().equals(usuario.getId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver este pedido.");
+            }
         }
-
-        return pedidos;
+        return Optional.of(new PedidoDTO(pedido));
     }
 
     @Override
-    public List<PedidoDTO> getAllPedidosByEmprendimientoAndUsuario(Long idEmprendimiento, Long idUsuario, Usuario usuarioLogueado) {
-
-        Emprendimiento emprendimiento = emprendimientoService.findEntityById(idEmprendimiento)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado."));
-
-        Usuario usuario = usuarioService.findEntityById(idUsuario)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado."));
-
-        if (usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO) && !emprendimiento.getUsuario().equals(usuarioLogueado)) {
-            throw new RuntimeException("El emprendimiento no pertenece al usuario logueado.");
+    public List<String> getNombresEmprendimientosFiltro(Usuario usuario) {
+        if (usuario.getRolUsuario() == RolUsuario.ADMIN) {
+            return pedidoRepository.findDistinctEmprendimientosAdmin();
+        } else if (usuario.getRolUsuario() == RolUsuario.DUENO) {
+            return pedidoRepository.findDistinctEmprendimientosDueno(usuario.getId());
+        } else {
+            return pedidoRepository.findDistinctEmprendimientosCliente(usuario.getId());
         }
-
-
-        List<PedidoDTO> pedidos = pedidoRepository.findByEmprendimientoIdAndUsuarioId(idEmprendimiento, idUsuario)
-                .stream()
-                .map(PedidoDTO::new)
-                .toList();
-
-        if (pedidos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron pedidos para el emprendimiento con ID: " + idEmprendimiento);
-        }
-
-        return pedidos;
-    }
-
-    @Override
-    public Optional<PedidoDTO> getPedidoById(Long id) {
-        Optional<PedidoDTO> pedido = pedidoRepository.findById(id)
-                .map(PedidoDTO::new);
-
-        if (pedido.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el pedido con ID: " + id);
-        }
-
-        return pedido;
-    }
-
-    @Override
-    public List<PedidoDTO> getAllPedidosDueno(Long idDueno) {
-        List<PedidoDTO> pedidos = pedidoRepository.findByEmprendimientoUsuarioId(idDueno)
-                .stream()
-                .map(PedidoDTO::new)
-                .toList();
-
-        if (pedidos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No tenés pedidos todavía.");
-        }
-
-        return pedidos;
-    }
-
-    @Override
-    public List<PedidoDTO> getAllPedidosByUsuarioId(Long idUsuario) {
-
-        Optional<UsuarioDTO> usuario = usuarioService.findById(idUsuario);
-        if (usuario.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con ID: " + idUsuario);
-        }
-
-        List<PedidoDTO> pedidos = pedidoRepository.findByUsuarioId(idUsuario)
-                .stream()
-                .map(PedidoDTO::new)
-                .toList();
-
-        if (pedidos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No tenés pedidos todavía.");
-        }
-        return pedidos;
-    }
-
-    @Override
-    public List<PedidoDTO> getAllPedidosByEstado(EstadoPedido estado) {
-        List<PedidoDTO> pedidos = pedidoRepository.findByEstado(estado)
-                .stream()
-                .map(PedidoDTO::new)
-                .toList();
-
-        if (pedidos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron pedidos con el estado: " + estado);
-        }
-        return pedidos;
-    }
-
-    @Override
-    public List<PedidoDTO> getAllPedidosByFecha(LocalDate fecha) {
-        List<PedidoDTO> pedidos = pedidoRepository.findByFechaEntrega(fecha)
-                .stream()
-                .map(PedidoDTO::new)
-                .toList();
-
-        if (pedidos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron pedidos con la fecha: " + fecha);
-        }
-        return pedidos;
-    }
-
-    @Override
-    public List<PedidoDTO> getAllPedidosByFechaAndUsuarioId(LocalDate fecha, Long idUsuario) {
-        Optional<UsuarioDTO> usuario = usuarioService.findById(idUsuario);
-
-        if (usuario.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado.");
-        }
-
-        List<PedidoDTO> pedidos = pedidoRepository.findByFechaEntregaAndUsuarioId(fecha, idUsuario).stream()
-                .map(PedidoDTO::new)
-                .toList();
-
-        if (pedidos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron pedidos para la fecha y usuario indicados.");
-        }
-        return pedidos;
-    }
-
-    @Override
-    public List<PedidoDTO> getAllPedidosByFechaAndEmprendimientoId(LocalDate fecha, Long idEmprendimiento, Usuario usuarioLogueado) {
-        Emprendimiento emprendimiento = emprendimientoService.findEntityById(idEmprendimiento)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado."));
-
-        if (usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO) && !emprendimiento.getUsuario().equals(usuarioLogueado)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El emprendimiento no pertenece al usuario logueado.");
-        }
-
-        List<PedidoDTO> pedidos = pedidoRepository.findByFechaEntregaAndEmprendimientoId(fecha, idEmprendimiento).stream()
-                .map(PedidoDTO::new)
-                .toList();
-
-        if (pedidos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron pedidos para la fecha y emprendimiento indicados.");
-        }
-        return pedidos;
     }
 
     //--------------------------Update--------------------------//
