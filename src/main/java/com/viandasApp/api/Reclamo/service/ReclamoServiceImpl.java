@@ -4,7 +4,7 @@ import com.viandasApp.api.Reclamo.dto.ReclamoRequestDTO;
 import com.viandasApp.api.Reclamo.model.EstadoReclamo;
 import com.viandasApp.api.Reclamo.model.Reclamo;
 import com.viandasApp.api.Reclamo.repository.ReclamoRepository;
-import com.viandasApp.api.ServiceGenerales.EmailService;
+import com.viandasApp.api.ServiceGenerales.email.EmailService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -3,7 +3,7 @@ package com.viandasApp.api.Auth.service;
 import com.viandasApp.api.Auth.dto.UsuarioLogedResponseDTO;
 import com.viandasApp.api.Auth.dto.UsuarioLoginDTO;
 import com.viandasApp.api.Auth.dto.UsuarioRegisterDTO;
-import com.viandasApp.api.ServiceGenerales.EmailService;
+import com.viandasApp.api.ServiceGenerales.email.EmailService;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Auth.model.ConfirmacionToken;
 import com.viandasApp.api.Usuario.model.RolUsuario;

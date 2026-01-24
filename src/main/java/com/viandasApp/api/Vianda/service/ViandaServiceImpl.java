@@ -3,8 +3,9 @@ package com.viandasApp.api.Vianda.service;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoServiceImpl;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
-import com.viandasApp.api.ServiceGenerales.CloudinaryService;
-import com.viandasApp.api.ServiceGenerales.ImageValidationService;
+import com.viandasApp.api.ServiceGenerales.cloudinary.CloudinaryService;
+import com.viandasApp.api.ServiceGenerales.imageValidation.ImageValidationService;
+import com.viandasApp.api.ServiceGenerales.imageValidation.TipoValidacion;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Vianda.dto.*;
@@ -54,7 +55,7 @@ public class ViandaServiceImpl implements ViandaService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para crear esta vianda.");
         }
 
-        imageValidationService.validarImagen(dto.getImage(), ImageValidationService.TipoValidacion.VIANDA);
+        imageValidationService.validarImagen(dto.getImage(), TipoValidacion.VIANDA);
 
         String fotoUrl = cloudinaryService.subirImagen(dto.getImage(), "viandas");
 
@@ -259,8 +260,8 @@ public class ViandaServiceImpl implements ViandaService {
         Vianda nuevaVianda = viandaRepository.save(vianda);
         return Optional.of(new ViandaDTO(nuevaVianda));
     }
-    /// La actualizacion de la imagen debemos hacer desde otro end-point pq se comunica directamente con cloudinary
 
+    /// La actualizacion de la imagen debemos hacer desde otro end-point pq se comunica directamente con cloudinary
     @Transactional
     @Override
     public ViandaDTO updateImagenVianda(Long id, MultipartFile image, Usuario usuarioLogueado) {
@@ -268,11 +269,11 @@ public class ViandaServiceImpl implements ViandaService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada."));
 
         if (usuarioLogueado.getRolUsuario().equals(RolUsuario.DUENO) &&
-            !vianda.getEmprendimiento().getUsuario().getId().equals(usuarioLogueado.getId())){
+                !vianda.getEmprendimiento().getUsuario().getId().equals(usuarioLogueado.getId())){
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenes permiso para editar esta vianda.");
         }
 
-        imageValidationService.validarImagen(image, ImageValidationService.TipoValidacion.VIANDA);
+        imageValidationService.validarImagen(image, TipoValidacion.VIANDA);
 
         String fotoUrl = cloudinaryService.subirImagen(image, "viandas");
 
