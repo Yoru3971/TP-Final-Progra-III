@@ -44,7 +44,7 @@ public class DotenvInitializer implements ApplicationContextInitializer<Configur
         if (dotenv.get("jwt.refresh-expiration-ms") != null)
             envMap.put("jwt.refresh-expiration-ms", dotenv.get("jwt.refresh-expiration-ms"));
 
-        // --- Cookie ---
+        // --- Cookies para Refresh Token ---
         if (dotenv.get("jwt.cookie.secure") != null)
             envMap.put("jwt.cookie.secure", dotenv.get("jwt.cookie.secure"));
 
@@ -58,9 +58,9 @@ public class DotenvInitializer implements ApplicationContextInitializer<Configur
         if (dotenv.get("cloudinary_api_secret") != null)
             envMap.put("cloudinary.api_secret", dotenv.get("cloudinary_api_secret"));
 
-        // --- Clarifai ---
-        if (dotenv.get("clarifai.api_key") != null)
-            envMap.put("clarifai.api_key", dotenv.get("clarifai.api_key"));
+        // --- OpenAI ---
+        if (dotenv.get("openai.api_key") != null)
+            envMap.put("openai.api_key", dotenv.get("openai.api_key"));
 
         // --- Mail ---
         if (dotenv.get("spring.mail.host") != null)
