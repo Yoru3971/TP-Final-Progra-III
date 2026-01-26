@@ -1,6 +1,7 @@
 package com.viandasApp.api.Emprendimiento.controller;
 
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
+import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoService;
 import com.viandasApp.api.Usuario.model.Usuario;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,7 +36,7 @@ public class EmprendimientoPublicController {
  
     //--------------------------Read--------------------------//
      @Operation(
-            summary = "Obtener todos los emprendimientos disponibles (con paginación)",
+            summary = "Obtener todos los emprendimientos disponibles (con paginación y filtrado)",
             description = "Devuelve una lista de todos los emprendimientos disponibles con enlaces HATEOAS"
     )
     @ApiResponses(value = {
@@ -44,18 +45,20 @@ public class EmprendimientoPublicController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })  
     @GetMapping
-    public ResponseEntity<PagedModel<EntityModel<EmprendimientoDTO>>> getAllEmprendimientos(
-            @PageableDefault(size = 10, page = 0) Pageable pageable
+     public ResponseEntity<PagedModel<EntityModel<EmprendimientoDTO>>> getAllEmprendimientos(
+             @PageableDefault(size = 10, page = 0) Pageable pageable
      ){
-         Page<EmprendimientoDTO> emprendimientosPage = emprendimientoService.getAllEmprendimientosDisponibles(pageable);
+         Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(null, null, null, null, pageable);
 
-         PagedModel<EntityModel<EmprendimientoDTO>> pagedModel = pagedResourcesAssembler.toModel(emprendimientosPage, emprendimiento -> {
+         Page<EmprendimientoDTO> dtoPage = page.map(EmprendimientoDTO::new);
+
+         PagedModel<EntityModel<EmprendimientoDTO>> pagedModel = pagedResourcesAssembler.toModel(dtoPage, emprendimiento -> {
              emprendimiento.add(linkTo(methodOn(EmprendimientoPublicController.class).getEmprendimientoById(emprendimiento.getId())).withSelfRel());
              return EntityModel.of(emprendimiento);
          });
 
          return ResponseEntity.ok(pagedModel);
-    }
+     }
 
     @Operation(
             summary = "Obtener emprendimientos disponibles por ciudad (con paginación)",
@@ -72,9 +75,9 @@ public class EmprendimientoPublicController {
             @PathVariable String ciudad,
             @PageableDefault(size = 10, page = 0) Pageable pageable
     ){
-        Page<EmprendimientoDTO> page = emprendimientoService.getEmprendimientosDisponiblesByCiudad(ciudad, pageable);
+        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(null, ciudad, null, null, pageable);
 
-        PagedModel<EntityModel<EmprendimientoDTO>> pagedModel = pagedResourcesAssembler.toModel(page, e -> {
+        PagedModel<EntityModel<EmprendimientoDTO>> pagedModel = pagedResourcesAssembler.toModel(page.map(EmprendimientoDTO::new), e -> {
             e.add(linkTo(methodOn(EmprendimientoPublicController.class).getEmprendimientoById(e.getId())).withSelfRel());
             return EntityModel.of(e);
         });
