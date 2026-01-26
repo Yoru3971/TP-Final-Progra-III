@@ -3,6 +3,7 @@ package com.viandasApp.api.Emprendimiento.controller;
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoAdminDTO;
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
+import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoService;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
@@ -54,13 +55,18 @@ public class EmprendimientoAdminController {
     })
     @GetMapping
     public ResponseEntity<PagedModel<EntityModel<EmprendimientoAdminDTO>>> getAllEmprendimientosAdmin(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String ciudad,
+            @RequestParam(required = false) String dueno,
             @PageableDefault(size = 10, page = 0) Pageable pageable,
             @AuthenticationPrincipal Usuario usuario
     ) {
-        Page<EmprendimientoAdminDTO> page = emprendimientoService.getAllEmprendimientosForAdmin(pageable);
+        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(usuario, ciudad, nombre, dueno, pageable);
+
+        Page<EmprendimientoAdminDTO> dtoPage = page.map(EmprendimientoAdminDTO::new);
 
         PagedModel<EntityModel<EmprendimientoAdminDTO>> pagedModel = pagedResourcesAssembler
-                .toModel(page, dto -> EntityModel.of(dto));
+                .toModel(dtoPage, dto -> EntityModel.of(dto));
 
         return ResponseEntity.ok(pagedModel);
     }

@@ -3,6 +3,7 @@ package com.viandasApp.api.Emprendimiento.controller;
 import com.viandasApp.api.Emprendimiento.dto.CreateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
+import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoService;
 import com.viandasApp.api.Usuario.model.Usuario;
 import io.swagger.v3.oas.annotations.Operation;
@@ -114,13 +115,12 @@ public class EmprendimientoDuenoController {
     ) {
         Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        // Pasamos la ciudad (puede ser null) al servicio
-        Page<EmprendimientoDTO> page = emprendimientoService.getEmprendimientosByUsuario(usuario.getId(), usuario, ciudad, pageable);
+        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(usuario, ciudad, null, null, pageable);
 
-        PagedModel<EntityModel<EmprendimientoDTO>> pagedModel = pagedResourcesAssembler.toModel(page, e -> {
+        Page<EmprendimientoDTO> dtoPage = page.map(EmprendimientoDTO::new);
+
+        PagedModel<EntityModel<EmprendimientoDTO>> pagedModel = pagedResourcesAssembler.toModel(dtoPage, e -> {
             e.add(linkTo(methodOn(EmprendimientoDuenoController.class).getEmprendimientoById(e.getId())).withSelfRel());
-            e.add(linkTo(methodOn(EmprendimientoDuenoController.class).updateEmprendimiento(e.getId(), null)).withRel("update"));
-            e.add(linkTo(methodOn(EmprendimientoDuenoController.class).deleteEmprendimiento(e.getId())).withRel("delete"));
             return EntityModel.of(e);
         });
 

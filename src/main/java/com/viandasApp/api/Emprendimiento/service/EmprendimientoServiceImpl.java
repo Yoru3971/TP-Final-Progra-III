@@ -6,6 +6,7 @@ import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
+import com.viandasApp.api.Emprendimiento.specification.EmprendimientoSpecifications;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
@@ -20,7 +21,10 @@ import com.viandasApp.api.Vianda.service.ViandaService;
 import jakarta.transaction.Transactional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -86,6 +90,44 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     }
 
     //--------------------------Read (Paginación)--------------------------//
+    @Override
+    public Page<Emprendimiento> buscarEmprendimientos(Usuario usuario, String ciudad, String nombre, String nombreDueno, Pageable pageable) {
+
+        Specification<Emprendimiento> spec = Specification.where(null);
+        boolean isAdmin = usuario != null && usuario.getRolUsuario() == RolUsuario.ADMIN;
+        boolean isDueno = usuario != null && usuario.getRolUsuario() == RolUsuario.DUENO;
+
+        if (isAdmin) {
+            if (nombre != null) spec = spec.and(EmprendimientoSpecifications.porNombre(nombre));
+            if (ciudad != null) spec = spec.and(EmprendimientoSpecifications.porCiudad(ciudad));
+            if (nombreDueno != null) spec = spec.and(EmprendimientoSpecifications.duenoNombreOEmailContiene(nombreDueno));
+
+        } else if (isDueno) {
+            spec = spec.and(EmprendimientoSpecifications.perteneceADueno(usuario.getId()));
+            spec = spec.and(EmprendimientoSpecifications.noEstaEliminado());
+
+            if (ciudad != null) spec = spec.and(EmprendimientoSpecifications.porCiudad(ciudad));
+
+        } else {
+            spec = spec.and(EmprendimientoSpecifications.estaDisponible(true));
+            spec = spec.and(EmprendimientoSpecifications.noEstaEliminado());
+
+            if (ciudad != null) spec = spec.and(EmprendimientoSpecifications.porCiudad(ciudad));
+            if (nombre != null) spec = spec.and(EmprendimientoSpecifications.porNombre(nombre));
+        }
+
+        if (pageable.getSort().isUnsorted()) {
+            if (isAdmin) {
+                spec = spec.and(EmprendimientoSpecifications.ordenamientoAdmin());
+                pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+            } else {
+                pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("nombreEmprendimiento"));
+            }
+        }
+
+        return emprendimientoRepository.findAll(spec, pageable);
+    }
+
     @Override
     public Page<EmprendimientoDTO> getAllEmprendimientosDisponibles(Pageable pageable) {
         Page<EmprendimientoDTO> emprendimientos = emprendimientoRepository.findByEstaDisponibleTrue(pageable)
