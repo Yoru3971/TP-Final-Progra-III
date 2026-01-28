@@ -98,7 +98,7 @@ public class EmprendimientoDuenoController {
     }
   
     @Operation(
-            summary = "Obtener emprendimientos propios (con paginación y filtro opcional de ciudad)",
+            summary = "Obtener emprendimientos propios (con paginación y filtros opcionales)",
             description = "Permite a un dueño obtener una página de sus propios emprendimientos.",
             security = @SecurityRequirement(name = "bearer-jwt")
     )
@@ -111,11 +111,12 @@ public class EmprendimientoDuenoController {
     @GetMapping
     public ResponseEntity<PagedModel<EntityModel<EmprendimientoDTO>>> getEmprendimientosPropios(
             @RequestParam(required = false) String ciudad,
+            @RequestParam(required = false) String nombre,
             @PageableDefault(size = 10, page = 0) Pageable pageable
     ) {
         Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(usuario, ciudad, null, null, pageable);
+        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(usuario, ciudad, nombre, null, pageable);
 
         Page<EmprendimientoDTO> dtoPage = page.map(EmprendimientoDTO::new);
 

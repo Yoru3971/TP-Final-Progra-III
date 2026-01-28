@@ -46,7 +46,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     private final ViandaService viandaService;
 
     public EmprendimientoServiceImpl(EmprendimientoRepository emprendimientoRepository,
-                                     @Lazy UsuarioService usuarioService, // <--- Interfaz aquí
+                                     @Lazy UsuarioService usuarioService,
                                      PedidoRepository pedidoRepository,
                                      CloudinaryService cloudinaryService,
                                      ImageValidationService imageValidationService,
@@ -107,6 +107,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             spec = spec.and(EmprendimientoSpecifications.noEstaEliminado());
 
             if (ciudad != null) spec = spec.and(EmprendimientoSpecifications.porCiudad(ciudad));
+            if (nombre != null) spec = spec.and(EmprendimientoSpecifications.porNombre(nombre));
 
         } else {
             spec = spec.and(EmprendimientoSpecifications.estaDisponible(true));
