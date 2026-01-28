@@ -15,12 +15,12 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UsuarioRegisterDTO {
     @NotBlank(message = "El nombre es obligatorio.")
-    @Size(min = 1, max = 255, message = "El nombre debe tener entre {min} y {max} caracteres.")
+    @Size(min = 1, max = 256, message = "El nombre debe tener entre {min} y {max} caracteres.")
     private String nombreCompleto;
 
     @Email
     @NotBlank(message = "El email es obligatorio.")
-    @Size(min = 1, max = 255, message = "El nombre debe tener entre {min} y {max} caracteres.")
+    @Size(min = 1, max = 254, message = "El nombre debe tener entre {min} y {max} caracteres.")
     private String email;
 
     @NotBlank(message = "La contraseña es obligatoria.")
@@ -35,6 +35,6 @@ public class UsuarioRegisterDTO {
     private RolUsuario rolUsuario;
 
     @NotBlank(message = "El telefono es obligatorio.")
-    @Pattern(regexp = "\\d{10,15}", message = "El teléfono debe tener entre 10 y 15 dígitos")
+    @Pattern(regexp = "\\d{6,15}", message = "El teléfono debe tener entre 6 y 15 dígitos.")
     private String telefono;
 }

@@ -11,22 +11,21 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor
 public class CreateEmprendimientoDTO {
     @NotBlank(message = "El nombre es obligatorio.")
-    @Size(min=1, max=255, message = "El nombre debe tener entre {min} y {max} caracteres.")
+    @Size(min=1, max=256, message = "El nombre debe tener entre {min} y {max} caracteres.")
     private String nombreEmprendimiento;
 
     @NotNull(message = "La imagen del emprendimiento es obligatoria.")
     private MultipartFile image;
 
     @NotBlank(message = "La ciudad es obligatoria.")
-    @Size(min=1, max=255, message = "La ciudad debe tener entre {min} y {max} caracteres.")
+    @Size(min=1, max=256, message = "La ciudad debe tener entre {min} y {max} caracteres.")
     private String ciudad;
 
-    @Size(max = 255, message = "La dirección debe tener como máximo {max} caracteres.")
+    @Size(max = 256, message = "La dirección debe tener como máximo {max} caracteres.")
     private String direccion;
 
     @NotBlank(message = "El teléfono es obligatorio.")
-    @Size(min=7, max=15, message = "El teléfono debe tener entre {min} y {max} dígitos.")
-    @Pattern(regexp = "\\d+", message = "El teléfono debe contener solo números.")
+    @Pattern(regexp = "\\d{6,15}", message = "El teléfono debe tener entre 6 y 15 dígitos.")
     private String telefono;
 
     @NotNull(message = "El ID del usuario es obligatorio.")
