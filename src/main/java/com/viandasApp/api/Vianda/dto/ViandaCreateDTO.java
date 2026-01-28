@@ -15,14 +15,14 @@ import org.springframework.web.multipart.MultipartFile;
 @Data
 public class ViandaCreateDTO {
     @NotBlank(message = "El nombre es obligatorio.")
-    @Size(min = 1, max = 255, message = "El nombre debe tener entre {min} y {max} caracteres.")
+    @Size(min = 1, max = 256, message = "El nombre debe tener entre {min} y {max} caracteres.")
     private String nombreVianda;
 
     @NotNull(message = "La categoría es obligatoria.")
     private CategoriaVianda categoria;
 
     @NotBlank(message = "La descripción es obligatoria.")
-    @Size(max = 250, message = "La descripcion debe tener como máximo {max} caracteres.")
+    @Size(max = 256, message = "La descripcion debe tener como máximo {max} caracteres.")
     private String descripcion;
 
     @NotNull(message = "La imagen de la vianda es obligatoria.")
