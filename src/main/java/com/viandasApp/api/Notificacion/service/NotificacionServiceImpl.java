@@ -4,6 +4,7 @@ import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoServiceImpl;
 import com.viandasApp.api.Notificacion.dto.NotificacionCreateDTO;
 import com.viandasApp.api.Notificacion.dto.NotificacionDTO;
+import com.viandasApp.api.Notificacion.mappers.NotificacionMapper;
 import com.viandasApp.api.Notificacion.model.Notificacion;
 import com.viandasApp.api.Notificacion.repository.NotificacionRepository;
 import com.viandasApp.api.Notificacion.specification.NotificacionSpecifications;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,13 +29,16 @@ public class NotificacionServiceImpl implements NotificacionService{
     private final NotificacionRepository notificacionRepository;
     private final UsuarioServiceImpl usuarioService;
     private final EmprendimientoServiceImpl emprendimientoService;
+    private final NotificacionMapper notificacionMapper;
 
     public NotificacionServiceImpl(NotificacionRepository notificacionRepository,
                                    UsuarioServiceImpl usuarioService,
-                                   EmprendimientoServiceImpl emprendimientoService) {
+                                   EmprendimientoServiceImpl emprendimientoService,
+                                   NotificacionMapper notificacionMapper) {
         this.notificacionRepository = notificacionRepository;
         this.usuarioService = usuarioService;
         this.emprendimientoService = emprendimientoService;
+        this.notificacionMapper = notificacionMapper;
     };
 
     @Transactional
@@ -52,7 +55,7 @@ public class NotificacionServiceImpl implements NotificacionService{
         Emprendimiento emprendimiento = emprendimientoService.findEntityById(notificacionCreateDTO.getEmprendimientoId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado"));
 
-        Notificacion notificacion = DTOtoEntity(notificacionCreateDTO);
+        Notificacion notificacion = notificacionMapper.DTOToEntity(notificacionCreateDTO, destinatario, emprendimiento);
 
         Notificacion guardada = notificacionRepository.save(notificacion);
         return new NotificacionDTO(guardada);
@@ -112,24 +115,6 @@ public class NotificacionServiceImpl implements NotificacionService{
         notificacion.setLeida(true);
         Notificacion guardada = notificacionRepository.save(notificacion);
         return new NotificacionDTO(guardada);
-    }
-
-    private Notificacion DTOtoEntity(NotificacionCreateDTO notificacionCreateDTO) {
-
-        Notificacion notificacion = new Notificacion();
-
-        Usuario usuarioEncontrado = usuarioService.findEntityById(notificacionCreateDTO.getDestinatarioId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
-
-        Emprendimiento emprendimiento = emprendimientoService.findEntityById(notificacionCreateDTO.getEmprendimientoId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado"));
-
-        notificacion.setDestinatario(usuarioEncontrado);
-        notificacion.setEmprendimiento(emprendimiento);
-        notificacion.setMensaje(notificacionCreateDTO.getMensaje());
-        notificacion.setFechaEnviado(notificacionCreateDTO.getFechaEnviado());
-
-        return notificacion;
     }
 }
 

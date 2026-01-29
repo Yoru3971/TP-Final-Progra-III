@@ -71,10 +71,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request,response);
     }
 }
-
-/**
- * Filtro que:
- *  - Extrae token del header Authorization (Bearer ...)
- *  - Valida firma y expiración con JwtUtil
- *  - Carga UserDetails via UserDetailsService y crea Authentication con las authorities extraídas
- */

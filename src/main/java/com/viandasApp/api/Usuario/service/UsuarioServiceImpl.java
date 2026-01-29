@@ -8,6 +8,7 @@ import com.viandasApp.api.ServiceGenerales.cloudinary.CloudinaryService;
 import com.viandasApp.api.ServiceGenerales.imageValidation.ImageValidationService;
 import com.viandasApp.api.ServiceGenerales.imageValidation.TipoValidacion;
 import com.viandasApp.api.Usuario.dto.*;
+import com.viandasApp.api.Usuario.mappers.UsuarioMapper;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.repository.UsuarioRepository;
@@ -35,6 +36,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final PasswordEncoder passwordEncoder;
     private final CloudinaryService cloudinaryService;
     private final ImageValidationService imageValidationService;
+    private final UsuarioMapper usuarioMapper;
 
     public UsuarioServiceImpl(UsuarioRepository usuarioRepository,
                               @Lazy EmprendimientoService emprendimientoService,
@@ -42,14 +44,16 @@ public class UsuarioServiceImpl implements UsuarioService {
                               PedidoRepository pedidoRepository,
                               PasswordEncoder passwordEncoder,
                               CloudinaryService cloudinaryService,
-                              ImageValidationService imageValidationService) {
+                              ImageValidationService imageValidationService,
+                              UsuarioMapper usuarioMapper) {
         this.usuarioRepository = usuarioRepository;
         this.emprendimientoService = emprendimientoService;
-        this.viandaRepository = viandaRepository; // <--- Asignación
+        this.viandaRepository = viandaRepository;
         this.pedidoRepository = pedidoRepository;
         this.passwordEncoder = passwordEncoder;
         this.cloudinaryService = cloudinaryService;
         this.imageValidationService = imageValidationService;
+        this.usuarioMapper = usuarioMapper;
     }
 
     //--------------------------Create--------------------------//
@@ -57,7 +61,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Transactional
     public UsuarioAdminDTO createUsuario(UsuarioCreateDTO usuarioCreateDTO) {
 
-        Usuario usuario = DTOToEntity(usuarioCreateDTO);
+        Usuario usuario = usuarioMapper.DTOToEntity(usuarioCreateDTO);
 
         Usuario usuarioLogueado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -389,20 +393,6 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     //--------------------------Otros--------------------------//
-    private Usuario DTOToEntity(UsuarioCreateDTO dto) {
-        String imagenPorDefecto = "https://res.cloudinary.com/dsgqbotzi/image/upload/v1765496442/usuario_por_defecto_dtac7c.jpg";
-
-        return new Usuario(
-                null, // id será generado por JPA
-                dto.getNombreCompleto(),
-                dto.getEmail(),
-                passwordEncoder.encode(dto.getPassword()),
-                dto.getTelefono(),
-                dto.getRolUsuario(),
-                imagenPorDefecto
-        );
-    }
-
     @Override
     public Optional<Usuario> findEntityById(Long id) {
         return usuarioRepository.findById(id);
@@ -523,6 +513,4 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuario.setEnabled(false);
         usuario.setDeletedAt(LocalDateTime.now());
     }
-
-
 }
