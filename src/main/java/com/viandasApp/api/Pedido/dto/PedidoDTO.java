@@ -5,13 +5,14 @@ import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import lombok.*;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
-public class PedidoDTO {
+public class PedidoDTO extends RepresentationModel<PedidoDTO>{
 
     private Long id;
     private UsuarioDTO cliente;

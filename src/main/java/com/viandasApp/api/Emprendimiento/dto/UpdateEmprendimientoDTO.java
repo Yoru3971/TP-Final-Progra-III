@@ -2,6 +2,7 @@ package com.viandasApp.api.Emprendimiento.dto;
 
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -13,17 +14,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UpdateEmprendimientoDTO {
 
-    @Size(min=1, max=255, message = "El nombre debe tener entre {min} y {max} caracteres.")
+    @NotBlank(message = "El nombre es obligatorio.")
+    @Size(min=1, max=256, message = "El nombre debe tener entre {min} y {max} caracteres.")
     private String nombreEmprendimiento;
 
-    @Size(min=1, max=255, message = "La ciudad debe tener entre {min} y {max} caracteres.")
+    @NotBlank(message = "La ciudad es obligatoria.")
+    @Size(min=1, max=256, message = "La ciudad debe tener entre {min} y {max} caracteres.")
     private String ciudad;
 
-    @Size(max = 255, message = "La dirección puede contener como máximo {max} caracteres.")
+    @Size(max = 256, message = "La dirección puede contener como máximo {max} caracteres.")
     private String direccion;
 
-    @Size(min=7, max=15, message = "El teléfono debe tener entre {min} y {max} dígitos.")
-    @Pattern(regexp = "\\d+", message = "El teléfono debe contener solo números.")
+    @NotBlank(message = "El teléfono es obligatorio.")
+    @Pattern(regexp = "\\d{6,15}", message = "El teléfono debe tener entre 6 y 15 dígitos.")
     private String telefono;
 
     private Boolean estaDisponible;

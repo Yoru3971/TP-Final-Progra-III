@@ -1,4 +1,4 @@
-package com.viandasApp.api.ServiceGenerales;
+package com.viandasApp.api.ServiceGenerales.cloudinary;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;

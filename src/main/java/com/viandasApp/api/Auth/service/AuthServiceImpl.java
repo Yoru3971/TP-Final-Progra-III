@@ -3,7 +3,8 @@ package com.viandasApp.api.Auth.service;
 import com.viandasApp.api.Auth.dto.UsuarioLogedResponseDTO;
 import com.viandasApp.api.Auth.dto.UsuarioLoginDTO;
 import com.viandasApp.api.Auth.dto.UsuarioRegisterDTO;
-import com.viandasApp.api.ServiceGenerales.EmailService;
+import com.viandasApp.api.Auth.mappers.AuthUsuarioMapper;
+import com.viandasApp.api.ServiceGenerales.email.EmailService;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Auth.model.ConfirmacionToken;
 import com.viandasApp.api.Usuario.model.RolUsuario;
@@ -35,23 +36,26 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final ConfirmacionTokenRepository confirmacionTokenRepository;
     private final EmailService emailService;
+    private final AuthUsuarioMapper authUsuarioMapper;
 
     public AuthServiceImpl(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
                            AuthenticationManager authenticationManager, JwtUtil jwtUtil,
-                           ConfirmacionTokenRepository confirmacionTokenRepository, EmailService emailService) {
+                           ConfirmacionTokenRepository confirmacionTokenRepository, EmailService emailService,
+                           AuthUsuarioMapper authUsuarioMapper) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.confirmacionTokenRepository = confirmacionTokenRepository;
         this.emailService = emailService;
+        this.authUsuarioMapper = authUsuarioMapper;
     }
 
     // === REGISTRO USUARIO ===
     @Override
     @Transactional
     public UsuarioDTO registerUsuario(UsuarioRegisterDTO usuarioRegisterDTO) {
-        Usuario usuario = DTOToEntity(usuarioRegisterDTO);
+        Usuario usuario = authUsuarioMapper.DTOToEntity(usuarioRegisterDTO);
 
         // Verifica si ya existe un usuario con el mismo email
         if (usuarioRepository.findByEmail(usuario.getEmail()).isPresent()) {
@@ -194,7 +198,6 @@ public class AuthServiceImpl implements AuthService {
         u.setEnabled(false);
         return u;
     }
-
 }
 
 

@@ -18,6 +18,7 @@ public interface EmprendimientoService {
     EmprendimientoDTO createEmprendimiento(CreateEmprendimientoDTO createEmprendimientoDTO, Usuario usuario);
 
     //--------------------------Read (Paginación)--------------------------//
+    Page<Emprendimiento> buscarEmprendimientos(Usuario usuario, String ciudad, String nombre, String nombreDueno, Pageable pageable);
     Page<EmprendimientoDTO> getAllEmprendimientosDisponibles(Pageable pageable);
     Page<EmprendimientoDTO> getEmprendimientosDisponiblesByCiudad(String ciudad, Pageable pageable);
     Page<EmprendimientoDTO> getEmprendimientosByUsuario(Long idUsuario, Usuario usuario, String ciudad, Pageable pageable);

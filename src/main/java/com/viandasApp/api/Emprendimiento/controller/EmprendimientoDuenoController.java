@@ -3,6 +3,7 @@ package com.viandasApp.api.Emprendimiento.controller;
 import com.viandasApp.api.Emprendimiento.dto.CreateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
+import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoService;
 import com.viandasApp.api.Usuario.model.Usuario;
 import io.swagger.v3.oas.annotations.Operation;
@@ -97,7 +98,7 @@ public class EmprendimientoDuenoController {
     }
   
     @Operation(
-            summary = "Obtener emprendimientos propios (con paginación y filtro opcional de ciudad)",
+            summary = "Obtener emprendimientos propios (con paginación y filtros opcionales)",
             description = "Permite a un dueño obtener una página de sus propios emprendimientos.",
             security = @SecurityRequirement(name = "bearer-jwt")
     )
@@ -110,17 +111,17 @@ public class EmprendimientoDuenoController {
     @GetMapping
     public ResponseEntity<PagedModel<EntityModel<EmprendimientoDTO>>> getEmprendimientosPropios(
             @RequestParam(required = false) String ciudad,
+            @RequestParam(required = false) String nombre,
             @PageableDefault(size = 10, page = 0) Pageable pageable
     ) {
         Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        // Pasamos la ciudad (puede ser null) al servicio
-        Page<EmprendimientoDTO> page = emprendimientoService.getEmprendimientosByUsuario(usuario.getId(), usuario, ciudad, pageable);
+        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(usuario, ciudad, nombre, null, pageable);
 
-        PagedModel<EntityModel<EmprendimientoDTO>> pagedModel = pagedResourcesAssembler.toModel(page, e -> {
+        Page<EmprendimientoDTO> dtoPage = page.map(EmprendimientoDTO::new);
+
+        PagedModel<EntityModel<EmprendimientoDTO>> pagedModel = pagedResourcesAssembler.toModel(dtoPage, e -> {
             e.add(linkTo(methodOn(EmprendimientoDuenoController.class).getEmprendimientoById(e.getId())).withSelfRel());
-            e.add(linkTo(methodOn(EmprendimientoDuenoController.class).updateEmprendimiento(e.getId(), null)).withRel("update"));
-            e.add(linkTo(methodOn(EmprendimientoDuenoController.class).deleteEmprendimiento(e.getId())).withRel("delete"));
             return EntityModel.of(e);
         });
 

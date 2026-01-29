@@ -4,13 +4,16 @@ import com.viandasApp.api.Emprendimiento.dto.CreateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoAdminDTO;
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
+import com.viandasApp.api.Emprendimiento.mappers.EmprendimientoMapper;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
+import com.viandasApp.api.Emprendimiento.specification.EmprendimientoSpecifications;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
-import com.viandasApp.api.ServiceGenerales.CloudinaryService;
-import com.viandasApp.api.ServiceGenerales.ImageValidationService;
+import com.viandasApp.api.ServiceGenerales.cloudinary.CloudinaryService;
+import com.viandasApp.api.ServiceGenerales.imageValidation.ImageValidationService;
+import com.viandasApp.api.ServiceGenerales.imageValidation.TipoValidacion;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioService;
@@ -19,7 +22,10 @@ import com.viandasApp.api.Vianda.service.ViandaService;
 import jakarta.transaction.Transactional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,19 +45,22 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     private final CloudinaryService cloudinaryService;
     private final ImageValidationService imageValidationService;
     private final ViandaService viandaService;
+    private final EmprendimientoMapper emprendimientoMapper;
 
     public EmprendimientoServiceImpl(EmprendimientoRepository emprendimientoRepository,
-                                     @Lazy UsuarioService usuarioService, // <--- Interfaz aquí
+                                     @Lazy UsuarioService usuarioService,
                                      PedidoRepository pedidoRepository,
                                      CloudinaryService cloudinaryService,
                                      ImageValidationService imageValidationService,
-                                     @Lazy ViandaService viandaService) {
+                                     @Lazy ViandaService viandaService,
+                                     EmprendimientoMapper emprendimientoMapper) {
         this.emprendimientoRepository = emprendimientoRepository;
         this.usuarioService = usuarioService;
         this.pedidoRepository = pedidoRepository;
         this.cloudinaryService = cloudinaryService;
         this.imageValidationService = imageValidationService;
         this.viandaService = viandaService;
+        this.emprendimientoMapper = emprendimientoMapper;
     }
 
     //--------------------------Create--------------------------//
@@ -74,17 +83,60 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo podés crear emprendimientos a tu nombre.");
         }
 
-        imageValidationService.validarImagen(createEmprendimientoDTO.getImage(), ImageValidationService.TipoValidacion.PERFIL);
+        if (!duenioEmprendimiento.getRolUsuario().equals(RolUsuario.DUENO) && duenioEmprendimiento.getRolUsuario().equals(RolUsuario.ADMIN)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo los usuarios con rol DUEÑO/ADMIN pueden crear emprendimientos.");
+        }
+
+        imageValidationService.validarImagen(createEmprendimientoDTO.getImage(), TipoValidacion.EMPRENDIMIENTO);
 
         String fotoUrl = cloudinaryService.subirImagen(createEmprendimientoDTO.getImage(), "emprendimientos");
 
-        Emprendimiento emprendimiento = DTOToEntity(createEmprendimientoDTO, fotoUrl);
+        Emprendimiento emprendimiento = emprendimientoMapper.DTOToEntity(createEmprendimientoDTO, fotoUrl, duenioEmprendimiento);
         Emprendimiento emprendimientoGuardado = emprendimientoRepository.save(emprendimiento);
 
         return new EmprendimientoDTO(emprendimientoGuardado);
     }
 
     //--------------------------Read (Paginación)--------------------------//
+    @Override
+    public Page<Emprendimiento> buscarEmprendimientos(Usuario usuario, String ciudad, String nombre, String nombreDueno, Pageable pageable) {
+
+        Specification<Emprendimiento> spec = Specification.where(null);
+        boolean isAdmin = usuario != null && usuario.getRolUsuario() == RolUsuario.ADMIN;
+        boolean isDueno = usuario != null && usuario.getRolUsuario() == RolUsuario.DUENO;
+
+        if (isAdmin) {
+            if (nombre != null) spec = spec.and(EmprendimientoSpecifications.porNombre(nombre));
+            if (ciudad != null) spec = spec.and(EmprendimientoSpecifications.porCiudad(ciudad));
+            if (nombreDueno != null) spec = spec.and(EmprendimientoSpecifications.duenoNombreOEmailContiene(nombreDueno));
+
+        } else if (isDueno) {
+            spec = spec.and(EmprendimientoSpecifications.perteneceADueno(usuario.getId()));
+            spec = spec.and(EmprendimientoSpecifications.noEstaEliminado());
+
+            if (ciudad != null) spec = spec.and(EmprendimientoSpecifications.porCiudad(ciudad));
+            if (nombre != null) spec = spec.and(EmprendimientoSpecifications.porNombre(nombre));
+
+        } else {
+            spec = spec.and(EmprendimientoSpecifications.estaDisponible(true));
+            spec = spec.and(EmprendimientoSpecifications.noEstaEliminado());
+
+            if (ciudad != null) spec = spec.and(EmprendimientoSpecifications.porCiudad(ciudad));
+            if (nombre != null) spec = spec.and(EmprendimientoSpecifications.porNombre(nombre));
+        }
+
+        if (pageable.getSort().isUnsorted()) {
+            if (isAdmin) {
+                spec = spec.and(EmprendimientoSpecifications.ordenamientoAdmin());
+                pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+            } else {
+                pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("nombreEmprendimiento"));
+            }
+        }
+
+        return emprendimientoRepository.findAll(spec, pageable);
+    }
+
     @Override
     public Page<EmprendimientoDTO> getAllEmprendimientosDisponibles(Pageable pageable) {
         Page<EmprendimientoDTO> emprendimientos = emprendimientoRepository.findByEstaDisponibleTrue(pageable)
@@ -322,7 +374,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar este emprendimiento.");
         }
 
-        imageValidationService.validarImagen(image, ImageValidationService.TipoValidacion.PERFIL);
+        imageValidationService.validarImagen(image, TipoValidacion.EMPRENDIMIENTO);
 
         String fotoUrl = cloudinaryService.subirImagen(image, "emprendimientos");
         emprendimiento.setImagenUrl(fotoUrl);
@@ -410,23 +462,4 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         }
     }
 
-    private Emprendimiento DTOToEntity(CreateEmprendimientoDTO createEmprendimientoDTO, String imageUrl) {
-
-        Long id = createEmprendimientoDTO.getIdUsuario();
-        Usuario usuario = usuarioService.findEntityById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con ID: " + id));
-
-        if (!usuario.getRolUsuario().equals(RolUsuario.DUENO) && usuario.getRolUsuario().equals(RolUsuario.ADMIN)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo los usuarios con rol DUEÑO/ADMIN pueden crear emprendimientos.");
-        }
-
-        return new Emprendimiento(
-                createEmprendimientoDTO.getNombreEmprendimiento(),
-                createEmprendimientoDTO.getCiudad(),
-                createEmprendimientoDTO.getDireccion(),
-                createEmprendimientoDTO.getTelefono(),
-                usuario,
-                imageUrl
-        );
-    }
 }

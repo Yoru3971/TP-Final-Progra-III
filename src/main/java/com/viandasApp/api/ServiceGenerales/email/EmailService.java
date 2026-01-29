@@ -1,4 +1,4 @@
-package com.viandasApp.api.ServiceGenerales;
+package com.viandasApp.api.ServiceGenerales.email;
 
 import com.viandasApp.api.Pedido.model.DetallePedido;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
