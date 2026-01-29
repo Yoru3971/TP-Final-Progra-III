@@ -9,6 +9,7 @@ import com.viandasApp.api.ServiceGenerales.imageValidation.TipoValidacion;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Vianda.dto.*;
+import com.viandasApp.api.Vianda.mappers.ViandaMapper;
 import com.viandasApp.api.Vianda.model.CategoriaVianda;
 import com.viandasApp.api.Vianda.model.Vianda;
 import com.viandasApp.api.Vianda.repository.ViandaRepository;
@@ -37,6 +38,7 @@ public class ViandaServiceImpl implements ViandaService {
     private final EmprendimientoServiceImpl emprendimientoService;
     private final CloudinaryService cloudinaryService;
     private final ImageValidationService imageValidationService;
+    private final ViandaMapper viandaMapper;
 
     //--------------------------Create--------------------------//
     @Transactional
@@ -59,8 +61,8 @@ public class ViandaServiceImpl implements ViandaService {
 
         String fotoUrl = cloudinaryService.subirImagen(dto.getImage(), "viandas");
 
-        Vianda vianda = DTOtoEntity(dto, fotoUrl);
-        vianda.setEmprendimiento(emprendimiento);
+        Vianda vianda = viandaMapper.DTOToEntity(dto, fotoUrl, emprendimiento);
+
         Vianda nuevaVianda = viandaRepository.save(vianda);
         return new ViandaDTO(nuevaVianda);
     }
@@ -348,25 +350,6 @@ public class ViandaServiceImpl implements ViandaService {
 
         vianda.setDeletedAt(LocalDateTime.now());
         vianda.setEstaDisponible(false);
-    }
-
-    private Vianda DTOtoEntity(ViandaCreateDTO viandaDTO, String fotoUrl) {
-
-        Long id = viandaDTO.getEmprendimientoId();
-        Emprendimiento emprendimiento = emprendimientoService.findEntityById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado para el Id: " + id));
-
-        return new Vianda(
-                viandaDTO.getNombreVianda(),
-                viandaDTO.getCategoria(),
-                viandaDTO.getDescripcion(),
-                viandaDTO.getPrecio(),
-                viandaDTO.getEsVegano(),
-                viandaDTO.getEsVegetariano(),
-                viandaDTO.getEsSinTacc(),
-                emprendimiento,
-                fotoUrl
-        );
     }
 
     private Specification<Vianda> aplicarFiltrosComunes(Specification<Vianda> spec, FiltroViandaDTO filtro) {

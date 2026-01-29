@@ -4,6 +4,7 @@ import com.viandasApp.api.Emprendimiento.dto.CreateEmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoAdminDTO;
 import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
 import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
+import com.viandasApp.api.Emprendimiento.mappers.EmprendimientoMapper;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
 import com.viandasApp.api.Emprendimiento.specification.EmprendimientoSpecifications;
@@ -44,19 +45,22 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     private final CloudinaryService cloudinaryService;
     private final ImageValidationService imageValidationService;
     private final ViandaService viandaService;
+    private final EmprendimientoMapper emprendimientoMapper;
 
     public EmprendimientoServiceImpl(EmprendimientoRepository emprendimientoRepository,
                                      @Lazy UsuarioService usuarioService,
                                      PedidoRepository pedidoRepository,
                                      CloudinaryService cloudinaryService,
                                      ImageValidationService imageValidationService,
-                                     @Lazy ViandaService viandaService) {
+                                     @Lazy ViandaService viandaService,
+                                     EmprendimientoMapper emprendimientoMapper) {
         this.emprendimientoRepository = emprendimientoRepository;
         this.usuarioService = usuarioService;
         this.pedidoRepository = pedidoRepository;
         this.cloudinaryService = cloudinaryService;
         this.imageValidationService = imageValidationService;
         this.viandaService = viandaService;
+        this.emprendimientoMapper = emprendimientoMapper;
     }
 
     //--------------------------Create--------------------------//
@@ -79,11 +83,15 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo podés crear emprendimientos a tu nombre.");
         }
 
+        if (!duenioEmprendimiento.getRolUsuario().equals(RolUsuario.DUENO) && duenioEmprendimiento.getRolUsuario().equals(RolUsuario.ADMIN)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo los usuarios con rol DUEÑO/ADMIN pueden crear emprendimientos.");
+        }
+
         imageValidationService.validarImagen(createEmprendimientoDTO.getImage(), TipoValidacion.EMPRENDIMIENTO);
 
         String fotoUrl = cloudinaryService.subirImagen(createEmprendimientoDTO.getImage(), "emprendimientos");
 
-        Emprendimiento emprendimiento = DTOToEntity(createEmprendimientoDTO, fotoUrl);
+        Emprendimiento emprendimiento = emprendimientoMapper.DTOToEntity(createEmprendimientoDTO, fotoUrl, duenioEmprendimiento);
         Emprendimiento emprendimientoGuardado = emprendimientoRepository.save(emprendimiento);
 
         return new EmprendimientoDTO(emprendimientoGuardado);
@@ -454,23 +462,4 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         }
     }
 
-    private Emprendimiento DTOToEntity(CreateEmprendimientoDTO createEmprendimientoDTO, String imageUrl) {
-
-        Long id = createEmprendimientoDTO.getIdUsuario();
-        Usuario usuario = usuarioService.findEntityById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con ID: " + id));
-
-        if (!usuario.getRolUsuario().equals(RolUsuario.DUENO) && usuario.getRolUsuario().equals(RolUsuario.ADMIN)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo los usuarios con rol DUEÑO/ADMIN pueden crear emprendimientos.");
-        }
-
-        return new Emprendimiento(
-                createEmprendimientoDTO.getNombreEmprendimiento(),
-                createEmprendimientoDTO.getCiudad(),
-                createEmprendimientoDTO.getDireccion(),
-                createEmprendimientoDTO.getTelefono(),
-                usuario,
-                imageUrl
-        );
-    }
 }

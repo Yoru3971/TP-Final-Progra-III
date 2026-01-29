@@ -5,13 +5,13 @@ import com.viandasApp.api.Emprendimiento.service.EmprendimientoServiceImpl;
 import com.viandasApp.api.Notificacion.dto.NotificacionCreateDTO;
 import com.viandasApp.api.Notificacion.service.NotificacionServiceImpl;
 import com.viandasApp.api.Pedido.dto.*;
+import com.viandasApp.api.Pedido.mappers.PedidoMapper;
 import com.viandasApp.api.Pedido.model.DetallePedido;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
 import com.viandasApp.api.ServiceGenerales.email.EmailService;
 import com.viandasApp.api.Pedido.specification.PedidoSpecifications;
-import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.service.UsuarioServiceImpl;
@@ -19,11 +19,9 @@ import com.viandasApp.api.Vianda.model.Vianda;
 import com.viandasApp.api.Vianda.service.ViandaServiceImpl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -41,6 +39,7 @@ public class PedidoServiceImpl implements PedidoService {
     private final UsuarioServiceImpl usuarioService;
     private final EmprendimientoServiceImpl emprendimientoService;
     private final ViandaServiceImpl viandaService;
+    private final PedidoMapper pedidoMapper;
     private final NotificacionServiceImpl notificacionService;
     private final EmailService emailService;
 
@@ -79,7 +78,9 @@ public class PedidoServiceImpl implements PedidoService {
         Emprendimiento emprendimientoPedido = emprendimientoService.findEntityById(pedidoCreateDTO.getEmprendimientoId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado"));
 
-        Pedido pedido = DTOtoEntity(pedidoCreateDTO, cliente, emprendimientoPedido, viandaService);
+        Pedido pedido = pedidoMapper.DTOToEntity(pedidoCreateDTO, cliente, emprendimientoPedido);
+
+        cargarItemsAlPedido(pedido, pedidoCreateDTO.getViandas());
 
         Pedido guardado = pedidoRepository.save(pedido);
 
@@ -93,7 +94,7 @@ public class PedidoServiceImpl implements PedidoService {
                 idDuenoEmprendimiento
         );
 
-        // ENvío mail al cliente (Confirmación de pedido)
+        // Envío mail al cliente (Confirmación de pedido)
         if (cliente.getEmail() != null) {
             emailService.sendPedidoConfirmacionCliente(
                     cliente.getEmail(),
@@ -477,32 +478,31 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     //--------------------------Otros--------------------------//
-    private Pedido DTOtoEntity(PedidoCreateDTO dto, Usuario cliente, Emprendimiento emprendimiento, ViandaServiceImpl viandaService) {
-        Pedido pedido = new Pedido();
-        if (dto.getFechaEntrega() != null && dto.getFechaEntrega().isBefore(LocalDate.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de entrega no puede ser anterior a la fecha de hoy.");
-        }
-        pedido.setFechaEntrega(dto.getFechaEntrega());
-        pedido.setUsuario(cliente);
-        pedido.setEmprendimiento(emprendimiento);
-
+    private void cargarItemsAlPedido(Pedido pedido, List<ViandaCantidadDTO> itemsDTO) {
         double total = 0.0;
-        for (ViandaCantidadDTO viandaDTO : dto.getViandas()) {
-            Vianda vianda = viandaService.findEntityViandaById(viandaDTO.getViandaId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada"));
-            if (!vianda.getEmprendimiento().equals(emprendimiento)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Las viandas deben pertenecer al mismo emprendimiento del pedido.");
+        Emprendimiento emprendimientoDelPedido = pedido.getEmprendimiento();
+
+        for (ViandaCantidadDTO item : itemsDTO) {
+            Vianda vianda = viandaService.findEntityViandaById(item.getViandaId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vianda no encontrada: " + item.getViandaId()));
+
+            if (!vianda.getEmprendimiento().equals(emprendimientoDelPedido)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La vianda '" + vianda.getNombreVianda() + "' no pertenece al emprendimiento del pedido.");
             }
+
             DetallePedido detalle = new DetallePedido();
+            detalle.setPedido(pedido);
             detalle.setVianda(vianda);
-            detalle.setCantidad(viandaDTO.getCantidad());
+            detalle.setCantidad(item.getCantidad());
+
             detalle.setPrecioUnitario(vianda.getPrecio());
-            detalle.setSubtotal(vianda.getPrecio() * viandaDTO.getCantidad());
-            total += detalle.getSubtotal();
+            detalle.setSubtotal(vianda.getPrecio() * item.getCantidad());
+
             pedido.agregarDetalle(detalle);
+            total += detalle.getSubtotal();
         }
+
         pedido.setTotal(total);
-        return pedido;
     }
 
     private void notificarCambio(Pedido pedido, String mensaje, Long idDestinatario) {
