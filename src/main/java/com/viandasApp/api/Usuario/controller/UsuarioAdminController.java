@@ -11,6 +11,12 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,13 +30,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 @RestController
 @Tag(name = "Usuarios - Admin")
 @RequestMapping("/api/admin/usuarios")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class UsuarioAdminController {
+
     private final UsuarioService usuarioService;
+    private final PagedResourcesAssembler<UsuarioAdminDTO> pagedResourcesAssembler;
 
     //--------------------------Create--------------------------//
     @Operation(
@@ -55,21 +66,31 @@ public class UsuarioAdminController {
 
     //--------------------------Read--------------------------//
     @Operation(
-            summary = "Obtener todos los usuarios",
-            description = "Devuelve una lista de todos los usuarios registrados en el sistema",
+            summary = "Obtener todos los usuarios (paginado y filtrado)",
+            description = "Devuelve una lista paginadad de usuarios (con filtros opcionales de nombre y email)",
             security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de usuarios obtenida correctamente"),
-            @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
+            @ApiResponse(responseCode = "401", description = "No autorizado"),
             @ApiResponse(responseCode = "403", description = "Acceso denegado, no tenés el rol necesario"),
             @ApiResponse(responseCode = "404", description = "No se encontraron usuarios"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping
-    public ResponseEntity<?> readUsuarios() {
-        List<UsuarioAdminDTO> usuarios = usuarioService.readUsuarios();
-        return ResponseEntity.ok(usuarios);
+    public ResponseEntity<PagedModel<EntityModel<UsuarioAdminDTO>>> getAllUsuarios(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String email,
+            @PageableDefault(size = 10, page = 0) Pageable pageable
+    ) {
+        Page<UsuarioAdminDTO> page = usuarioService.buscarUsuarios(nombre, email, pageable);
+
+        PagedModel<EntityModel<UsuarioAdminDTO>> pagedModel = pagedResourcesAssembler.toModel(page, usuario -> {
+            usuario.add(linkTo(methodOn(UsuarioAdminController.class).findById(usuario.getId())).withSelfRel());
+            return EntityModel.of(usuario);
+        });
+
+        return ResponseEntity.ok(pagedModel);
     }
     
     @Operation(
