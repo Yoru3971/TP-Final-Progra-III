@@ -12,9 +12,14 @@ import com.viandasApp.api.Usuario.mappers.UsuarioMapper;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.repository.UsuarioRepository;
+import com.viandasApp.api.Usuario.specification.UsuarioSpecifications;
 import com.viandasApp.api.Vianda.repository.ViandaRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,7 +36,7 @@ import java.util.Optional;
 public class UsuarioServiceImpl implements UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final EmprendimientoService emprendimientoService;
-    private final ViandaRepository viandaRepository; // <--- Agregado nuevamente
+    private final ViandaRepository viandaRepository;
     private final PedidoRepository pedidoRepository;
     private final PasswordEncoder passwordEncoder;
     private final CloudinaryService cloudinaryService;
@@ -92,16 +97,24 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     //--------------------------Read--------------------------//
-    @Override
-    public List<UsuarioAdminDTO> readUsuarios() {
-        List<UsuarioAdminDTO> encontrados = usuarioRepository.findAll()
-                .stream()
-                .map(UsuarioAdminDTO::new).toList();
 
-        if (encontrados.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron usuarios");
+    @Override
+    public Page<UsuarioAdminDTO> buscarUsuarios(String nombre, String email, Pageable pageable) {
+        Specification<Usuario> spec = Specification.where(null);
+
+        if (nombre != null) {
+            spec = spec.and(UsuarioSpecifications.nombreContiene(nombre));
         }
-        return encontrados;
+        if (email != null) {
+            spec = spec.and(UsuarioSpecifications.emailContiene(email));
+        }
+
+        if (pageable.getSort().isUnsorted()) {
+            spec = spec.and(UsuarioSpecifications.ordenPorDisponibilidad());
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        }
+
+        return usuarioRepository.findAll(spec, pageable).map(UsuarioAdminDTO::new);
     }
 
     @Override
