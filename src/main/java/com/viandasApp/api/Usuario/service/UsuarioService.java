@@ -3,6 +3,8 @@ package com.viandasApp.api.Usuario.service;
 import com.viandasApp.api.Usuario.dto.*;
 import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -13,7 +15,7 @@ public interface UsuarioService {
     UsuarioAdminDTO createUsuario(UsuarioCreateDTO userDto);
 
     //--------------------------Read--------------------------//
-    List<UsuarioAdminDTO> readUsuarios();
+    Page<UsuarioAdminDTO> buscarUsuarios(String nombre, String email, Pageable pageable);
     Optional<UsuarioAdminDTO> findByIdAdmin(Long id);
     Optional<UsuarioDTO> findById(Long id);
     Optional<Usuario> findEntityById(Long id);
