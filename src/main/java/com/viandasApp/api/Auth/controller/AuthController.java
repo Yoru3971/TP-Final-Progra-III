@@ -9,7 +9,6 @@ import com.viandasApp.api.Auth.service.GoogleAuthService;
 import com.viandasApp.api.Auth.service.RefreshTokenService;
 import com.viandasApp.api.Usuario.dto.UsuarioDTO;
 import com.viandasApp.api.Auth.dto.UsuarioLoginDTO;
-import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Utils.CookieUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

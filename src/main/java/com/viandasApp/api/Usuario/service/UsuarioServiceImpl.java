@@ -1,5 +1,6 @@
 package com.viandasApp.api.Usuario.service;
 
+import com.viandasApp.api.Auth.repository.RefreshTokenRepository;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoService;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
@@ -35,11 +36,12 @@ import java.util.Optional;
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
     private final UsuarioRepository usuarioRepository;
-    private final EmprendimientoService emprendimientoService;
     private final ViandaRepository viandaRepository;
     private final PedidoRepository pedidoRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final CloudinaryService cloudinaryService;
+    private final EmprendimientoService emprendimientoService;
     private final ImageValidationService imageValidationService;
     private final UsuarioMapper usuarioMapper;
 
@@ -50,7 +52,8 @@ public class UsuarioServiceImpl implements UsuarioService {
                               PasswordEncoder passwordEncoder,
                               CloudinaryService cloudinaryService,
                               ImageValidationService imageValidationService,
-                              UsuarioMapper usuarioMapper) {
+                              UsuarioMapper usuarioMapper,
+                              RefreshTokenRepository refreshTokenRepository) {
         this.usuarioRepository = usuarioRepository;
         this.emprendimientoService = emprendimientoService;
         this.viandaRepository = viandaRepository;
@@ -59,6 +62,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         this.cloudinaryService = cloudinaryService;
         this.imageValidationService = imageValidationService;
         this.usuarioMapper = usuarioMapper;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     //--------------------------Create--------------------------//
@@ -394,6 +398,8 @@ public class UsuarioServiceImpl implements UsuarioService {
         Long id = usuario.getId();
 
         verificarSiTienePedidosActivos(id);
+
+        refreshTokenRepository.deleteByUsuario(usuario);
 
         if (tieneDatosHistoricos(usuario)) {
             realizarBajaLogica(usuario);
