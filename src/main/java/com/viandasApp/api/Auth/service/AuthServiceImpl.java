@@ -63,8 +63,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         String telefonoSinCeros = usuarioRegisterDTO.getTelefono().replaceFirst("^0+", "");
-        if (telefonoSinCeros.length() < 7) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
+        if (telefonoSinCeros.length() < 6) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 6 digitos.");
         }
         usuario.setTelefono(telefonoSinCeros);
 

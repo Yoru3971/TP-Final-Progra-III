@@ -76,8 +76,8 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
 
         String telefonoSinCeros = usuarioCreateDTO.getTelefono().replaceFirst("^0+", "");
-        if (telefonoSinCeros.length() < 7) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
+        if (telefonoSinCeros.length() < 6) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 6 digitos.");
         }
         usuario.setTelefono(telefonoSinCeros);
 
@@ -208,8 +208,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
             String telefonoSinCeros = usuarioUpdateDTO.getTelefono().replaceFirst("^0+", "");
 
-            if (telefonoSinCeros.length() < 7) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
+            if (telefonoSinCeros.length() < 6) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 6 digitos.");
             }
 
             // Verifica si el nuevo telefono ya está en uso por otro usuario
@@ -270,8 +270,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
             String telefonoSinCeros = usuarioUpdateRolDTO.getTelefono().replaceFirst("^0+", "");
 
-            if (telefonoSinCeros.length() < 7) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
+            if (telefonoSinCeros.length() < 6) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 6 digitos.");
             }
 
             usuarioRepository.findByTelefono(telefonoSinCeros)

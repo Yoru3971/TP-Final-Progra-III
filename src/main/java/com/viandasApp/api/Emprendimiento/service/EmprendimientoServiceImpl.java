@@ -72,8 +72,8 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
         Long duenioEmprendimientoId = duenioEmprendimiento.getId();
 
-        if (createEmprendimientoDTO.getTelefono().replaceFirst("^0+", "").length() < 7) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
+        if (createEmprendimientoDTO.getTelefono().replaceFirst("^0+", "").length() < 6) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 6 digitos.");
         }
 
         boolean esAdmin = usuario.getRolUsuario() == RolUsuario.ADMIN;
@@ -301,8 +301,8 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                         "Emprendimiento no encontrado con ID: " + id
                 ));
 
-        if (updateEmprendimientoDTO.getTelefono().replaceFirst("^0+", "").length() < 7) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
+        if (updateEmprendimientoDTO.getTelefono().replaceFirst("^0+", "").length() < 6) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 6 digitos.");
         }
 
         Long duenioEmprendimientoId = emprendimiento.getUsuario().getId();
