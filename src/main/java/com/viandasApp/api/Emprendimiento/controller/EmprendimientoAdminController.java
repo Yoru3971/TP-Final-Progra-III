@@ -58,10 +58,11 @@ public class EmprendimientoAdminController {
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String ciudad,
             @RequestParam(required = false) String dueno,
+            @RequestParam(required = false) Boolean soloEliminados,
             @PageableDefault(size = 10, page = 0) Pageable pageable,
             @AuthenticationPrincipal Usuario usuario
     ) {
-        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(usuario, ciudad, nombre, dueno, pageable);
+        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(usuario, ciudad, nombre, dueno, soloEliminados, pageable);
 
         Page<EmprendimientoAdminDTO> dtoPage = page.map(EmprendimientoAdminDTO::new);
 

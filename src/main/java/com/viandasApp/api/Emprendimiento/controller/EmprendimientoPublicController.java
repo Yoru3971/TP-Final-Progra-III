@@ -50,7 +50,7 @@ public class EmprendimientoPublicController {
              @RequestParam(required = false) String nombre,
              @PageableDefault(size = 10, page = 0) Pageable pageable
      ){
-         Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(null, ciudad, nombre, null, pageable);
+         Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(null, ciudad, nombre, null, false, pageable);
 
          Page<EmprendimientoDTO> dtoPage = page.map(EmprendimientoDTO::new);
 
@@ -77,7 +77,7 @@ public class EmprendimientoPublicController {
             @PathVariable String ciudad,
             @PageableDefault(size = 10, page = 0) Pageable pageable
     ){
-        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(null, ciudad, null, null, pageable);
+        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(null, ciudad, null, null, false, pageable);
 
         PagedModel<EntityModel<EmprendimientoDTO>> pagedModel = pagedResourcesAssembler.toModel(page.map(EmprendimientoDTO::new), e -> {
             e.add(linkTo(methodOn(EmprendimientoPublicController.class).getEmprendimientoById(e.getId())).withSelfRel());
