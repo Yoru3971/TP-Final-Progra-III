@@ -456,6 +456,10 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
             for (Vianda vianda : viandasCopia) {
 
+                if (vianda.getDeletedAt() != null) {
+                    continue;
+                }
+                
                 boolean seraBorradoFisico = vianda.getDetalles().isEmpty();
 
                 viandaService.deleteVianda(vianda.getId(), usuario);
