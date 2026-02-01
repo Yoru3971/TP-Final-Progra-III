@@ -105,6 +105,10 @@ public class ImageValidationService {
 
             interpretarRespuesta(response.getBody());
 
+        } catch (ResponseStatusException e) {
+            System.err.println("Error OpenAI: " + e.getMessage());
+            throw e;
+
         } catch (Exception e) {
             System.err.println("Error crítico OpenAI: " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error en el servicio de validación de imágenes: " + e.getMessage());
