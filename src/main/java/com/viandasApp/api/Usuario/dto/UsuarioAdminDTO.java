@@ -38,14 +38,28 @@ public class UsuarioAdminDTO extends RepresentationModel<UsuarioAdminDTO> {
 
     public UsuarioAdminDTO(Usuario usuario) {
         this.id = usuario.getId();
-        this.nombreCompleto = usuario.getNombreCompleto();
         this.imagenUrl = usuario.getImagenUrl();
-        this.email = usuario.getEmail();
-        this.telefono = usuario.getTelefono();
         this.rolUsuario = usuario.getRolUsuario();
         this.enabled = usuario.isEnabled();
         this.createdAt = usuario.getCreatedAt();
         this.bannedAt = usuario.getBannedAt();
         this.deletedAt = usuario.getDeletedAt();
+
+        if (usuario.getDeletedAt() != null) {
+            this.nombreCompleto = limpiarDato(usuario.getNombreCompleto(), "usuario_borrado_");
+            this.email = limpiarDato(usuario.getEmail(), "usuario_borrado_");
+            this.telefono = limpiarDato(usuario.getTelefono(), "borrado_");
+        } else {
+            this.nombreCompleto = usuario.getNombreCompleto();
+            this.email = usuario.getEmail();
+            this.telefono = usuario.getTelefono();
+        }
+    }
+
+    private String limpiarDato(String datoSucio, String prefijoBase) {
+        if (datoSucio == null) return "";
+        String regex = "^" + prefijoBase + "\\d+_";
+
+        return datoSucio.replaceFirst(regex, "");
     }
 }
