@@ -67,4 +67,12 @@ public class EmprendimientoSpecifications {
             return null;
         };
     }
+
+    // Filtro solo los que tienen fecha de baja
+    public static Specification<Emprendimiento> soloEliminados(boolean mostrarSoloEliminados) {
+        return (root, query, cb) -> {
+            if (!mostrarSoloEliminados) return null;
+            return cb.isNotNull(root.get("deletedAt"));
+        };
+    }
 }
