@@ -483,6 +483,10 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     private void verificarSiTienePedidosActivos(Long id) {
+        Usuario usuarioLogueado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        boolean esAdmin = usuarioLogueado.getRolUsuario().equals(RolUsuario.ADMIN);
+
         boolean tienePedidosActivos = pedidoRepository.existsByEstadoAndUsuarioId(EstadoPedido.PENDIENTE, id)
                 || pedidoRepository.existsByEstadoAndUsuarioId(EstadoPedido.ACEPTADO, id);
 
@@ -490,8 +494,12 @@ public class UsuarioServiceImpl implements UsuarioService {
                 || pedidoRepository.existsByEstadoAndEmprendimientoUsuarioId(EstadoPedido.ACEPTADO, id);
 
         if (tienePedidosActivos || tienePedidosActivosComoDueno) {
+            String articulo = esAdmin ? "la" : "tu";
+            String verbo = esAdmin ? "tenga" : "tengas";
+
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "No podés eliminar tu cuenta mientras tengas pedidos en curso (Pendientes o Aceptados).");
+                    "No se puede eliminar " + articulo + " cuenta mientras " + verbo +
+                            " pedidos en curso (Pendientes o Aceptados).");
         }
     }
 

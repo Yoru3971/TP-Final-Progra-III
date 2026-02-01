@@ -303,13 +303,13 @@ public class ViandaServiceImpl implements ViandaService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para eliminar esta vianda.");
         }
 
-        procesarEliminacionVianda(vianda);
+        procesarEliminacionVianda(vianda, usuarioLogueado);
 
         return true;
     }
 
-    private void procesarEliminacionVianda(Vianda vianda) {
-        verificarSiTienePedidosActivos(vianda);
+    private void procesarEliminacionVianda(Vianda vianda, Usuario usuarioLogueado) {
+        verificarSiTienePedidosActivos(vianda, usuarioLogueado);
 
         if (vianda.getDetalles().isEmpty()) {
             viandaRepository.delete(vianda);
@@ -319,7 +319,7 @@ public class ViandaServiceImpl implements ViandaService {
         }
     }
 
-    private void verificarSiTienePedidosActivos(Vianda vianda) {
+    private void verificarSiTienePedidosActivos(Vianda vianda, Usuario usuarioLogueado) {
         boolean tienePedidosActivos = vianda.getDetalles().stream()
                 .anyMatch(detalle -> {
                     EstadoPedido estado = detalle.getPedido().getEstado();
@@ -327,8 +327,12 @@ public class ViandaServiceImpl implements ViandaService {
                 });
 
         if (tienePedidosActivos) {
+            boolean esAdmin = usuarioLogueado.getRolUsuario().equals(RolUsuario.ADMIN);
+
+            String articulo = esAdmin ? "la" : "esta";
+
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "No se puede eliminar la vianda porque está en un pedido en curso (Pendiente o Aceptado).");
+                    "No se puede eliminar " + articulo + " vianda porque está en un pedido en curso (Pendiente o Aceptado).");
         }
     }
 

@@ -405,7 +405,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     private void procesarEliminacionEmprendimiento(Emprendimiento emprendimiento, Usuario usuario) {
         List<Pedido> pedidosConIdEmprendimiento = pedidoRepository.findByEmprendimientoId(emprendimiento.getId());
 
-        verificarSiTienePedidosActivos(pedidosConIdEmprendimiento);
+        verificarSiTienePedidosActivos(pedidosConIdEmprendimiento, usuario);
 
         if (pedidosConIdEmprendimiento.isEmpty()) {
             emprendimientoRepository.deleteById(emprendimiento.getId());
@@ -415,15 +415,20 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         }
     }
 
-    private void verificarSiTienePedidosActivos(List<Pedido> pedidos) {
+    private void verificarSiTienePedidosActivos(List<Pedido> pedidos, Usuario usuarioLogueado) {
         boolean tienePedidosEnCurso = pedidos.stream()
                 .anyMatch(pedido ->
                         pedido.getEstado() == EstadoPedido.PENDIENTE ||
                                 pedido.getEstado() == EstadoPedido.ACEPTADO);
 
         if (tienePedidosEnCurso) {
+            boolean esAdmin = usuarioLogueado.getRolUsuario().equals(RolUsuario.ADMIN);
+
+            String sujeto = esAdmin ? "el emprendimiento" : "este emprendimiento";
+            String accion = esAdmin ? "Deben finalizarse" : "Finalizalos";
+
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "No se puede eliminar el emprendimiento porque tiene pedidos en curso. Finalizalos o cancelalos antes.");
+                    "No se puede eliminar " + sujeto + " porque tiene pedidos en curso. " + accion + " o cancelalos antes.");
         }
     }
 
