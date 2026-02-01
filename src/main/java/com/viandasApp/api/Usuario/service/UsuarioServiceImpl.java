@@ -520,6 +520,9 @@ public class UsuarioServiceImpl implements UsuarioService {
         List<Emprendimiento> emprendimientosCopia = new ArrayList<>(usuario.getEmprendimientos());
 
         for (Emprendimiento emp : emprendimientosCopia) {
+            if (emp.getDeletedAt() != null) {
+                continue;
+            }
             boolean tieneHistorialPedidos = pedidoRepository.existsByEmprendimientoId(emp.getId());
 
             emprendimientoService.deleteEmprendimiento(emp.getId(), usuario);
