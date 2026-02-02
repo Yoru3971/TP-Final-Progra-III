@@ -1,9 +1,6 @@
 package com.viandasApp.api.Emprendimiento.service;
 
-import com.viandasApp.api.Emprendimiento.dto.CreateEmprendimientoDTO;
-import com.viandasApp.api.Emprendimiento.dto.EmprendimientoAdminDTO;
-import com.viandasApp.api.Emprendimiento.dto.EmprendimientoDTO;
-import com.viandasApp.api.Emprendimiento.dto.UpdateEmprendimientoDTO;
+import com.viandasApp.api.Emprendimiento.dto.*;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Usuario.model.Usuario;
 import org.springframework.data.domain.Page;
@@ -18,7 +15,7 @@ public interface EmprendimientoService {
     EmprendimientoDTO createEmprendimiento(CreateEmprendimientoDTO createEmprendimientoDTO, Usuario usuario);
 
     //--------------------------Read (Paginación)--------------------------//
-    Page<Emprendimiento> buscarEmprendimientos(Usuario usuario, String ciudad, String nombre, String nombreDueno, Pageable pageable);
+    Page<Emprendimiento> buscarEmprendimientos(Usuario usuario, String ciudad, String nombre, String nombreDueno, Boolean soloEliminados, Pageable pageable);
     Page<EmprendimientoDTO> getAllEmprendimientosDisponibles(Pageable pageable);
     Page<EmprendimientoDTO> getEmprendimientosDisponiblesByCiudad(String ciudad, Pageable pageable);
     Page<EmprendimientoDTO> getEmprendimientosByUsuario(Long idUsuario, Usuario usuario, String ciudad, Pageable pageable);

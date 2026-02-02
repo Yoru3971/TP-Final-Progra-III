@@ -27,9 +27,9 @@ public class EmprendimientoDTO extends RepresentationModel<EmprendimientoDTO> {
 
         if (emprendimiento.getDeletedAt() != null) {
             this.nombreEmprendimiento = "Emprendimiento Eliminado";
-            this.ciudad = "No disponible";
-            this.direccion = "No disponible";
-            this.telefono = "No disponible";
+            this.ciudad = null;
+            this.direccion = null;
+            this.telefono = null;
             this.estaDisponible = false;
         } else {
             this.nombreEmprendimiento = emprendimiento.getNombreEmprendimiento();

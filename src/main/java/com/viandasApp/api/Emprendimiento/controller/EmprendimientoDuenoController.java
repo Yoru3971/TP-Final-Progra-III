@@ -116,7 +116,7 @@ public class EmprendimientoDuenoController {
     ) {
         Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(usuario, ciudad, nombre, null, pageable);
+        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(usuario, ciudad, nombre, null, false, pageable);
 
         Page<EmprendimientoDTO> dtoPage = page.map(EmprendimientoDTO::new);
 
