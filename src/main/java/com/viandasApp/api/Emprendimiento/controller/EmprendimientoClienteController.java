@@ -55,7 +55,7 @@ public class EmprendimientoClienteController {
             @RequestParam(required = false) String nombre,
             @PageableDefault(size = 10, page = 0) Pageable pageable
     ){
-        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(null, ciudad, nombre, null, pageable);
+        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(null, ciudad, nombre, null, false,pageable);
 
         Page<EmprendimientoDTO> dtoPage = page.map(EmprendimientoDTO::new);
 
