@@ -5,6 +5,7 @@ import com.viandasApp.api.Pedido.dto.PedidoDTO;
 import com.viandasApp.api.Pedido.dto.PedidoUpdateViandasDTO;
 import com.viandasApp.api.Pedido.dto.UpdatePedidoDTO;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
+import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Usuario.model.Usuario;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,7 @@ public interface PedidoService {
 
     //--------------------------Read--------------------------//
     Page<PedidoDTO> buscarPedidos(Usuario usuarioLogueado, EstadoPedido estado, String nombreEmprendimiento, LocalDate desde, LocalDate hasta, Pageable pageable);
+    Page<Pedido> buscarEntidadesPedidos(Usuario usuario, EstadoPedido estado, String nombreEmprendimiento, LocalDate desde, LocalDate hasta, Pageable pageable);
     Optional<PedidoDTO> getPedidoById(Long id, Usuario usuario);
     List<String> getNombresEmprendimientosFiltro(Usuario usuario);
 

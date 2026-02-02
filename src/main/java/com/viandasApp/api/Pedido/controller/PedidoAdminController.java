@@ -1,10 +1,8 @@
 package com.viandasApp.api.Pedido.controller;
 
-import com.viandasApp.api.Pedido.dto.PedidoCreateDTO;
-import com.viandasApp.api.Pedido.dto.PedidoDTO;
-import com.viandasApp.api.Pedido.dto.PedidoUpdateViandasDTO;
-import com.viandasApp.api.Pedido.dto.UpdatePedidoDTO;
+import com.viandasApp.api.Pedido.dto.*;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
+import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.service.PedidoService;
 import com.viandasApp.api.Usuario.model.Usuario;
 import io.swagger.v3.oas.annotations.Operation;
@@ -83,20 +81,22 @@ public class PedidoAdminController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping
-    public ResponseEntity<PagedModel<EntityModel<PedidoDTO>>> getPedidos(
+    public ResponseEntity<PagedModel<EntityModel<PedidoAdminDTO>>> getPedidos(
             @RequestParam(required = false) EstadoPedido estado,
             @RequestParam(required = false) String emprendimiento,
             @RequestParam(required = false) LocalDate desde,
             @RequestParam(required = false) LocalDate hasta,
-            @PageableDefault(size = 10) Pageable pageable
+            @PageableDefault(size = 10) Pageable pageable,
+            PagedResourcesAssembler<Pedido> pagedResourcesAssembler
     ) {
         Usuario autenticado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Page<PedidoDTO> page = pedidoService.buscarPedidos(autenticado, estado, emprendimiento, desde, hasta, pageable);
+        Page<Pedido> pagePedidos = pedidoService.buscarEntidadesPedidos(autenticado, estado, emprendimiento, desde, hasta, pageable);
+        PagedModel<EntityModel<PedidoAdminDTO>> pagedModel = pagedResourcesAssembler.toModel(pagePedidos, pedido -> {
+            PedidoAdminDTO dto = new PedidoAdminDTO(pedido);
 
-        PagedModel<EntityModel<PedidoDTO>> pagedModel = pagedResourcesAssembler.toModel(page, pedido -> {
-            pedido.add(linkTo(methodOn(PedidoAdminController.class).getPedidoPorId(pedido.getId())).withSelfRel());
-            return EntityModel.of(pedido);
+            dto.add(linkTo(methodOn(PedidoAdminController.class).getPedidoPorId(pedido.getId())).withSelfRel());
+            return EntityModel.of(dto);
         });
 
         return ResponseEntity.ok(pagedModel);

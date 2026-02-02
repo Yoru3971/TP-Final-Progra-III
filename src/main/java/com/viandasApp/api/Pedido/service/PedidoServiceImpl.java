@@ -152,6 +152,33 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     @Override
+    public Page<Pedido> buscarEntidadesPedidos(Usuario usuario, EstadoPedido estado, String nombreEmprendimiento, LocalDate desde, LocalDate hasta, Pageable pageable) {
+
+        Specification<Pedido> spec = Specification.where(null);
+
+        if (usuario.getRolUsuario() == RolUsuario.CLIENTE) {
+            spec = spec.and(PedidoSpecifications.delCliente(usuario.getId()));
+        } else if (usuario.getRolUsuario() == RolUsuario.DUENO) {
+            spec = spec.and(PedidoSpecifications.delDueno(usuario.getId()));
+        }
+
+        if (estado != null) {
+            spec = spec.and(PedidoSpecifications.hasEstado(estado));
+        }
+        if (nombreEmprendimiento != null) {
+            spec = spec.and(PedidoSpecifications.hasNombreEmprendimiento(nombreEmprendimiento));
+        }
+        spec = spec.and(PedidoSpecifications.fechaEntregaEntre(desde, hasta));
+
+        if (pageable.getSort().isUnsorted()) {
+            spec = spec.and(PedidoSpecifications.conOrdenamientoDefecto());
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        }
+
+        return pedidoRepository.findAll(spec, pageable);
+    }
+
+    @Override
     public Optional<PedidoDTO> getPedidoById(Long id, Usuario usuario) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el pedido con ID: " + id));

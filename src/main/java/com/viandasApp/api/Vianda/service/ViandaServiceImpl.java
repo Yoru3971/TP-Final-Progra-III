@@ -346,12 +346,6 @@ public class ViandaServiceImpl implements ViandaService {
     private void realizarBajaLogica(Vianda vianda) {
         String timestamp = String.valueOf(System.currentTimeMillis());
 
-        vianda.setNombreVianda("Vianda Eliminada_" + timestamp + "_" + vianda.getNombreVianda());
-        vianda.setDescripcion("Vianda Eliminada_" + timestamp + "_" + vianda.getDescripcion());
-        vianda.setPrecio(0.0);
-
-        vianda.setImagenUrl("https://res.cloudinary.com/dsgqbotzi/image/upload/v1767926581/default_vianda_rb2ila.png");
-
         vianda.setDeletedAt(LocalDateTime.now());
         vianda.setEstaDisponible(false);
     }

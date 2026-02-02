@@ -99,7 +99,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
     //--------------------------Read (Paginación)--------------------------//
     @Override
-    public Page<Emprendimiento> buscarEmprendimientos(Usuario usuario, String ciudad, String nombre, String nombreDueno, Pageable pageable) {
+    public Page<Emprendimiento> buscarEmprendimientos(Usuario usuario, String ciudad, String nombre, String nombreDueno, Boolean soloEliminados, Pageable pageable) {
 
         Specification<Emprendimiento> spec = Specification.where(null);
         boolean isAdmin = usuario != null && usuario.getRolUsuario() == RolUsuario.ADMIN;
@@ -456,6 +456,10 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
             for (Vianda vianda : viandasCopia) {
 
+                if (vianda.getDeletedAt() != null) {
+                    continue;
+                }
+                
                 boolean seraBorradoFisico = vianda.getDetalles().isEmpty();
 
                 viandaService.deleteVianda(vianda.getId(), usuario);
