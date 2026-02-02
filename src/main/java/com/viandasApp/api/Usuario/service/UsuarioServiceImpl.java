@@ -112,7 +112,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     //--------------------------Read--------------------------//
 
     @Override
-    public Page<UsuarioAdminDTO> buscarUsuarios(String nombre, String email, Pageable pageable) {
+    public Page<UsuarioAdminDTO> buscarUsuarios(String nombre, String email, Boolean soloEliminados, Pageable pageable) {
         Specification<Usuario> spec = Specification.where(null);
 
         if (nombre != null) {
@@ -120,6 +120,12 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
         if (email != null) {
             spec = spec.and(UsuarioSpecifications.emailContiene(email));
+        }
+
+        if (Boolean.TRUE.equals(soloEliminados)) {
+            spec = spec.and((root, query, cb) -> cb.isNotNull(root.get("deletedAt")));
+        } else {
+            spec = spec.and((root, query, cb) -> cb.isNull(root.get("deletedAt")));
         }
 
         if (pageable.getSort().isUnsorted()) {

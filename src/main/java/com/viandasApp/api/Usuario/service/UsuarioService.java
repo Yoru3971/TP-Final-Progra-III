@@ -15,7 +15,7 @@ public interface UsuarioService {
     UsuarioAdminDTO createUsuario(UsuarioCreateDTO userDto);
 
     //--------------------------Read--------------------------//
-    Page<UsuarioAdminDTO> buscarUsuarios(String nombre, String email, Pageable pageable);
+    Page<UsuarioAdminDTO> buscarUsuarios(String nombre, String email, Boolean soloEliminados, Pageable pageable);
     Optional<UsuarioAdminDTO> findByIdAdmin(Long id);
     Optional<UsuarioDTO> findById(Long id);
     Optional<Usuario> findEntityById(Long id);

@@ -81,9 +81,10 @@ public class UsuarioAdminController {
     public ResponseEntity<PagedModel<EntityModel<UsuarioAdminDTO>>> getAllUsuarios(
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String email,
+            @RequestParam(required = false) Boolean soloEliminados,
             @PageableDefault(size = 10, page = 0) Pageable pageable
     ) {
-        Page<UsuarioAdminDTO> page = usuarioService.buscarUsuarios(nombre, email, pageable);
+        Page<UsuarioAdminDTO> page = usuarioService.buscarUsuarios(nombre, email, soloEliminados, pageable);
 
         PagedModel<EntityModel<UsuarioAdminDTO>> pagedModel = pagedResourcesAssembler.toModel(page, usuario -> {
             usuario.add(linkTo(methodOn(UsuarioAdminController.class).findById(usuario.getId())).withSelfRel());

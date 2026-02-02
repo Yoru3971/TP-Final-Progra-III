@@ -123,6 +123,12 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             if (ciudad != null) spec = spec.and(EmprendimientoSpecifications.porCiudad(ciudad));
             if (nombreDueno != null) spec = spec.and(EmprendimientoSpecifications.duenoNombreOEmailContiene(nombreDueno));
 
+            if (Boolean.TRUE.equals(soloEliminados)) {
+                spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.isNotNull(root.get("deletedAt")));
+            } else {
+                spec = spec.and(EmprendimientoSpecifications.noEstaEliminado());
+            }
+
         } else if (isDueno) {
             spec = spec.and(EmprendimientoSpecifications.perteneceADueno(usuario.getId()));
             spec = spec.and(EmprendimientoSpecifications.noEstaEliminado());
