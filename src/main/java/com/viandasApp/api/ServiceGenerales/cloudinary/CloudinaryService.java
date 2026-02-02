@@ -26,9 +26,11 @@ public class CloudinaryService {
             );
             return (String) uploadResult.get("secure_url");
         } catch (IOException e) {
+            System.err.println("Error Cloudinary: " + e.getMessage());
+
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Error al subir la imagen a Cloudinary: " + e.getMessage()
+                    "Error con el servicio de almacenamiento de imágenes."
             );
         }
     }

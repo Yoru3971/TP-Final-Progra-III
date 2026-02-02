@@ -15,7 +15,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -89,7 +91,15 @@ public class ReclamoServiceImpl implements ReclamoService {
 
     @Override
     public Optional<Reclamo> obtenerReclamoPorId(Long id) {
-        return reclamoRepository.findById(id);
+        Optional<Reclamo> reclamo = reclamoRepository.findById(id);
+
+        if (reclamo.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "No se encontró un reclamo con ID #" + id + "."
+            );
+        }
+
+        return reclamo;
     }
 
     @Override
@@ -101,7 +111,11 @@ public class ReclamoServiceImpl implements ReclamoService {
     @Override
     public Reclamo actualizarEstadoReclamo(Long id, EstadoReclamo nuevoEstado, String respuestaAdmin) {
         Reclamo reclamo = reclamoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Reclamo no encontrado"));
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "No se encontró un reclamo con ID #" + id + "."
+                        )
+                );
 
         reclamo.setEstado(nuevoEstado);
 
@@ -112,7 +126,6 @@ public class ReclamoServiceImpl implements ReclamoService {
         Reclamo updated = reclamoRepository.save(reclamo);
 
         // Notificar al usuario
-        // Nota: Podrías buscar el nombre del usuario si quisieras, aquí pongo "Usuario" genérico o el mail
         emailService.sendCambioEstadoReclamo(reclamo.getEmailUsuario(), "Usuario", reclamo.getCodigoTicket(), nuevoEstado.name(), respuestaAdmin);
 
         return updated;

@@ -34,7 +34,7 @@ public class NotificacionAdminController {
     private final PagedResourcesAssembler<NotificacionDTO> pagedResourcesAssembler;
 
     //--------------------------Create--------------------------//    
-   @Operation(
+    @Operation(
             summary = "Crear una nueva notificación",
             description = "Permite al administrador crear una nueva notificación",
             security = @SecurityRequirement(name = "bearer-jwt")

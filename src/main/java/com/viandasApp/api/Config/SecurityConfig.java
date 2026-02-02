@@ -37,15 +37,15 @@ public class SecurityConfig {
             var user = usuarioDetailsServiceImpl.loadUserByUsername(authentication.getName());
 
             if (!user.isEnabled()) {
-                throw new DisabledException("La cuenta no está activada");
+                throw new DisabledException("La cuenta no está activada.");
             }
 
             if (!user.isAccountNonLocked()) {
-                throw new LockedException("La cuenta está bloqueada");
+                throw new LockedException("La cuenta está bloqueada.");
             }
 
             if (!passwordEncoder().matches(authentication.getCredentials().toString(), user.getPassword())) {
-                throw new BadCredentialsException("Contraseña inválida");
+                throw new BadCredentialsException("Contraseña inválida.");
             }
 
             return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());

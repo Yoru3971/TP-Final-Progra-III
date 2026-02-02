@@ -59,24 +59,38 @@ public class AuthServiceImpl implements AuthService {
 
         // Verifica si ya existe un usuario con el mismo email
         if (usuarioRepository.findByEmail(usuario.getEmail()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el email: " + usuario.getEmail());
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Ya existe un usuario con el email " + usuario.getEmail() + "."
+            );
         }
 
         String telefonoSinCeros = usuarioRegisterDTO.getTelefono().replaceFirst("^0+", "");
+
         if (telefonoSinCeros.length() < 6) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 6 digitos.");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El teléfono debe tener al menos 6 dígitos."
+            );
         }
+
         usuario.setTelefono(telefonoSinCeros);
 
         // Verifica si ya existe un usuario con el mismo telefono
         if (usuarioRepository.findByTelefono(usuario.getTelefono()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un usuario con el telefono: " + usuario.getTelefono());
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Ya existe un usuario con el teléfono " + usuario.getTelefono() + "."
+            );
         }
 
         // Verifica que el rol del usuario logueado sea ADMIN si el nuevo usuario es ADMIN, de esta manera se evita que un usuario
         // normal pueda registrarse como ADMIN, pero permite que el ADMIN registre nuevos usuarios como ADMIN.
         if (usuarioRegisterDTO.getRolUsuario().equals(RolUsuario.ADMIN)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No podes registrarte como ADMIN. Este rol es exclusivo del administrador del sistema.");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "No podés registrarte como ADMIN. Este rol es exclusivo de los administradores del sistema."
+            );
         }
 
         Usuario savedUsuario = usuarioRepository.save(usuario);
@@ -106,15 +120,18 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public String confirmToken(String token) {
         ConfirmacionToken confirmationToken = confirmacionTokenRepository.findByToken(token)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Token no encontrado"));
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Token de confirmación no encontrado.")
+                );
 
         if (confirmationToken.getConfirmedAt() != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El email ya fue confirmado");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El email ya fue confirmado.");
         }
 
         LocalDateTime expiredAt = confirmationToken.getExpiresAt();
+
         if (expiredAt.isBefore(LocalDateTime.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El token expiró");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El token de confirmación expiró.");
         }
 
         confirmationToken.setConfirmedAt(LocalDateTime.now());
@@ -157,10 +174,17 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public String resendToken(String email) {
         Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "El usuario no existe"));
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "No se encontró un usuario con el email " + email + "."
+                        )
+                );
 
         if (usuario.isEnabled()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Esta cuenta ya está verificada. Puedes iniciar sesión.");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Esta cuenta ya está activada. Ya podés iniciar sesión."
+            );
         }
 
         String token = UUID.randomUUID().toString();
