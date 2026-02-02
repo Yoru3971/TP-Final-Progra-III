@@ -37,15 +37,24 @@ public class ImageValidationService {
         ValidationStrategy strategy = strategies.stream()
                 .filter(s -> s.supports(tipoValidacion))
                 .findFirst()
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        "Estrategia no encontrada para: " + tipoValidacion));
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.INTERNAL_SERVER_ERROR,
+                                "Error en el servicio de validación de imágenes: Estrategia no encontrada para: " +
+                                tipoValidacion
+                        )
+                );
 
         try {
             byte[] imagenBytes = file.getBytes();
             callOpenAI(imagenBytes, strategy.getPrompt());
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al leer el archivo de imagen.");
+            System.err.println("Error al validar imagen: " + e.getMessage());
+
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Servicio de validación de imágenes: Error al leer el archivo de imagen."
+            );
         }
     }
 
@@ -105,13 +114,12 @@ public class ImageValidationService {
 
             interpretarRespuesta(response.getBody());
 
-        } catch (ResponseStatusException e) {
-            System.err.println("Error OpenAI: " + e.getMessage());
-            throw e;
-
         } catch (Exception e) {
-            System.err.println("Error crítico OpenAI: " + e.getMessage());
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error en el servicio de validación de imágenes: " + e.getMessage());
+            System.err.println("Error OpenAI: " + e.getMessage());
+
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, "Error con el servicio de validación de imágenes."
+            );
         }
     }
 
@@ -133,8 +141,11 @@ public class ImageValidationService {
 
         if (!aprobado) {
             System.out.println("Rechazado por IA: " + motivo);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Imagen rechazada: " + motivo);
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Imagen rechazada: " + motivo
+            );
         }
-        System.out.println("Aprobada por IA");
+
+        System.out.println("Imagen aprobada por IA.");
     }
 }

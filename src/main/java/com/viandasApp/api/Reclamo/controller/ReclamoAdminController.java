@@ -78,11 +78,7 @@ public class ReclamoAdminController {
     @GetMapping("/id/{id}")
     public ResponseEntity<?> getReclamoPorId(@PathVariable Long id) {
         Optional<Reclamo> reclamo = reclamoService.obtenerReclamoPorId(id);
-        if (reclamo.isPresent()) {
-            return ResponseEntity.ok(reclamo.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(reclamo.get());
     }
 
     //--------------------------Update (Cambiar Estado)--------------------------//
@@ -96,12 +92,7 @@ public class ReclamoAdminController {
     })
     @PutMapping("/id/{id}/estado")
     public ResponseEntity<?> updateEstadoReclamo(@PathVariable Long id, @RequestBody ReclamoUpdateDTO dto) {
-        try {
-            Reclamo actualizado = reclamoService.actualizarEstadoReclamo(id, dto.getNuevoEstado(), dto.getRespuestaAdmin());
-
-            return ResponseEntity.ok(actualizado);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        Reclamo actualizado = reclamoService.actualizarEstadoReclamo(id, dto.getNuevoEstado(), dto.getRespuestaAdmin());
+        return ResponseEntity.ok(actualizado);
     }
 }

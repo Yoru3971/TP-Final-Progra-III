@@ -39,11 +39,15 @@ public class GoogleAuthService {
         try {
             idToken = verifier.verify(idTokenString);
         } catch (GeneralSecurityException | IOException | IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El token de Google es inválido o ha expirado.");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "El token de Google es inválido o expiró."
+            );
         }
 
         if (idToken == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El token de Google es inválido.");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "El token de Google es inválido."
+            );
         }
 
         GoogleIdToken.Payload payload = idToken.getPayload();
@@ -52,13 +56,14 @@ public class GoogleAuthService {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.FORBIDDEN,
-                        "El correo " + email + " no está registrado. Regístrese primero."
+                        "El email " + email + " no está registrado. Tenés que registrarte para poder iniciar sesión."
                 ));
 
         if (!usuario.isEnabled()) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
-                    "Su cuenta existe pero no está habilitada. Revise su correo."
+                    "Esta cuenta no está activada. Buscá en tu bandeja de entrada el correo con las instrucciones " +
+                    "para activarla."
             );
         }
 

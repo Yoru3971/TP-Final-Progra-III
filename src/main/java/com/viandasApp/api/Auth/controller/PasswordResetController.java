@@ -9,8 +9,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/public")
@@ -38,11 +40,7 @@ public class PasswordResetController {
     })
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody PasswordResetChangeDTO request) {
-        try {
-            passwordResetService.changeUserPassword(request);
-            return ResponseEntity.ok("Contraseña actualizada correctamente.");
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        passwordResetService.changeUserPassword(request);
+        return ResponseEntity.ok("Contraseña actualizada correctamente.");
     }
 }

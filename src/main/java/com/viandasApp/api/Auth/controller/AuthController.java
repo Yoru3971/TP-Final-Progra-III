@@ -22,6 +22,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
@@ -95,7 +96,10 @@ public class AuthController {
             @CookieValue(name = "refreshToken", defaultValue = "") String refreshTokenStr) {
 
         if (refreshTokenStr.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No se encontró Refresh Token en las cookies");
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "No se encontró un refresh token en las cookies. Iniciá sesión nuevamente."
+            );
         }
 
         UsuarioLogedResponseDTO nuevoTokenResponse = refreshTokenService.procesarRefresh(refreshTokenStr);
@@ -117,7 +121,7 @@ public class AuthController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookieLimpiada.toString())
-                .body("Sesión cerrada exitosamente en este dispositivo");
+                .body("Sesión cerrada exitosamente en este dispositivo.");
     }
 
     //--------------------------Utils--------------------------//

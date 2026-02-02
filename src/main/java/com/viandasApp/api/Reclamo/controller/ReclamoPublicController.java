@@ -19,7 +19,7 @@ public class ReclamoPublicController {
     @PostMapping
     public ResponseEntity<?> crearReclamo(@Valid @RequestBody ReclamoRequestDTO dto) {
         reclamoService.crearReclamo(dto);
-        return ResponseEntity.ok("Reclamo enviado exitosamente. Revisa tu correo.");
+        return ResponseEntity.ok("Reclamo enviado exitosamente. Revisá tu bandeja de entrada.");
     }
 }
 
