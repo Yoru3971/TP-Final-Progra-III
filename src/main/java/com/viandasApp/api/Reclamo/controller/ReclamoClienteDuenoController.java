@@ -26,8 +26,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "Reclamos - Usuario")
-@RequestMapping("/api/cliente/reclamos") // Aplica tanto para Cliente como Dueño
+@Tag(name = "Reclamos - Usuario logueado")
+@RequestMapping("/api/logged/reclamos") // Aplica tanto para Cliente como Dueño
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('CLIENTE', 'DUENO')")
 public class ReclamoClienteDuenoController {

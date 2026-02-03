@@ -79,6 +79,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/dueno/**").hasAnyRole("DUENO", "ADMIN")
                         .requestMatchers("/api/cliente/**").hasAnyRole("CLIENTE", "ADMIN")
+                        .requestMatchers("/api/logged/**").hasAnyRole("CLIENTE", "DUENO", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
