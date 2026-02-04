@@ -89,7 +89,12 @@ public class NotificacionServiceImpl implements NotificacionService{
         }
 
         if (pageable.getSort().isUnsorted()) {
-            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.DESC, "fechaEnviado", "id"));
+            if (leida == null) {
+                spec = spec.and(NotificacionSpecifications.conOrdenamientoDefecto());
+                pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+            } else {
+                pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.DESC, "fechaEnviado", "id"));
+            }
         }
 
         return notificacionRepository.findAll(spec, pageable).map(NotificacionDTO::new);
