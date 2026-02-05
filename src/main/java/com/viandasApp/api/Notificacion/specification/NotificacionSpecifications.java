@@ -31,4 +31,22 @@ public class NotificacionSpecifications {
             return cb.lessThanOrEqualTo(root.get("fechaEnviado"), hasta);
         };
     }
+
+    public static Specification<Notificacion> conOrdenamientoDefecto() {
+        return (root, query, cb) -> {
+            if (Long.class != query.getResultType()) {
+
+                var caseLeida = cb.selectCase()
+                        .when(cb.isFalse(root.get("leida")), 0)
+                        .otherwise(1);
+
+                query.orderBy(
+                        cb.asc(caseLeida),
+                        cb.desc(root.get("fechaEnviado")),
+                        cb.desc(root.get("id"))
+                );
+            }
+            return null;
+        };
+    }
 }
