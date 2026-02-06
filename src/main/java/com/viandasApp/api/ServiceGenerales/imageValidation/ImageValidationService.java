@@ -114,8 +114,10 @@ public class ImageValidationService {
 
             interpretarRespuesta(response.getBody());
 
+        } catch (ResponseStatusException e) {
+            throw e; // Dejarla pasar; es el mensaje de error dirigido al usuario
         } catch (Exception e) {
-            System.err.println("Error OpenAI: " + e.getMessage());
+            System.err.println("Error crítico OpenAI: " + e.getMessage());
 
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR, "Error con el servicio de validación de imágenes."
@@ -140,7 +142,8 @@ public class ImageValidationService {
         String motivo = jsonIA.path("motivo").asText();
 
         if (!aprobado) {
-            System.out.println("Rechazado por IA: " + motivo);
+            System.out.println("Imagen rechazada por IA: " + motivo);
+
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Imagen rechazada: " + motivo
             );
