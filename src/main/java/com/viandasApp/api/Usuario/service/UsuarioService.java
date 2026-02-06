@@ -29,11 +29,11 @@ public interface UsuarioService {
     UsuarioAdminDTO updateImagenUsuarioAdmin(Long id, MultipartFile image);
     UsuarioDTO updateImagenUsuario(Long id, MultipartFile image, Usuario autenticado);
     UsuarioAdminDTO enableUsuario(Long id);
-    UsuarioAdminDTO banUsuario(Long id);
+    UsuarioAdminDTO banUsuario(Long id, boolean forzar);
     UsuarioAdminDTO unbanUsuario(Long id);
 
     //--------------------------Delete--------------------------//
-    boolean deleteUsuarioAdmin(Long id);
+    boolean deleteUsuarioAdmin(Long id, boolean forzar);
     boolean deleteUsuario(Long id, Usuario autenticado);
 
     //--------------------------Otros--------------------------//
