@@ -8,6 +8,8 @@ import com.viandasApp.api.Emprendimiento.mappers.EmprendimientoMapper;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
 import com.viandasApp.api.Emprendimiento.specification.EmprendimientoSpecifications;
+import com.viandasApp.api.Notificacion.dto.NotificacionCreateDTO;
+import com.viandasApp.api.Notificacion.service.NotificacionService;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
@@ -31,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +44,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
     private final EmprendimientoRepository emprendimientoRepository;
     private final UsuarioService usuarioService;
+    private final NotificacionService notificacionService;
     private final PedidoRepository pedidoRepository; //Uso el repository y no el service para evitar dependencias circulares
     private final CloudinaryService cloudinaryService;
     private final ImageValidationService imageValidationService;
@@ -49,6 +53,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
     public EmprendimientoServiceImpl(EmprendimientoRepository emprendimientoRepository,
                                      @Lazy UsuarioService usuarioService,
+                                     @Lazy NotificacionService notificacionService,
                                      PedidoRepository pedidoRepository,
                                      CloudinaryService cloudinaryService,
                                      ImageValidationService imageValidationService,
@@ -56,6 +61,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                                      EmprendimientoMapper emprendimientoMapper) {
         this.emprendimientoRepository = emprendimientoRepository;
         this.usuarioService = usuarioService;
+        this.notificacionService = notificacionService;
         this.pedidoRepository = pedidoRepository;
         this.cloudinaryService = cloudinaryService;
         this.imageValidationService = imageValidationService;
@@ -446,7 +452,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     //--------------------------Delete--------------------------//
     @Transactional
     @Override
-    public boolean deleteEmprendimiento(Long id, Usuario usuario) {
+    public boolean deleteEmprendimiento(Long id, Usuario usuario, boolean forzar) {
         Emprendimiento emprendimiento = emprendimientoRepository.findById(id)
                 .orElseThrow(() ->
                         new ResponseStatusException(
@@ -464,15 +470,20 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             );
         }
 
-        procesarEliminacionEmprendimiento(emprendimiento, usuario);
+        procesarEliminacionEmprendimiento(emprendimiento, usuario, forzar);
 
         return true;
     }
 
-    private void procesarEliminacionEmprendimiento(Emprendimiento emprendimiento, Usuario usuario) {
+    private void procesarEliminacionEmprendimiento(Emprendimiento emprendimiento, Usuario usuario, boolean forzar) {
         List<Pedido> pedidosConIdEmprendimiento = pedidoRepository.findByEmprendimientoId(emprendimiento.getId());
 
-        verificarSiTienePedidosActivos(pedidosConIdEmprendimiento, usuario);
+        if (forzar) {
+            cancelarPedidosActivos(pedidosConIdEmprendimiento);
+        }
+        else {
+            verificarSiTienePedidosActivos(pedidosConIdEmprendimiento, usuario);
+        }
 
         if (pedidosConIdEmprendimiento.isEmpty()) {
             emprendimientoRepository.deleteById(emprendimiento.getId());
@@ -495,9 +506,43 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             String accion = esAdmin ? "Deben finalizarse o cancelarse" : "Finalizalos o cancelalos";
 
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
+                    HttpStatus.CONFLICT,
                     "No se puede eliminar " + sujeto + " porque tiene pedidos en proceso. " + accion + " antes."
             );
+        }
+    }
+
+    private void cancelarPedidosActivos(List<Pedido> pedidos) {
+        for (var pedido : pedidos) {
+            var estado = pedido.getEstado();
+
+            if (estado == EstadoPedido.PENDIENTE || estado == EstadoPedido.ACEPTADO) {
+                pedido.setEstado(EstadoPedido.CANCELADO);
+                pedidoRepository.save(pedido);
+
+                String mensaje =
+                        "El pedido #" + pedido.getId() + " fue cancelado porque el emprendimiento fue eliminado.";
+
+                // Para dueño
+                notificacionService.createNotificacion(
+                        new NotificacionCreateDTO(
+                                pedido.getEmprendimiento().getUsuario().getId(),
+                                pedido.getEmprendimiento().getId(),
+                                mensaje,
+                                LocalDate.now()
+                        )
+                );
+
+                // Para cliente
+                notificacionService.createNotificacion(
+                        new NotificacionCreateDTO(
+                                pedido.getUsuario().getId(),
+                                pedido.getEmprendimiento().getId(),
+                                mensaje,
+                                LocalDate.now()
+                        )
+                );
+            }
         }
     }
 

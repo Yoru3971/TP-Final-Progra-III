@@ -204,7 +204,7 @@ public class EmprendimientoDuenoController {
 
         Map<String, String> response = new HashMap<>();
 
-        emprendimientoService.deleteEmprendimiento(id, usuario);
+        emprendimientoService.deleteEmprendimiento(id, usuario, false);
         response.put("message", "Emprendimiento eliminado correctamente");
         return ResponseEntity.ok(response);
     }

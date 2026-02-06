@@ -14,6 +14,7 @@ import java.util.List;
 public interface PedidoRepository extends JpaRepository<Pedido, Long>, JpaSpecificationExecutor<Pedido> {
 
     List<Pedido> findByEmprendimientoId(Long idEmprendimiento);
+    List<Pedido> findByUsuarioId(Long idEmprendimiento);
     boolean existsByEstadoAndUsuarioId(EstadoPedido estado, Long usuarioId);
     boolean existsByEstadoAndEmprendimientoUsuarioId(EstadoPedido estado, Long duenoId);
     boolean existsByEmprendimientoId(Long idEmprendimiento);

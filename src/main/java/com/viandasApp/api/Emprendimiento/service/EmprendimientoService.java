@@ -35,7 +35,7 @@ public interface EmprendimientoService {
     EmprendimientoDTO updateImagenEmprendimiento(Long id, MultipartFile image, Usuario usuarioLogueado);
 
     //--------------------------Delete--------------------------//
-    boolean deleteEmprendimiento(Long id, Usuario usuario);
+    boolean deleteEmprendimiento(Long id, Usuario usuario, boolean forzar);
 
     //--------------------------Otros--------------------------//
     Optional<Emprendimiento> findEntityById(Long id);

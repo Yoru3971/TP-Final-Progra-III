@@ -259,7 +259,29 @@ public class UsuarioAdminController {
 
     @Operation(
             summary = "Bloquear un usuario",
-            description = "Permite al administrador bloquear a un usuario",
+            description = "Permite al administrador bloquear a un usuario sin pedidos en proceso",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuario bloqueado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud inválida, usuario ya bloqueado"),
+            @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado, no tenés el rol necesario"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado o contraseña inválida"),
+            @ApiResponse(responseCode = "409", description = "Usuario no bloqueado por tener pedidos en proceso"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PutMapping("/{id}/ban")
+    public ResponseEntity<?> banUsuario(
+            @PathVariable Long id) {
+        UsuarioAdminDTO usuarioBloqueado = usuarioService.banUsuario(id, false);
+
+        return ResponseEntity.ok(usuarioBloqueado);
+    }
+
+    @Operation(
+            summary = "Bloquear un usuario forzosamente",
+            description = "Permite al administrador bloquear a un usuario forzosamente",
             security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
@@ -270,10 +292,10 @@ public class UsuarioAdminController {
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado o contraseña inválida"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PutMapping("/{id}/ban")
-    public ResponseEntity<?> banUsuario(
+    @PutMapping("/{id}/ban/force")
+    public ResponseEntity<?> banUsuarioForce(
             @PathVariable Long id) {
-        UsuarioAdminDTO usuarioBloqueado = usuarioService.banUsuario(id);
+        UsuarioAdminDTO usuarioBloqueado = usuarioService.banUsuario(id, true);
 
         return ResponseEntity.ok(usuarioBloqueado);
     }
@@ -302,7 +324,27 @@ public class UsuarioAdminController {
     //--------------------------Delete--------------------------//   
      @Operation(
             summary = "Eliminar usuario",
-            description = "Permite al administrador eliminar un usuario del sistema",
+            description = "Permite al administrador eliminar un usuario del sistema sin pedidos en proceso",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuario eliminado correctamente"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
+            @ApiResponse(responseCode = "409", description = "Usuario no eliminado por tener pedidos en proceso"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
+        Map<String, String> response = new HashMap<>();
+
+        usuarioService.deleteUsuarioAdmin(id, false);
+        response.put("message", "Usuario eliminado correctamente");
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+            summary = "Eliminar usuario forzosamente",
+            description = "Permite al administrador eliminar un usuario del sistema forzosamente",
             security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
@@ -310,11 +352,11 @@ public class UsuarioAdminController {
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUsuario(@PathVariable Long id) {
+    @DeleteMapping("/{id}/force-delete")
+    public ResponseEntity<?> deleteUsuarioForce(@PathVariable Long id) {
         Map<String, String> response = new HashMap<>();
 
-        usuarioService.deleteUsuarioAdmin(id);
+        usuarioService.deleteUsuarioAdmin(id, true);
         response.put("message", "Usuario eliminado correctamente");
         return ResponseEntity.ok(response);
     }

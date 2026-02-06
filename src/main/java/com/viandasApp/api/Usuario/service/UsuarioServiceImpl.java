@@ -2,8 +2,12 @@ package com.viandasApp.api.Usuario.service;
 
 import com.viandasApp.api.Auth.repository.RefreshTokenRepository;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
+import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
 import com.viandasApp.api.Emprendimiento.service.EmprendimientoService;
+import com.viandasApp.api.Notificacion.dto.NotificacionCreateDTO;
+import com.viandasApp.api.Notificacion.service.NotificacionService;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
+import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
 import com.viandasApp.api.ServiceGenerales.cloudinary.CloudinaryService;
 import com.viandasApp.api.ServiceGenerales.imageValidation.ImageValidationService;
@@ -28,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,18 +41,20 @@ import java.util.Optional;
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
     private final UsuarioRepository usuarioRepository;
-    private final ViandaRepository viandaRepository;
+    private final EmprendimientoRepository emprendimientoRepository;
     private final PedidoRepository pedidoRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final CloudinaryService cloudinaryService;
     private final EmprendimientoService emprendimientoService;
+    private final NotificacionService notificacionService;
     private final ImageValidationService imageValidationService;
     private final UsuarioMapper usuarioMapper;
 
     public UsuarioServiceImpl(UsuarioRepository usuarioRepository,
+                              EmprendimientoRepository emprendimientoRepository,
                               @Lazy EmprendimientoService emprendimientoService,
-                              ViandaRepository viandaRepository,
+                              @Lazy NotificacionService notificacionService,
                               PedidoRepository pedidoRepository,
                               PasswordEncoder passwordEncoder,
                               CloudinaryService cloudinaryService,
@@ -55,8 +62,9 @@ public class UsuarioServiceImpl implements UsuarioService {
                               UsuarioMapper usuarioMapper,
                               RefreshTokenRepository refreshTokenRepository) {
         this.usuarioRepository = usuarioRepository;
+        this.emprendimientoRepository = emprendimientoRepository;
         this.emprendimientoService = emprendimientoService;
-        this.viandaRepository = viandaRepository;
+        this.notificacionService = notificacionService;
         this.pedidoRepository = pedidoRepository;
         this.passwordEncoder = passwordEncoder;
         this.cloudinaryService = cloudinaryService;
@@ -395,7 +403,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Transactional
     @Override
-    public UsuarioAdminDTO banUsuario(Long id) {
+    public UsuarioAdminDTO banUsuario(Long id, boolean forzar) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
 
         if (usuarioOpt.isEmpty()) {
@@ -412,8 +420,26 @@ public class UsuarioServiceImpl implements UsuarioService {
             );
         }
 
+        if (!forzar) {
+            verificarSiTienePedidosActivos(usuario.getId());
+        }
+
         usuario.setBannedAt(LocalDateTime.now());
         usuarioRepository.save(usuario);
+
+        if (usuario.getRolUsuario() != RolUsuario.ADMIN) {
+            cancelarPedidosPendientes(usuario);
+
+            var emprendimientos = emprendimientoRepository.findByUsuarioId(usuario.getId());
+
+            for (var emprendimiento : emprendimientos) {
+                if (emprendimiento.getEstaDisponible()) {
+                    emprendimiento.setEstaDisponible(false);
+                    emprendimientoRepository.save(emprendimiento);
+                }
+            }
+        }
+
         return new UsuarioAdminDTO(usuario);
     }
 
@@ -444,7 +470,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     //--------------------------Delete--------------------------//
     @Transactional
     @Override
-    public boolean deleteUsuarioAdmin(Long id) {
+    public boolean deleteUsuarioAdmin(Long id, boolean forzar) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() ->
                         new ResponseStatusException(
@@ -452,7 +478,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                         )
                 );
 
-        return procesarEliminacionUsuario(usuario);
+        return procesarEliminacionUsuario(usuario, forzar);
     }
 
     @Transactional
@@ -471,13 +497,15 @@ public class UsuarioServiceImpl implements UsuarioService {
             );
         }
 
-        return procesarEliminacionUsuario(usuario);
+        return procesarEliminacionUsuario(usuario, false);
     }
 
-    private boolean procesarEliminacionUsuario(Usuario usuario) {
+    private boolean procesarEliminacionUsuario(Usuario usuario, boolean forzar) {
         Long id = usuario.getId();
 
-        verificarSiTienePedidosActivos(id);
+        if (!forzar) {
+            verificarSiTienePedidosActivos(id);
+        }
 
         refreshTokenRepository.deleteByUsuario(usuario);
 
@@ -596,10 +624,10 @@ public class UsuarioServiceImpl implements UsuarioService {
                 || pedidoRepository.existsByEstadoAndEmprendimientoUsuarioId(EstadoPedido.ACEPTADO, id);
 
         if (tienePedidosActivos || tienePedidosActivosComoDueno) {
-            String articulo = esAdmin ? "la" : "tu";
+            String articulo = esAdmin ? "o bloquear la" : "tu";
             String verbo = esAdmin ? "tenga" : "tengas";
 
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "No se puede eliminar " + articulo + " cuenta mientras " + verbo +
                             " pedidos en proceso (pendientes o aceptados).");
         }
@@ -613,19 +641,26 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     private void realizarBajaLogica(Usuario usuario) {
-        List<Emprendimiento> emprendimientosCopia = new ArrayList<>(usuario.getEmprendimientos());
+        var rol = usuario.getRolUsuario();
 
-        for (Emprendimiento emp : emprendimientosCopia) {
-            if (emp.getDeletedAt() != null) {
-                continue;
+        if (rol == RolUsuario.DUENO) {
+            List<Emprendimiento> emprendimientosCopia = new ArrayList<>(usuario.getEmprendimientos());
+
+            for (Emprendimiento emp : emprendimientosCopia) {
+                if (emp.getDeletedAt() != null) {
+                    continue;
+                }
+                boolean tieneHistorialPedidos = pedidoRepository.existsByEmprendimientoId(emp.getId());
+
+                // También cancela los pedidos activos
+                emprendimientoService.deleteEmprendimiento(emp.getId(), usuario, true);
+
+                if (!tieneHistorialPedidos) {
+                    usuario.getEmprendimientos().remove(emp);
+                }
             }
-            boolean tieneHistorialPedidos = pedidoRepository.existsByEmprendimientoId(emp.getId());
-
-            emprendimientoService.deleteEmprendimiento(emp.getId(), usuario);
-
-            if (!tieneHistorialPedidos) {
-                usuario.getEmprendimientos().remove(emp);
-            }
+        } else if (rol == RolUsuario.CLIENTE) {
+            cancelarPedidosPendientes(usuario);
         }
 
         String timestamp = String.valueOf(System.currentTimeMillis());
@@ -638,5 +673,42 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuario.setPassword(passwordEncoder.encode("deleted_user_" + timestamp));
         usuario.setEnabled(false);
         usuario.setDeletedAt(LocalDateTime.now());
+    }
+
+    private void cancelarPedidosPendientes(Usuario usuario) {
+        List<Pedido> pedidos;
+        final boolean esDueno = usuario.getRolUsuario() == RolUsuario.DUENO;
+
+        if (esDueno) { // Solamente al bloquear un dueño
+            pedidos = new ArrayList<>();
+
+            for (var emprendimiento : emprendimientoRepository.findByUsuarioId(usuario.getId())) {
+                pedidos.addAll(pedidoRepository.findByEmprendimientoId(emprendimiento.getId()));
+            }
+        }
+        else { // Al bloquear o eliminar un cliente
+            pedidos = pedidoRepository.findByUsuarioId(usuario.getId());
+        }
+
+        for (var pedido : pedidos) {
+            if (pedido.getEstado() == EstadoPedido.PENDIENTE) {
+                pedido.setEstado(EstadoPedido.CANCELADO);
+                pedidoRepository.save(pedido);
+
+                String mensaje =
+                        "El pedido #" + pedido.getId() + " fue cancelado porque el " +
+                        (esDueno ? "dueño del emprendimiento" : "cliente") +
+                        " fue eliminado o bloqueado.";
+
+                notificacionService.createNotificacion(
+                        new NotificacionCreateDTO(
+                            esDueno ? pedido.getUsuario().getId() : pedido.getEmprendimiento().getUsuario().getId(),
+                            pedido.getEmprendimiento().getId(),
+                            mensaje,
+                            LocalDate.now()
+                        )
+                );
+            }
+        }
     }
 }
