@@ -421,6 +421,8 @@ public class UsuarioServiceImpl implements UsuarioService {
             verificarSiTienePedidosActivos(usuario.getId());
         }
 
+        refreshTokenRepository.deleteByUsuario(usuario);
+
         usuario.setBannedAt(LocalDateTime.now());
         usuarioRepository.save(usuario);
 
