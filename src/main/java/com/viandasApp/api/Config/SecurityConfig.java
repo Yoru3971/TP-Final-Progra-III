@@ -5,6 +5,7 @@ import com.viandasApp.api.Security.jwt.JwtAuthenticationFilter;
 import com.viandasApp.api.Security.jwt.JwtUtil;
 import com.viandasApp.api.Security.service.UsuarioDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.*;
@@ -15,6 +16,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -52,14 +55,29 @@ public class SecurityConfig {
         };
     }
 
+    @Value("${app.cors.allowed-origins:}")
+    private String extraAllowedOrigins;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtUtil, usuarioDetailsServiceImpl);
 
+        List<String> origins = new ArrayList<>();
+
+        origins.add("http://localhost:4200");
+
+        if (!extraAllowedOrigins.isBlank()) {
+            origins.addAll(
+                Arrays.stream(extraAllowedOrigins.split(","))
+                        .map(String::trim)
+                        .toList()
+            );
+        }
+
         http
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfig = new org.springframework.web.cors.CorsConfiguration();
-                    corsConfig.setAllowedOrigins(List.of("http://localhost:4200"));
+                    corsConfig.setAllowedOrigins(origins);
                     corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
                     corsConfig.setAllowedHeaders(List.of("*"));
                     corsConfig.setAllowCredentials(true);
