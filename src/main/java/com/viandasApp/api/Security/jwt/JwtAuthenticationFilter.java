@@ -3,6 +3,7 @@ package com.viandasApp.api.Security.jwt;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,6 +46,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     var userDetails = userDetailsService.loadUserByUsername(username);
+
+                    if (!userDetails.isAccountNonLocked()) {
+                        throw new LockedException("La cuenta está bloqueada.");
+                    }
 
                     if (jwtUtil.validateToken(token, userDetails.getUsername())) {
 

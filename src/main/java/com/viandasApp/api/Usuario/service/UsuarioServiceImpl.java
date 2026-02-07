@@ -18,7 +18,6 @@ import com.viandasApp.api.Usuario.model.RolUsuario;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.repository.UsuarioRepository;
 import com.viandasApp.api.Usuario.specification.UsuarioSpecifications;
-import com.viandasApp.api.Vianda.repository.ViandaRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -34,9 +33,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
@@ -424,11 +421,13 @@ public class UsuarioServiceImpl implements UsuarioService {
             verificarSiTienePedidosActivos(usuario.getId());
         }
 
+        refreshTokenRepository.deleteByUsuario(usuario);
+
         usuario.setBannedAt(LocalDateTime.now());
         usuarioRepository.save(usuario);
 
         if (usuario.getRolUsuario() != RolUsuario.ADMIN) {
-            cancelarPedidosPendientes(usuario);
+            resolverPedidosActivos(usuario, true);
 
             var emprendimientos = emprendimientoRepository.findByUsuarioId(usuario.getId());
 
@@ -660,7 +659,7 @@ public class UsuarioServiceImpl implements UsuarioService {
                 }
             }
         } else if (rol == RolUsuario.CLIENTE) {
-            cancelarPedidosPendientes(usuario);
+            resolverPedidosActivos(usuario, false);
         }
 
         String timestamp = String.valueOf(System.currentTimeMillis());
@@ -675,7 +674,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuario.setDeletedAt(LocalDateTime.now());
     }
 
-    private void cancelarPedidosPendientes(Usuario usuario) {
+    private void resolverPedidosActivos(Usuario usuario, boolean esBan) {
         List<Pedido> pedidos;
         final boolean esDueno = usuario.getRolUsuario() == RolUsuario.DUENO;
 
@@ -690,25 +689,52 @@ public class UsuarioServiceImpl implements UsuarioService {
             pedidos = pedidoRepository.findByUsuarioId(usuario.getId());
         }
 
+        // Para notificar a los dueños de los emprendimientos
+        // si el usuario es cliente, tiene pedidos aceptados en ellos, y es eliminado;
+        // una sola notificación para cada dueño aunque el emprendimiento tenga múltiples pedidos
+        Set<Emprendimiento> emprendimientos = new HashSet<>();
+
         for (var pedido : pedidos) {
-            if (pedido.getEstado() == EstadoPedido.PENDIENTE) {
+            final var estado = pedido.getEstado();
+
+            if (estado == EstadoPedido.PENDIENTE) {
                 pedido.setEstado(EstadoPedido.CANCELADO);
                 pedidoRepository.save(pedido);
 
                 String mensaje =
-                        "El pedido #" + pedido.getId() + " fue cancelado porque el " +
-                        (esDueno ? "dueño del emprendimiento" : "cliente") +
-                        " fue eliminado o bloqueado.";
+                    "El pedido #" + pedido.getId() + " fue cancelado porque el " +
+                    (esDueno ? "dueño del emprendimiento" : "cliente") +
+                    " fue eliminado o bloqueado.";
 
                 notificacionService.createNotificacion(
-                        new NotificacionCreateDTO(
-                            esDueno ? pedido.getUsuario().getId() : pedido.getEmprendimiento().getUsuario().getId(),
-                            pedido.getEmprendimiento().getId(),
-                            mensaje,
-                            LocalDate.now()
-                        )
+                    new NotificacionCreateDTO(
+                        esDueno ? pedido.getUsuario().getId() : pedido.getEmprendimiento().getUsuario().getId(),
+                        pedido.getEmprendimiento().getId(),
+                        mensaje,
+                        LocalDate.now()
+                    )
                 );
+            } else if (estado == EstadoPedido.ACEPTADO && !esBan) {
+                emprendimientos.add(pedido.getEmprendimiento());
             }
+        }
+
+        String mensaje =
+            "La cuenta de " + usuario.getNombreCompleto() +
+            ", quien tenía uno o más pedidos aceptados en tus emprendimientos, fue eliminada. " +
+            "Te pasamos sus datos de contacto: \n" +
+            "- Email: " + usuario.getEmail() + " \n" +
+            "- Teléfono: " + usuario.getTelefono();
+
+        for (var emprendimiento : emprendimientos) {
+            notificacionService.createNotificacion(
+                new NotificacionCreateDTO(
+                    emprendimiento.getUsuario().getId(),
+                    emprendimiento.getId(),
+                    mensaje,
+                    LocalDate.now()
+                )
+            );
         }
     }
 }
