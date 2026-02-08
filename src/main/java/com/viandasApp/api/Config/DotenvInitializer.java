@@ -86,6 +86,11 @@ public class DotenvInitializer implements ApplicationContextInitializer<Configur
             envMap.put("google.client.id", dotenv.get("google.client.id"));
         }
 
+        // --- Orígenes adicionales ---
+        if (dotenv.get("app.cors.allowed-origins") != null) {
+            envMap.put("app.cors.allowed-origins", dotenv.get("app.cors.allowed-origins"));
+        }
+
         propertySources.addFirst(new MapPropertySource("dotenvProperties", envMap));
         System.out.println("Loaded .env variables: " + envMap); // Para debug
     }
