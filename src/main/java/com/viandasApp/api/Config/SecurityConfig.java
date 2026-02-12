@@ -5,6 +5,7 @@ import com.viandasApp.api.Security.jwt.JwtAuthenticationFilter;
 import com.viandasApp.api.Security.jwt.JwtUtil;
 import com.viandasApp.api.Security.service.UsuarioDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.*;
@@ -15,6 +16,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -37,29 +40,44 @@ public class SecurityConfig {
             var user = usuarioDetailsServiceImpl.loadUserByUsername(authentication.getName());
 
             if (!user.isEnabled()) {
-                throw new DisabledException("La cuenta no está activada");
+                throw new DisabledException("La cuenta no está activada.");
             }
 
             if (!user.isAccountNonLocked()) {
-                throw new LockedException("La cuenta está bloqueada");
+                throw new LockedException("La cuenta está bloqueada.");
             }
 
             if (!passwordEncoder().matches(authentication.getCredentials().toString(), user.getPassword())) {
-                throw new BadCredentialsException("Contraseña inválida");
+                throw new BadCredentialsException("Contraseña inválida.");
             }
 
             return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
         };
     }
 
+    @Value("${app.cors.allowed-origins:}")
+    private String extraAllowedOrigins;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtUtil, usuarioDetailsServiceImpl);
 
+        List<String> origins = new ArrayList<>();
+
+        origins.add("http://localhost:4200");
+
+        if (!extraAllowedOrigins.isBlank()) {
+            origins.addAll(
+                Arrays.stream(extraAllowedOrigins.split(","))
+                        .map(String::trim)
+                        .toList()
+            );
+        }
+
         http
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfig = new org.springframework.web.cors.CorsConfiguration();
-                    corsConfig.setAllowedOrigins(List.of("http://localhost:4200"));
+                    corsConfig.setAllowedOrigins(origins);
                     corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
                     corsConfig.setAllowedHeaders(List.of("*"));
                     corsConfig.setAllowCredentials(true);
@@ -79,6 +97,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/dueno/**").hasAnyRole("DUENO", "ADMIN")
                         .requestMatchers("/api/cliente/**").hasAnyRole("CLIENTE", "ADMIN")
+                        .requestMatchers("/api/logged/**").hasAnyRole("CLIENTE", "DUENO", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

@@ -30,14 +30,22 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     public RefreshToken findByToken(String token) {
         return refreshTokenRepository.findByToken(token)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh Token no encontrado"));
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.UNAUTHORIZED, "Refresh token no encontrado. Iniciá sesión nuevamente."
+                        )
+                );
     }
 
     @Override
     @Transactional
     public RefreshToken createRefreshToken(Long userId) {
         Usuario usuario = usuarioRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "Usuario no encontrado."
+                        )
+                );
 
         refreshTokenRepository.deleteByUsuario(usuario);
 
@@ -56,7 +64,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     public RefreshToken verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             refreshTokenRepository.delete(token);
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Refresh token expirado. Inicie sesión nuevamente.");
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Refresh token expirado. Iniciá sesión nuevamente."
+            );
         }
         return token;
     }

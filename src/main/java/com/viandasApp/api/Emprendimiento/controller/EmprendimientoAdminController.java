@@ -58,10 +58,11 @@ public class EmprendimientoAdminController {
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String ciudad,
             @RequestParam(required = false) String dueno,
+            @RequestParam(required = false) Boolean soloEliminados,
             @PageableDefault(size = 10, page = 0) Pageable pageable,
             @AuthenticationPrincipal Usuario usuario
     ) {
-        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(usuario, ciudad, nombre, dueno, pageable);
+        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(usuario, ciudad, nombre, dueno, soloEliminados, pageable);
 
         Page<EmprendimientoAdminDTO> dtoPage = page.map(EmprendimientoAdminDTO::new);
 
@@ -132,13 +133,15 @@ public class EmprendimientoAdminController {
     //--------------------------Delete (Admin)--------------------------//
     @Operation(
             summary = "Eliminar un emprendimiento por ID (Admin)",
-            description = "Permite a un administrador eliminar (o dar de baja lógica) cualquier emprendimiento.",
+            description = "Permite a un administrador eliminar (o dar de baja lógica) cualquier emprendimiento sin " +
+                          "pedidos en proceso.",
             security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Emprendimiento eliminado correctamente"),
             @ApiResponse(responseCode = "403", description = "Acceso denegado (Requiere rol ADMIN)"),
             @ApiResponse(responseCode = "404", description = "Emprendimiento no encontrado"),
+            @ApiResponse(responseCode = "409", description = "Emprendimiento no eliminado por tener pedidos en proceso"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @DeleteMapping("/id/{id}")
@@ -150,7 +153,34 @@ public class EmprendimientoAdminController {
         Map<String, String> response = new HashMap<>();
 
         // El servicio ya soporta borrado por ADMIN
-        emprendimientoService.deleteEmprendimiento(id, usuario);
+        emprendimientoService.deleteEmprendimiento(id, usuario, false);
+
+        response.put("message", "Emprendimiento eliminado correctamente (ADMIN)");
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+            summary = "Eliminar un emprendimiento por ID forzosamente (Admin)",
+            description = "Permite a un administrador eliminar (o dar de baja lógica) cualquier emprendimiento " +
+                          "forzosamente.",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Emprendimiento eliminado correctamente"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado (Requiere rol ADMIN)"),
+            @ApiResponse(responseCode = "404", description = "Emprendimiento no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @DeleteMapping("/id/{id}/force-delete")
+    public ResponseEntity<Map<String, String>> deleteEmprendimientoForce(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Usuario usuario
+    ) {
+
+        Map<String, String> response = new HashMap<>();
+
+        // El servicio ya soporta borrado por ADMIN
+        emprendimientoService.deleteEmprendimiento(id, usuario, true);
 
         response.put("message", "Emprendimiento eliminado correctamente (ADMIN)");
         return ResponseEntity.ok(response);

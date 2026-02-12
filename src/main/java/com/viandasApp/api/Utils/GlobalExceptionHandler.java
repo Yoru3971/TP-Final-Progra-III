@@ -44,6 +44,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Map<String, Object>> handleResponseStatusException(ResponseStatusException ex) {
         Map<String, Object> body = new HashMap<>();
+
         body.put("timestamp", LocalDateTime.now());
         body.put("status", ex.getStatusCode().value());
         body.put("error", ex.getReason());
@@ -82,11 +83,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
         Map<String, Object> body = new HashMap<>();
+
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         body.put("error", "Hubo un error con los datos ingresados o con el servidor.");
 
-        // Solo para depuración (podés loguear ex.getMessage() si querés)
+        System.err.println("Excepción: " + ex.getMessage());
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 

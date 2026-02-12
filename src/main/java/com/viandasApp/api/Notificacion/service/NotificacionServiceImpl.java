@@ -46,14 +46,26 @@ public class NotificacionServiceImpl implements NotificacionService{
     public NotificacionDTO createNotificacion(NotificacionCreateDTO notificacionCreateDTO) {
 
         if(notificacionCreateDTO.getDestinatarioId() == null || notificacionCreateDTO.getEmprendimientoId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El destinatario y el emprendimiento son obligatorios");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "El destinatario y el emprendimiento son obligatorios."
+            );
         }
 
-        Usuario destinatario = usuarioService.findEntityById(notificacionCreateDTO.getDestinatarioId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+        final long destinatarioId = notificacionCreateDTO.getDestinatarioId();
+        Usuario destinatario = usuarioService.findEntityById(destinatarioId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "No se encontró un usuario con ID #" + destinatarioId + "."
+                        )
+                );
 
-        Emprendimiento emprendimiento = emprendimientoService.findEntityById(notificacionCreateDTO.getEmprendimientoId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado"));
+        final long emprendimientoId = notificacionCreateDTO.getEmprendimientoId();
+        Emprendimiento emprendimiento = emprendimientoService.findEntityById(emprendimientoId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "No se encontró un emprendimiento con ID #" + emprendimientoId + "."
+                        )
+                );
 
         Notificacion notificacion = notificacionMapper.DTOToEntity(notificacionCreateDTO, destinatario, emprendimiento);
 
@@ -77,7 +89,12 @@ public class NotificacionServiceImpl implements NotificacionService{
         }
 
         if (pageable.getSort().isUnsorted()) {
-            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.DESC, "fechaEnviado", "id"));
+            if (leida == null) {
+                spec = spec.and(NotificacionSpecifications.conOrdenamientoDefecto());
+                pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+            } else {
+                pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.DESC, "fechaEnviado", "id"));
+            }
         }
 
         return notificacionRepository.findAll(spec, pageable).map(NotificacionDTO::new);
@@ -95,7 +112,9 @@ public class NotificacionServiceImpl implements NotificacionService{
         Optional<Notificacion> notificacionEncontrada = notificacionRepository.findById(id);
 
         if (notificacionEncontrada.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Notificación no encontrada");
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "No se encontró una notificación con ID #" + id + "."
+            );
         }
 
         notificacionRepository.deleteById(id);
@@ -106,10 +125,16 @@ public class NotificacionServiceImpl implements NotificacionService{
     @Override
     public NotificacionDTO marcarComoLeida(Long notificacionId, Long destinatarioId) {
         Notificacion notificacion = notificacionRepository.findById(notificacionId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notificación no encontrada"));
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "No se encontró una notificación con ID #" + notificacionId + "."
+                        )
+                );
 
         if (!notificacion.getDestinatario().getId().equals(destinatarioId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para modificar esta notificación");
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "No tenés permiso para modificar esta notificación."
+            );
         }
 
         notificacion.setLeida(true);

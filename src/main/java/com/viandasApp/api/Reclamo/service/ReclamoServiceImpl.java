@@ -4,10 +4,20 @@ import com.viandasApp.api.Reclamo.dto.ReclamoRequestDTO;
 import com.viandasApp.api.Reclamo.model.EstadoReclamo;
 import com.viandasApp.api.Reclamo.model.Reclamo;
 import com.viandasApp.api.Reclamo.repository.ReclamoRepository;
+import com.viandasApp.api.Reclamo.specification.ReclamoSpecifications;
 import com.viandasApp.api.ServiceGenerales.email.EmailService;
+import com.viandasApp.api.Usuario.model.RolUsuario;
+import com.viandasApp.api.Usuario.model.Usuario;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,6 +56,29 @@ public class ReclamoServiceImpl implements ReclamoService {
     }
 
     @Override
+    public Page<Reclamo> buscarReclamos(Usuario usuario, EstadoReclamo estado, String emailFiltro, Pageable pageable) {
+        Specification<Reclamo> spec = Specification.where(null);
+
+        if (usuario.getRolUsuario() == RolUsuario.ADMIN) {
+            if (emailFiltro != null) {
+                spec = spec.and(ReclamoSpecifications.porEmailUsuarioContiene(emailFiltro));
+            }
+        } else {
+            spec = spec.and(ReclamoSpecifications.porEmailUsuarioExacto(usuario.getEmail()));
+        }
+
+        if (estado != null) {
+            spec = spec.and(ReclamoSpecifications.porEstado(estado));
+        }
+
+        if (pageable.getSort().isUnsorted()) {
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.DESC, "fechaCreacion"));
+        }
+
+        return reclamoRepository.findAll(spec, pageable);
+    }
+
+    @Override
     public List<Reclamo> listarReclamosPorUsuario(String email) {
         return reclamoRepository.findByEmailUsuarioOrderByFechaCreacion(email);
     }
@@ -56,10 +89,17 @@ public class ReclamoServiceImpl implements ReclamoService {
         return reclamoRepository.findAllByOrderByFechaCreacionDesc();
     }
 
-    //REVISAR IMPLEMENTACION, CAPAZ DEBERIA SER POR N°TICKET IDK
     @Override
     public Optional<Reclamo> obtenerReclamoPorId(Long id) {
-        return reclamoRepository.findById(id);
+        Optional<Reclamo> reclamo = reclamoRepository.findById(id);
+
+        if (reclamo.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "No se encontró un reclamo con ID #" + id + "."
+            );
+        }
+
+        return reclamo;
     }
 
     @Override
@@ -71,7 +111,11 @@ public class ReclamoServiceImpl implements ReclamoService {
     @Override
     public Reclamo actualizarEstadoReclamo(Long id, EstadoReclamo nuevoEstado, String respuestaAdmin) {
         Reclamo reclamo = reclamoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Reclamo no encontrado"));
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "No se encontró un reclamo con ID #" + id + "."
+                        )
+                );
 
         reclamo.setEstado(nuevoEstado);
 
@@ -82,7 +126,6 @@ public class ReclamoServiceImpl implements ReclamoService {
         Reclamo updated = reclamoRepository.save(reclamo);
 
         // Notificar al usuario
-        // Nota: Podrías buscar el nombre del usuario si quisieras, aquí pongo "Usuario" genérico o el mail
         emailService.sendCambioEstadoReclamo(reclamo.getEmailUsuario(), "Usuario", reclamo.getCodigoTicket(), nuevoEstado.name(), respuestaAdmin);
 
         return updated;

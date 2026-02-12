@@ -7,9 +7,11 @@ import com.viandasApp.api.ServiceGenerales.email.EmailService;
 import com.viandasApp.api.Usuario.model.Usuario;
 import com.viandasApp.api.Usuario.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Date;
 import java.util.UUID;
@@ -51,12 +53,12 @@ public class PasswordResetServiceImpl implements PasswordResetService{
         PasswordResetToken passToken = tokenRepository.findByToken(passwordDto.getToken());
 
         if (passToken == null) {
-            throw new RuntimeException("Token inválido.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token inválido.");
         }
 
         if (passToken.getExpiryDate().before(new Date())) {
             tokenRepository.delete(passToken);
-            throw new RuntimeException("El token ha expirado.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "El token expiró.");
         }
 
         Usuario usuario = passToken.getUser();

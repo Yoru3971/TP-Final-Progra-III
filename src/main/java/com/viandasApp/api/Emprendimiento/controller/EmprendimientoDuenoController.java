@@ -116,7 +116,7 @@ public class EmprendimientoDuenoController {
     ) {
         Usuario usuario = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(usuario, ciudad, nombre, null, pageable);
+        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(usuario, ciudad, nombre, null, false, pageable);
 
         Page<EmprendimientoDTO> dtoPage = page.map(EmprendimientoDTO::new);
 
@@ -204,7 +204,7 @@ public class EmprendimientoDuenoController {
 
         Map<String, String> response = new HashMap<>();
 
-        emprendimientoService.deleteEmprendimiento(id, usuario);
+        emprendimientoService.deleteEmprendimiento(id, usuario, false);
         response.put("message", "Emprendimiento eliminado correctamente");
         return ResponseEntity.ok(response);
     }

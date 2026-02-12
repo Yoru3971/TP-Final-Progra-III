@@ -51,9 +51,11 @@ public class EmprendimientoClienteController {
     })
     @GetMapping
     public ResponseEntity<PagedModel<EntityModel<EmprendimientoDTO>>> getAllEmprendimientos(
+            @RequestParam(required = false) String ciudad,
+            @RequestParam(required = false) String nombre,
             @PageableDefault(size = 10, page = 0) Pageable pageable
     ){
-        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(null, null, null, null, pageable);
+        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(null, ciudad, nombre, null, false,pageable);
 
         Page<EmprendimientoDTO> dtoPage = page.map(EmprendimientoDTO::new);
 
@@ -81,7 +83,7 @@ public class EmprendimientoClienteController {
             @RequestParam(required = false) String nombre,
             @PageableDefault(size = 10, page = 0) Pageable pageable
     ){
-        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(null, ciudad, nombre, null, pageable);
+        Page<Emprendimiento> page = emprendimientoService.buscarEmprendimientos(null, ciudad, nombre, null, false, pageable);
 
         PagedModel<EntityModel<EmprendimientoDTO>> pagedModel = pagedResourcesAssembler.toModel(page.map(EmprendimientoDTO::new), e -> {
             e.add(linkTo(methodOn(EmprendimientoClienteController.class).getEmprendimientoById(e.getId())).withSelfRel());

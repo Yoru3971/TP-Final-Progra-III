@@ -8,6 +8,8 @@ import com.viandasApp.api.Emprendimiento.mappers.EmprendimientoMapper;
 import com.viandasApp.api.Emprendimiento.model.Emprendimiento;
 import com.viandasApp.api.Emprendimiento.repository.EmprendimientoRepository;
 import com.viandasApp.api.Emprendimiento.specification.EmprendimientoSpecifications;
+import com.viandasApp.api.Notificacion.dto.NotificacionCreateDTO;
+import com.viandasApp.api.Notificacion.service.NotificacionService;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
 import com.viandasApp.api.Pedido.model.Pedido;
 import com.viandasApp.api.Pedido.repository.PedidoRepository;
@@ -31,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +44,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
     private final EmprendimientoRepository emprendimientoRepository;
     private final UsuarioService usuarioService;
+    private final NotificacionService notificacionService;
     private final PedidoRepository pedidoRepository; //Uso el repository y no el service para evitar dependencias circulares
     private final CloudinaryService cloudinaryService;
     private final ImageValidationService imageValidationService;
@@ -49,6 +53,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
     public EmprendimientoServiceImpl(EmprendimientoRepository emprendimientoRepository,
                                      @Lazy UsuarioService usuarioService,
+                                     @Lazy NotificacionService notificacionService,
                                      PedidoRepository pedidoRepository,
                                      CloudinaryService cloudinaryService,
                                      ImageValidationService imageValidationService,
@@ -56,6 +61,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                                      EmprendimientoMapper emprendimientoMapper) {
         this.emprendimientoRepository = emprendimientoRepository;
         this.usuarioService = usuarioService;
+        this.notificacionService = notificacionService;
         this.pedidoRepository = pedidoRepository;
         this.cloudinaryService = cloudinaryService;
         this.imageValidationService = imageValidationService;
@@ -68,23 +74,36 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     @Override
     public EmprendimientoDTO createEmprendimiento(CreateEmprendimientoDTO createEmprendimientoDTO, Usuario usuario) {
         Usuario duenioEmprendimiento = usuarioService.findEntityById(createEmprendimientoDTO.getIdUsuario())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con ID: " + createEmprendimientoDTO.getIdUsuario()));
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "No se encontró un usuario con ID #" + createEmprendimientoDTO.getIdUsuario() + "."
+                        )
+                );
 
         Long duenioEmprendimientoId = duenioEmprendimiento.getId();
 
-        if (createEmprendimientoDTO.getTelefono().replaceFirst("^0+", "").length() < 7) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
+        if (createEmprendimientoDTO.getTelefono().replaceFirst("^0+", "").length() < 6) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "El teléfono debe tener al menos 6 dígitos."
+            );
         }
 
         boolean esAdmin = usuario.getRolUsuario() == RolUsuario.ADMIN;
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuario.getId());
 
         if (!esDuenioDelEmprendimiento && !esAdmin) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo podés crear emprendimientos a tu nombre.");
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Solo podés crear emprendimientos a tu nombre."
+            );
         }
 
-        if (!duenioEmprendimiento.getRolUsuario().equals(RolUsuario.DUENO) && duenioEmprendimiento.getRolUsuario().equals(RolUsuario.ADMIN)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo los usuarios con rol DUEÑO/ADMIN pueden crear emprendimientos.");
+        if (!duenioEmprendimiento.getRolUsuario().equals(RolUsuario.DUENO)
+            && duenioEmprendimiento.getRolUsuario().equals(RolUsuario.ADMIN))
+        {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Solo los usuarios con rol DUEÑO/ADMIN pueden crear emprendimientos."
+            );
         }
 
         imageValidationService.validarImagen(createEmprendimientoDTO.getImage(), TipoValidacion.EMPRENDIMIENTO);
@@ -99,7 +118,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
     //--------------------------Read (Paginación)--------------------------//
     @Override
-    public Page<Emprendimiento> buscarEmprendimientos(Usuario usuario, String ciudad, String nombre, String nombreDueno, Pageable pageable) {
+    public Page<Emprendimiento> buscarEmprendimientos(Usuario usuario, String ciudad, String nombre, String nombreDueno, Boolean soloEliminados, Pageable pageable) {
 
         Specification<Emprendimiento> spec = Specification.where(null);
         boolean isAdmin = usuario != null && usuario.getRolUsuario() == RolUsuario.ADMIN;
@@ -109,6 +128,12 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
             if (nombre != null) spec = spec.and(EmprendimientoSpecifications.porNombre(nombre));
             if (ciudad != null) spec = spec.and(EmprendimientoSpecifications.porCiudad(ciudad));
             if (nombreDueno != null) spec = spec.and(EmprendimientoSpecifications.duenoNombreOEmailContiene(nombreDueno));
+
+            if (Boolean.TRUE.equals(soloEliminados)) {
+                spec = spec.and((root, query, criteriaBuilder) -> criteriaBuilder.isNotNull(root.get("deletedAt")));
+            } else {
+                spec = spec.and(EmprendimientoSpecifications.noEstaEliminado());
+            }
 
         } else if (isDueno) {
             spec = spec.and(EmprendimientoSpecifications.perteneceADueno(usuario.getId()));
@@ -143,7 +168,9 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                 .map(EmprendimientoDTO::new);
 
         if (emprendimientos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay emprendimientos disponibles registrados.");
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "No se encontraron emprendimientos disponibles."
+            );
         }
 
         return emprendimientos;
@@ -155,7 +182,9 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                 .map(EmprendimientoDTO::new);
 
         if (page.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron emprendimientos disponibles en: " + ciudad);
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "No se encontraron emprendimientos disponibles en " + ciudad + "."
+            );
         }
         return page;
     }
@@ -163,13 +192,19 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     @Override
     public Page<EmprendimientoDTO> getEmprendimientosByUsuario(Long idUsuario, Usuario usuario, String ciudad, Pageable pageable) {
         Usuario usuarioEncontrado = usuarioService.findEntityById(idUsuario)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado con ID: " + idUsuario));
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "No se encontró un usuario con ID #" + idUsuario + "."
+                        )
+                );
 
         boolean esDuenio = usuario.getRolUsuario().equals(RolUsuario.DUENO);
         boolean esDuenioDelEmprendimiento = idUsuario.equals(usuario.getId());
 
         if (esDuenio && !esDuenioDelEmprendimiento) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver estos emprendimientos.");
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "No tenés permiso para ver estos emprendimientos."
+            );
         }
 
         Page<Emprendimiento> resultados;
@@ -181,7 +216,9 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         }
 
         if (resultados.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron emprendimientos.");
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "No se encontraron emprendimientos para este usuario."
+            );
         }
 
         return resultados.map(EmprendimientoDTO::new);
@@ -206,13 +243,19 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     public Optional<EmprendimientoDTO> getEmprendimientoById(Long id, Usuario usuario) {
 
         Emprendimiento emprendimiento = emprendimientoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado con ID: " + id));
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "No se encontró un emprendimiento con ID #" + id + "."
+                        )
+                );
 
         boolean esDuenio = usuario.getRolUsuario().equals(RolUsuario.DUENO);
         boolean esDuenioDelEmprendimiento = emprendimiento.getUsuario().getId().equals(usuario.getId());
 
         if (esDuenio && !esDuenioDelEmprendimiento) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para ver este emprendimiento.");
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "No tenés permiso para ver este emprendimiento."
+            );
         }
         return Optional.of(new EmprendimientoDTO(emprendimiento));
     }
@@ -221,7 +264,11 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     public Optional<EmprendimientoDTO> getEmprendimientoByIdPublic(Long id) {
 
         Emprendimiento emprendimiento = emprendimientoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado con ID: " + id));
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "No se encontró un emprendimiento con ID #" + id + "."
+                        )
+                );
 
         return Optional.of(new EmprendimientoDTO(emprendimiento));
     }
@@ -234,7 +281,10 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                 .map(EmprendimientoDTO::new)
                 .toList();
         if (emprendimientos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron emprendimientos con el nombre: " + nombreEmprendimiento);
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "No se encontraron emprendimientos con el nombre \"" + nombreEmprendimiento + "\"."
+            );
         }
 
         return emprendimientos;
@@ -248,7 +298,10 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                 .map(EmprendimientoDTO::new)
                 .toList();
         if (emprendimientos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron emprendimientos disponibles con el nombre: " + nombreEmprendimiento);
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "No se encontraron emprendimientos disponibles con el nombre \"" + nombreEmprendimiento + "\"."
+            );
         }
 
         return emprendimientos;
@@ -261,7 +314,9 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                 .map(EmprendimientoDTO::new)
                 .toList();
         if (emprendimientos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron emprendimientos en la ciudad: " + ciudad);
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "No se encontraron emprendimientos en " + ciudad + "."
+            );
         }
 
         return emprendimientos;
@@ -274,7 +329,9 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                 .map(EmprendimientoDTO::new)
                 .toList();
         if (emprendimientos.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontraron emprendimientos disponibles en la ciudad: " + ciudad);
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "No se encontraron emprendimientos disponibles en " + ciudad + "."
+            );
         }
 
         return emprendimientos;
@@ -298,11 +355,13 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         Emprendimiento emprendimiento = emprendimientoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Emprendimiento no encontrado con ID: " + id
+                        "No se encontró un emprendimiento con ID #" + id + "."
                 ));
 
-        if (updateEmprendimientoDTO.getTelefono().replaceFirst("^0+", "").length() < 7) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El telefono debe tener al menos 7 digitos.");
+        if (updateEmprendimientoDTO.getTelefono().replaceFirst("^0+", "").length() < 6) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "El teléfono debe tener al menos 6 dígitos."
+            );
         }
 
         Long duenioEmprendimientoId = emprendimiento.getUsuario().getId();
@@ -311,7 +370,9 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
 
         if (!esDuenioDelEmprendimiento && !esAdmin) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar este emprendimiento.");
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "No tenés permiso para modificar este emprendimiento."
+            );
         }
 
         return emprendimientoRepository.findById(id)
@@ -342,7 +403,7 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
                         Usuario usuario = usuarioService.findEntityById(updateEmprendimientoDTO.getIdUsuario())
                                 .orElseThrow(() -> new ResponseStatusException(
                                         HttpStatus.NOT_FOUND,
-                                        "Usuario no encontrado con ID: " + id
+                                        "No se encontró un usuario con ID #" + id + "."
                                 ));
 
                         if (!usuario.getRolUsuario().equals(RolUsuario.DUENO)) {
@@ -363,7 +424,11 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     @Override
     public EmprendimientoDTO updateImagenEmprendimiento(Long id, MultipartFile image, Usuario usuarioLogueado) {
         Emprendimiento emprendimiento = emprendimientoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado con ID: " + id));
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "No se encontró un emprendimiento con ID #" + id + "."
+                        )
+                );
 
         Long duenioEmprendimientoId = emprendimiento.getUsuario().getId();
 
@@ -371,7 +436,9 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuarioLogueado.getId());
 
         if (!esDuenioDelEmprendimiento && !esAdmin) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para editar este emprendimiento.");
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "No tenés permiso para modificar la imagen de este emprendimiento."
+            );
         }
 
         imageValidationService.validarImagen(image, TipoValidacion.EMPRENDIMIENTO);
@@ -385,27 +452,38 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
     //--------------------------Delete--------------------------//
     @Transactional
     @Override
-    public boolean deleteEmprendimiento(Long id, Usuario usuario) {
+    public boolean deleteEmprendimiento(Long id, Usuario usuario, boolean forzar) {
         Emprendimiento emprendimiento = emprendimientoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Emprendimiento no encontrado con ID: " + id));
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "No se encontró un emprendimiento con ID #" + id + "."
+                        )
+                );
 
         Long duenioEmprendimientoId = emprendimiento.getUsuario().getId();
         boolean esAdmin = usuario.getRolUsuario().equals(RolUsuario.ADMIN);
         boolean esDuenioDelEmprendimiento = duenioEmprendimientoId.equals(usuario.getId());
 
         if (!esDuenioDelEmprendimiento && !esAdmin) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tenés permiso para eliminar este emprendimiento.");
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "No tenés permiso para eliminar este emprendimiento."
+            );
         }
 
-        procesarEliminacionEmprendimiento(emprendimiento, usuario);
+        procesarEliminacionEmprendimiento(emprendimiento, usuario, forzar);
 
         return true;
     }
 
-    private void procesarEliminacionEmprendimiento(Emprendimiento emprendimiento, Usuario usuario) {
+    private void procesarEliminacionEmprendimiento(Emprendimiento emprendimiento, Usuario usuario, boolean forzar) {
         List<Pedido> pedidosConIdEmprendimiento = pedidoRepository.findByEmprendimientoId(emprendimiento.getId());
 
-        verificarSiTienePedidosActivos(pedidosConIdEmprendimiento);
+        if (forzar) {
+            cancelarPedidosActivos(pedidosConIdEmprendimiento);
+        }
+        else {
+            verificarSiTienePedidosActivos(pedidosConIdEmprendimiento, usuario);
+        }
 
         if (pedidosConIdEmprendimiento.isEmpty()) {
             emprendimientoRepository.deleteById(emprendimiento.getId());
@@ -415,15 +493,56 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
         }
     }
 
-    private void verificarSiTienePedidosActivos(List<Pedido> pedidos) {
+    private void verificarSiTienePedidosActivos(List<Pedido> pedidos, Usuario usuarioLogueado) {
         boolean tienePedidosEnCurso = pedidos.stream()
                 .anyMatch(pedido ->
                         pedido.getEstado() == EstadoPedido.PENDIENTE ||
                                 pedido.getEstado() == EstadoPedido.ACEPTADO);
 
         if (tienePedidosEnCurso) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "No se puede eliminar el emprendimiento porque tiene pedidos en curso. Finalizalos o cancelalos antes.");
+            boolean esAdmin = usuarioLogueado.getRolUsuario().equals(RolUsuario.ADMIN);
+
+            String sujeto = esAdmin ? "el emprendimiento" : "este emprendimiento";
+            String accion = esAdmin ? "Deben finalizarse o cancelarse" : "Finalizalos o cancelalos";
+
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No se puede eliminar " + sujeto + " porque tiene pedidos en proceso. " + accion + " antes."
+            );
+        }
+    }
+
+    private void cancelarPedidosActivos(List<Pedido> pedidos) {
+        for (var pedido : pedidos) {
+            var estado = pedido.getEstado();
+
+            if (estado == EstadoPedido.PENDIENTE || estado == EstadoPedido.ACEPTADO) {
+                pedido.setEstado(EstadoPedido.CANCELADO);
+                pedidoRepository.save(pedido);
+
+                String mensaje =
+                        "El pedido #" + pedido.getId() + " fue cancelado porque el emprendimiento fue eliminado.";
+
+                // Para dueño
+                notificacionService.createNotificacion(
+                        new NotificacionCreateDTO(
+                                pedido.getEmprendimiento().getUsuario().getId(),
+                                pedido.getEmprendimiento().getId(),
+                                mensaje,
+                                LocalDate.now()
+                        )
+                );
+
+                // Para cliente
+                notificacionService.createNotificacion(
+                        new NotificacionCreateDTO(
+                                pedido.getUsuario().getId(),
+                                pedido.getEmprendimiento().getId(),
+                                mensaje,
+                                LocalDate.now()
+                        )
+                );
+            }
         }
     }
 
@@ -451,6 +570,10 @@ public class EmprendimientoServiceImpl implements EmprendimientoService {
 
             for (Vianda vianda : viandasCopia) {
 
+                if (vianda.getDeletedAt() != null) {
+                    continue;
+                }
+                
                 boolean seraBorradoFisico = vianda.getDetalles().isEmpty();
 
                 viandaService.deleteVianda(vianda.getId(), usuario);

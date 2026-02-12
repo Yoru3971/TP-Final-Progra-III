@@ -13,6 +13,7 @@ public class DetalleViandaDTO {
     private Double precioUnitario;
     private Integer cantidad;
     private Double subtotal;
+    private String imagenUrl;
 
     public DetalleViandaDTO(DetallePedido detalle) {
         this.viandaId = detalle.getVianda().getId();
@@ -20,5 +21,6 @@ public class DetalleViandaDTO {
         this.precioUnitario = detalle.getPrecioUnitario();
         this.cantidad = detalle.getCantidad();
         this.subtotal = detalle.getSubtotal();
+        this.imagenUrl = detalle.getVianda().getImagenUrl();
     }
 }
