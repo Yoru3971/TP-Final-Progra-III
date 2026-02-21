@@ -18,20 +18,20 @@ public class CookieUtil {
 
         return ResponseCookie.from("refreshToken", token)
                 .httpOnly(true)
-                .secure(isCookieSecure)
+                .secure(isCookieSecure) // En Render esto DEBE ser true
                 .path("/")
                 .maxAge(durationSeconds)
-                .sameSite("Lax")
+                .sameSite("None")
                 .build();
     }
 
     public ResponseCookie limpiarCookie() {
         return ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
-                .secure(isCookieSecure)
+                .secure(isCookieSecure) // En Render esto DEBE ser true
                 .path("/")
                 .maxAge(0)
-                .sameSite("Lax")
+                .sameSite("None")
                 .build();
     }
 }
