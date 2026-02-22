@@ -2,26 +2,27 @@ package com.viandasApp.api.ServiceGenerales.email;
 
 import com.viandasApp.api.Pedido.model.DetallePedido;
 import com.viandasApp.api.Pedido.model.EstadoPedido;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    @Value("${brevo.api.key}")
+    private String apiKey;
 
-    @Value("${spring.mail.username}")
-    private String emailFrom;
-
+    // Tu correo verificado en Brevo
+    private final String emailFrom = "mivianditautn@gmail.com";
 
     //  ----------------------  EMAILS DE CUENTA  ----------------------
 
@@ -551,18 +552,29 @@ public class EmailService {
 
     //  ----------------------  REUTILIZABLES  ----------------------
 
-    //  Envía mail genérico
+    //  NUEVO: Envía mail genérico usando la API de Brevo
     private void sendEmail(String to, String subject, String content) {
+        RestTemplate restTemplate = new RestTemplate();
+        String brevoApiUrl = "https://api.brevo.com/v3/smtp/email";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("api-key", apiKey);
+
+        Map<String, Object> requestBody = Map.of(
+                "sender", Map.of("name", "Mi Viandita", "email", emailFrom),
+                "to", List.of(Map.of("email", to)),
+                "subject", subject,
+                "htmlContent", content
+        );
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
         try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
-            helper.setText(content, true);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setFrom(emailFrom);
-            mailSender.send(mimeMessage);
-        } catch (MessagingException e) {
-            System.err.println("Error enviando email a " + to + ": " + e.getMessage());
+            restTemplate.postForEntity(brevoApiUrl, request, String.class);
+            System.out.println("Email enviado exitosamente vía API a: " + to);
+        } catch (Exception e) {
+            System.err.println("Error enviando email vía Brevo API a " + to + ": " + e.getMessage());
         }
     }
 
@@ -582,5 +594,4 @@ public class EmailService {
         sb.append("</table>");
         return sb.toString();
     }
-
 }
