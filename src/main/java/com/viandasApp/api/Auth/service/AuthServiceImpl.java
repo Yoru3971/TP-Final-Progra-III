@@ -23,6 +23,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -37,6 +38,9 @@ public class AuthServiceImpl implements AuthService {
     private final ConfirmacionTokenRepository confirmacionTokenRepository;
     private final EmailService emailService;
     private final AuthUsuarioMapper authUsuarioMapper;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     public AuthServiceImpl(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
                            AuthenticationManager authenticationManager, JwtUtil jwtUtil,
@@ -106,7 +110,7 @@ public class AuthServiceImpl implements AuthService {
         confirmacionTokenRepository.save(confirmationToken);
 
         //enviar mail
-        String link = "http://localhost:4200/confirmar-cuenta?token=" + token;
+        String link = frontendUrl + "/confirmar-cuenta?token=" + token;
         emailService.sendValidacionCuenta(
                 usuarioRegisterDTO.getEmail(),
                 usuarioRegisterDTO.getNombreCompleto(),
@@ -196,7 +200,7 @@ public class AuthServiceImpl implements AuthService {
         );
         confirmacionTokenRepository.save(confirmationToken);
 
-        String link = "http://localhost:4200/confirmar-cuenta?token=" + token;
+        String link = frontendUrl + "/confirmar-cuenta?token=" + token;
         emailService.sendValidacionCuenta(
                 usuario.getEmail(),
                 usuario.getNombreCompleto(),

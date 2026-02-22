@@ -21,6 +21,9 @@ public class EmailService {
     @Value("${brevo.api.key}")
     private String apiKey;
 
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+
     // Tu correo verificado en Brevo
     private final String emailFrom = "mivianditautn@gmail.com";
 
@@ -80,7 +83,7 @@ public class EmailService {
     //  Recuperar contraseña
     @Async
     public void sendRecoveryEmail(String to, String nombre, String token) {
-        String link = "http://localhost:4200/change-password?token=" + token;
+        String link = frontendUrl + "/change-password?token=" + token;
         String contenido = buildRecoveryEmail(nombre, link);
         sendEmail(to, "Restablecer Contraseña - MiViandita", contenido);
     }
