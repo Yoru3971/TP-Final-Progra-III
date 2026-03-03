@@ -140,7 +140,7 @@ public class AuthServiceImpl implements AuthService {
         usuario.setEnabled(true);
         usuarioRepository.save(usuario);
 
-        return "Cuenta confirmada exitosamente";
+        return "Cuenta confirmada exitosamente.";
     }
 
     // === LOGIN ===
