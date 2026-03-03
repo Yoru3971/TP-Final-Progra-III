@@ -23,7 +23,9 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -128,6 +130,31 @@ public class EmprendimientoAdminController {
         Map<String, Object> response = new HashMap<>();
         response.put("Emprendimiento actualizado correctamente (ADMIN):", emprendimientoActualizado);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+            summary = "Actualizar la imagen de un emprendimiento por ID (ADMIN)",
+            description = "Permite a un ad actualizar la imagen de un emprendimiento específico por su ID.",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Emprendimiento actualizado correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud incorrecta, datos inválidos"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado, no tenés el rol necesario"),
+            @ApiResponse(responseCode = "404", description = "Emprendimiento no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PutMapping("/id/{id}/imagen")
+    public ResponseEntity<EmprendimientoDTO> updateImagenEmprendimiento(
+            @PathVariable Long id,
+            @RequestParam("image") MultipartFile image,
+            @AuthenticationPrincipal Usuario usuario
+    ) {
+        EmprendimientoDTO emprendimientoActualizado = emprendimientoService.updateImagenEmprendimiento(id, image, usuario);
+
+        emprendimientoActualizado.add(linkTo(methodOn(EmprendimientoDuenoController.class).getEmprendimientoById(id)).withSelfRel());
+
+        return ResponseEntity.ok(emprendimientoActualizado);
     }
 
     //--------------------------Delete (Admin)--------------------------//
