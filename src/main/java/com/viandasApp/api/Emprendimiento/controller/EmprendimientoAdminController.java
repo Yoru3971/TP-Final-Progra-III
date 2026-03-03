@@ -134,7 +134,7 @@ public class EmprendimientoAdminController {
 
     @Operation(
             summary = "Actualizar la imagen de un emprendimiento por ID (ADMIN)",
-            description = "Permite a un ad actualizar la imagen de un emprendimiento específico por su ID.",
+            description = "Permite a un admin actualizar la imagen de un emprendimiento específico por su ID.",
             security = @SecurityRequirement(name = "bearer-jwt")
     )
     @ApiResponses(value = {
