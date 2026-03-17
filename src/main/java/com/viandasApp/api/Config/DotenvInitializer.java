@@ -91,6 +91,11 @@ public class DotenvInitializer implements ApplicationContextInitializer<Configur
             envMap.put("app.cors.allowed-origins", dotenv.get("app.cors.allowed-origins"));
         }
 
+        // --- Virtual Threads ---
+        if (dotenv.get("spring.threads.virtual.enabled") != null) {
+            envMap.put("spring.threads.virtual.enabled", dotenv.get("spring.threads.virtual.enabled"));
+        }
+
         propertySources.addFirst(new MapPropertySource("dotenvProperties", envMap));
         System.out.println("Loaded .env variables: " + envMap); // Para debug
     }
