@@ -395,8 +395,25 @@ public class PedidoServiceImpl implements PedidoService {
         boolean cambioEstado = false;
         LocalDate hoy = LocalDate.now();
 
+        // Logica de cancelacion
+        if (updatePedidoDTO.getEstado() != null) {
+
+            // El cliente solo puede cancelar
+            if (updatePedidoDTO.getEstado() != EstadoPedido.CANCELADO) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, "El cliente sólo puede cancelar el pedido."
+                );
+            }
+
+            pedido.setEstado(EstadoPedido.CANCELADO);
+            cambioEstado = true;
+        }
+
         // Logica para cambiar la fecha
-        if (updatePedidoDTO.getFechaEntrega() != null) {
+        if (updatePedidoDTO.getFechaEntrega() != null
+            // Si se está cancelando, ignorar la fecha si es igual a la actual
+            && !(cambioEstado && updatePedidoDTO.getFechaEntrega().isEqual(pedido.getFechaEntrega())))
+        {
 
             // REGLA: No se puede cambiar si la entrega es mañana
             if (pedido.getFechaEntrega().equals(hoy.plusDays(1))) {
@@ -424,20 +441,6 @@ public class PedidoServiceImpl implements PedidoService {
 
             pedido.setFechaEntrega(updatePedidoDTO.getFechaEntrega());
             cambioFecha = true;
-        }
-
-        // Logica de cancelacion
-        if (updatePedidoDTO.getEstado() != null) {
-
-            // El cliente solo puede cancelar
-            if (updatePedidoDTO.getEstado() != EstadoPedido.CANCELADO) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "El cliente sólo puede cancelar el pedido."
-                );
-            }
-
-            pedido.setEstado(EstadoPedido.CANCELADO);
-            cambioEstado = true;
         }
 
         Pedido actualizado = pedidoRepository.save(pedido);
