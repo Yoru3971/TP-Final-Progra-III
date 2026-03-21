@@ -3,8 +3,10 @@ package com.viandasApp.api;
 import com.viandasApp.api.Config.DotenvInitializer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
+@EnableAsync
 public class ViandasApiApplication {
 
 	public static void main(String[] args) {
