@@ -237,6 +237,37 @@ public class UsuarioAdminController {
     }
 
     @Operation(
+            summary = "Cambiar contraseña del administrador autenticado",
+            description = "Permite al administrador cambiar su propia contraseña",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Contraseña actualizada correctamente"),
+            @ApiResponse(responseCode = "400", description = "Solicitud inválida, datos incorrectos"),
+            @ApiResponse(responseCode = "401", description = "No autorizado, se requiere login"),
+            @ApiResponse(responseCode = "403", description = "Contraseña actual incorrecta o acceso denegado"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PutMapping("/changePassword/me")
+    public ResponseEntity<?> cambiarMiPassword(
+            @RequestBody PasswordUpdateDTO passwordUpdateDTO
+    ) {
+        Usuario autenticado = (Usuario) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        usuarioService.cambiarPassword(
+                autenticado.getId(),
+                passwordUpdateDTO.getPasswordActual(),
+                passwordUpdateDTO.getPasswordNueva(),
+                autenticado
+        );
+        Map<String, String> response = new HashMap<>();
+
+        response.put("message", "Contraseña actualizada correctamente");
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(
             summary = "Activar un usuario no activado",
             description = "Permite al administrador activar un usuario aún no activado (validado mediante mail)",
             security = @SecurityRequirement(name = "bearer-jwt")
